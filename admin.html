@@ -8,7 +8,7 @@
         /* Styles spécifiques au panneau Admin */
         .admin-container {
             padding-top: 100px;
-            max-width: 800px; /* Conteneur plus large */
+            max-width: 600px; /* Retour à la largeur standard */
             margin: 0 auto;
             text-align: center;
         }
@@ -33,7 +33,7 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px; /* Espace entre la PDP et le texte */
+            gap: 15px;
         }
         .user-name {
             font-weight: bold;
@@ -53,7 +53,6 @@
             cursor: pointer;
             margin-left: 10px;
         }
-        /* La classe .leaderboard-pdp est définie dans styles.css et est utilisée ici */
     </style>
 </head>
 <body>
@@ -97,7 +96,6 @@
         
         const userList = document.getElementById('user-list');
         const adminStatus = document.getElementById('admin-status');
-        const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
 
         function deleteUser(username) {
             if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur : ${username} ? Cette action est irréversible.`)) {
@@ -127,7 +125,7 @@
         function renderAdminUsers() {
             // Vérification de chargement des fonctions
             if (typeof getCurrentUser === 'undefined' || typeof isAdmin === 'undefined' || typeof loadUsers === 'undefined') {
-                 adminStatus.textContent = "Erreur critique: Les fonctions d'administration ne sont pas chargées. Vérifiez auth.js.";
+                 adminStatus.textContent = "Erreur de chargement. Vérifiez auth.js.";
                  return;
             }
             
@@ -152,22 +150,12 @@
             userList.innerHTML = '';
 
             for (const username in users) {
-                const user = users[username];
-                
-                // Obtenir l'URL de la PDP
-                const pdpUrl = user.pdp || DEFAULT_PDP_URL;
-                
-                // --- DEBOGAGE PDP ---
-                console.log(`Admin - Utilisateur: ${username}, PDP URL: ${pdpUrl}`);
-                // --- FIN DEBOGAGE ---
-
                 // Déterminer le rôle
                 const role = isAdmin(username) ? '<span class="admin-role">(ADMIN)</span>' : '';
                 
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
                     <div class="user-info">
-                        <img src="${pdpUrl}" alt="PDP" class="leaderboard-pdp">
                         <span class="user-name">${username}</span>
                         ${role}
                     </div>
@@ -179,7 +167,6 @@
             }
         }
 
-        // Lancement de la vérification Admin et du rendu
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof loadUsers !== 'undefined') {
                 renderAdminUsers();
@@ -188,7 +175,6 @@
             }
         });
         
-        // Rendre la fonction accessible globalement pour les boutons de suppression
         window.deleteUser = deleteUser;
     </script>
 </body>
