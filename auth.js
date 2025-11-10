@@ -105,7 +105,7 @@ function saveGameData(username, game, data) {
     return false;
 }
 
-// --- Fonctions de Classement ---
+// --- Fonctions de Classement (utilisées par space-invaders.html) ---
 
 function getFullLeaderboard(game = 'space_invaders') {
     const users = loadUsers();
@@ -128,19 +128,6 @@ function getLeaderboard(game = 'space_invaders', limit = 10) {
     return getFullLeaderboard(game).slice(0, limit);
 }
 
-function getPersonalRank(username, game = 'space_invaders') {
-    const fullLeaderboard = getFullLeaderboard(game);
-    if (!username) return null;
-    const index = fullLeaderboard.findIndex(entry => entry.username === username);
-    if (index === -1) {
-        return null; 
-    }
-    const rank = index + 1;
-    const score = fullLeaderboard[index].score;
-    return { rank: rank, score: score };
-}
-
-
 // --- Rendu de l'interface utilisateur (UI) ---
 
 function renderAuthControls() {
@@ -154,7 +141,6 @@ function renderAuthControls() {
         const userData = getUserData(currentUser);
         const pdpUrl = userData ? userData.pdp || DEFAULT_PDP_URL : DEFAULT_PDP_URL;
         
-        // CORRECTION: Suppression du lien ADMIN dans la navbar principale (pour n'en avoir qu'un)
         AUTH_CONTROLS.innerHTML = `
             <img src="${pdpUrl}" alt="PDP" id="nav-pdp">
             <span id="user-info-display">${currentUser}</span> 
@@ -171,6 +157,7 @@ function renderAuthControls() {
     // Ajout/suppression du lien ADMIN dans la SIDEBAR (Menu Hamburger)
     const sidebarElement = document.getElementById('sidebar');
     if (sidebarElement) {
+        // CORRECTION: Assurer que le lien ADMIN n'est ajouté qu'une seule fois et est le dernier.
         let adminLinkSidebar = sidebarElement.querySelector('.admin-link');
         
         if (isAdmin(currentUser)) {
@@ -179,13 +166,81 @@ function renderAuthControls() {
                 adminAnchor.href = "admin.html";
                 adminAnchor.textContent = "🛡️ Admin";
                 adminAnchor.classList.add('admin-link');
-                sidebarElement.appendChild(adminAnchor); 
+                
+                // Si l'élément Compte est présent, insérer l'admin juste avant.
+                // Sinon, l'ajouter à la fin.
+                const accountLink = sidebarElement.querySelector('a[href="authentification.html"]');
+                
+                if (accountLink) {
+                    sidebarElement.insertBefore(adminAnchor, accountLink);
+                } else {
+                    sidebarElement.appendChild(adminAnchor);
+                }
             }
         } else if (adminLinkSidebar) {
             adminLinkSidebar.remove();
         }
     }
 }
+
+// --- Logique du Panneau d'Administration (pour admin.html) ---
+
+function renderAdminPanel() {
+    const currentUser = getCurrentUser();
+    const userListContainer = document.getElementById('user-list');
+    
+    if (!currentUser || !isAdmin(currentUser) || !userListContainer) {
+        return; 
+    }
+
+    const users = loadUsers();
+    userListContainer.innerHTML = ''; 
+
+    for (const username in users) {
+        const userData = users[username];
+        const pdpUrl = userData.pdp || DEFAULT_PDP_URL;
+        const isAdminUser = isAdmin(username);
+
+        const li = document.createElement('li');
+        li.classList.add('admin-list-item');
+        
+        li.innerHTML = `
+            <div class="user-details">
+                <img src="${pdpUrl}" alt="PDP" class="user-pdp-admin">
+                <span>${username}</span>
+                ${isAdminUser ? '<span class="admin-status">(ADMIN)</span>' : ''}
+            </div>
+            <div class="admin-controls">
+                ${username !== currentUser && !isAdminUser 
+                    ? `<button class="delete" onclick="deleteUser('${username}')">Supprimer</button>` 
+                    : (username === currentUser ? '<span style="color:#aaa;">(Vous)</span>' : '<span style="color:#f39c12;">(Admin)</span>')
+                }
+            </div>
+        `;
+        userListContainer.appendChild(li);
+    }
+}
+
+function deleteUser(username) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${username}" ? Cette action est irréversible.`)) {
+        
+        if (typeof loadUsers === 'undefined' || typeof saveUsers === 'undefined') {
+            alert("Erreur: Les fonctions de gestion d'utilisateurs ne sont pas disponibles.");
+            return;
+        }
+        
+        const users = loadUsers(); 
+        delete users[username];
+        saveUsers(users);
+        
+        if (getCurrentUser() === username) {
+            logout();
+        } else {
+            renderAdminPanel(); // Rafraîchit la liste
+        }
+    }
+}
+
 
 // --- Initialisation ---
 document.addEventListener('DOMContentLoaded', renderAuthControls);
@@ -194,12 +249,14 @@ document.addEventListener('DOMContentLoaded', renderAuthControls);
 window.saveGameData = saveGameData;
 window.getCurrentUser = getCurrentUser; 
 window.getLeaderboard = getLeaderboard; 
-window.getPersonalRank = getPersonalRank;
 window.getUserData = getUserData;
 window.renderAuthControls = renderAuthControls;
 window.login = login;
 window.register = register;
 window.logout = logout;
 window.updatePDP = updatePDP;
-window.loadUsers = loadUsers; // Rendu public pour admin.html
-window.saveUsers = saveUsers; // Rendu public pour admin.html
+window.loadUsers = loadUsers;
+window.saveUsers = saveUsers;
+window.renderAdminPanel = renderAdminPanel; // EXPOSÉ POUR admin.html
+window.deleteUser = deleteUser; // EXPOSÉ POUR admin.html
+window.isAdmin = isAdmin; // EXPOSÉ POUR admin.html
