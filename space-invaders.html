@@ -152,13 +152,14 @@
         }
 
         function drawEnemies() {
-            ctx.fillStyle = '#ff0000';
-            enemies.forEach(enemy => {
-                ctx.font = `${ENEMY_SIZE}px monospace`;
-                ctx.textAlign = 'center';
-                ctx.fillText("👾", enemy.x, enemy.y + ENEMY_SIZE / 4); 
-            });
-        }
+    ctx.fillStyle = '#ff0000'; // Les monstres restent rouges
+    enemies.forEach(enemy => {
+        ctx.font = `${ENEMY_SIZE}px monospace`;
+        ctx.textAlign = 'center';
+        // --- C'EST CETTE LIGNE À MODIFIER ---
+        ctx.fillText("👾", enemy.x, enemy.y + ENEMY_SIZE / 4); 
+    });
+}
         
         function drawGameOver() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
