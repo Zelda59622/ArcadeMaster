@@ -9,27 +9,45 @@
         #gameCanvas { 
             border: 2px solid #00ff00; 
             background-color: #000; 
-            margin-top: 20px; 
-            margin-bottom: 20px;
-        }
-        #infoPanel { 
-            color: white; 
-            margin-top: 10px; 
-            font-size: 1.2em; 
-            display: flex; 
-            gap: 20px;
         }
         .game-title { 
             color: #00ff00; 
             margin-top: 20px; 
         }
         body { 
-            overflow: hidden; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             padding-top: 55px;
+            /* Supprime le overflow: hidden pour le cas où le classement dépasserait */
+            min-height: 100vh;
         } 
+        
+        /* Nouveau conteneur pour le jeu et le classement */
+        #game-wrapper {
+            display: flex;
+            flex-direction: row; /* Le jeu et le classement sont côte à côte */
+            align-items: flex-start; /* Aligner en haut */
+            gap: 30px; /* Espace entre le jeu et le classement */
+            margin-top: 20px;
+            width: fit-content; 
+        }
+        
+        /* Conteneur du jeu (Canvas et Info) */
+        #game-controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #infoPanel { 
+            color: white; 
+            font-size: 1.2em; 
+            display: flex; 
+            justify-content: space-around;
+            width: 800px;
+            margin-bottom: 10px;
+        }
         #reset-button {
             background-color: #f39c12; 
             color: white;
@@ -39,6 +57,7 @@
             font-size: 1.1em;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 10px;
             margin-bottom: 20px;
             display: none; 
         }
@@ -46,22 +65,10 @@
             background-color: #e67e22; 
         }
         
-        /* Nouveaux styles pour le classement intégré */
-        #leaderboardContainer {
-            width: 800px;
-            margin: 20px auto 0;
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-primary);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            max-height: 0; /* Caché par défaut */
-            opacity: 0;
-        }
-        
-        #leaderboardContainer.expanded {
-            max-height: 500px; /* Taille maximale arbitraire pour l'expansion */
-            opacity: 1;
+        /* Styles pour le classement à droite */
+        #leaderboard-panel {
+            width: 300px; /* Taille fixe */
+            margin-top: 55px; /* Décaler vers le bas pour aligner l'infoPanel */
         }
         
         #leaderboardTitle {
@@ -72,6 +79,26 @@
             text-align: center;
             font-size: 1.2em;
             border-bottom: 1px solid var(--color-primary);
+            border-radius: 8px 8px 0 0;
+        }
+        
+        #leaderboardContainer {
+            width: 300px; 
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-primary);
+            border-top: none; 
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            max-height: 500px; 
+            opacity: 1; 
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        
+        #leaderboardContainer.hidden {
+             max-height: 0;
+             opacity: 0;
+             border: none;
         }
         
         .leaderboard-table {
@@ -80,7 +107,7 @@
         }
         
         .leaderboard-table th, .leaderboard-table td {
-            padding: 8px;
+            padding: 5px 8px; 
             text-align: left;
             border-bottom: 1px solid #333;
         }
@@ -94,12 +121,16 @@
             color: var(--color-secondary);
         }
         .leaderboard-pdp {
-            width: 25px;
-            height: 25px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             vertical-align: middle;
             border: 1px solid var(--color-primary);
         }
+        .leaderboard-table th:nth-child(1), .leaderboard-table td:nth-child(1) { width: 40px; text-align: center;}
+        .leaderboard-table th:nth-child(3), .leaderboard-table td:nth-child(3) { width: 30px;}
+        .leaderboard-table th:nth-child(4), .leaderboard-table td:nth-child(4) { width: 70px;}
+
     </style>
 </head>
 <body>
@@ -118,32 +149,42 @@
         <a href="index.html">🏠 Accueil</a>
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
+        <a href="authentification.html">⚙️ Compte</a>
         </div>
 
     <h1 class="game-title">SPACE INVADERS</h1>
     
-    <div id="infoPanel">
-        <span>Score: <span id="scoreValue">0</span></span>
-        <span id="highScoreDisplay">Meilleur Score: <span>-</span></span> 
-    </div>
+    <div id="game-wrapper">
     
-    <button id="reset-button" onclick="resetGameAndStart()">Recommencer la Partie</button>
-    
-    <div id="leaderboardTitle" onclick="toggleLeaderboard()">
-        🏆 CLASSEMENT MONDIAL (Cliquez pour afficher/masquer) ⬇️
-    </div>
+        <div id="game-controls-container">
+            <div id="infoPanel">
+                <span>Score: <span id="scoreValue">0</span></span>
+                <span id="highScoreDisplay">Meilleur Score: <span>-</span></span> 
+            </div>
+            
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <button id="reset-button" onclick="resetGameAndStart()">Recommencer la Partie</button>
+        </div>
 
-    <div id="leaderboardContainer">
-        <table class="leaderboard-table">
-            <thead>
-                <tr><th>Rng</th><th>Joueur</th><th>PDP</th> <th>Score</th></tr>
-            </thead>
-            <tbody id="leaderboardTableBody">
-                </tbody>
-        </table>
-    </div>
+        <div id="leaderboard-panel">
+            <div id="leaderboardTitle" onclick="toggleLeaderboard()">
+                🏆 CLASSEMENT MONDIAL (Cliquez pour masquer) ⬆️
+            </div>
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="leaderboardContainer" class="expanded">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr><th>Rng</th><th>Joueur</th><th>PDP</th> <th>Score</th></tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody">
+                        <tr><td colspan="4" style="text-align:center;">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
 
     <script src="auth.js"></script>
     <script>
@@ -165,13 +206,13 @@
         function toggleLeaderboard() {
             const container = document.getElementById('leaderboardContainer');
             const title = document.getElementById('leaderboardTitle');
-            container.classList.toggle('expanded');
+            const isHidden = container.classList.toggle('hidden');
             
-            if(container.classList.contains('expanded')) {
-                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour afficher/masquer) ⬆️';
-                 renderLeaderboard();
+            if(isHidden) {
+                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour afficher) ⬇️';
             } else {
-                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour afficher/masquer) ⬇️';
+                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour masquer) ⬆️';
+                 renderLeaderboard();
             }
         }
         
@@ -199,11 +240,11 @@
                 const pdpUrl = userData && userData.pdp ? userData.pdp : DEFAULT_PDP_URL;
 
                 if (rank === 1) {
-                    trophy = '<span class="trophy">🥇</span>';
+                    trophy = '<span style="font-size: 1.2em;">🥇</span>';
                 } else if (rank === 2) {
-                    trophy = '<span class="trophy">🥈</span>';
+                    trophy = '<span style="font-size: 1.2em;">🥈</span>';
                 } else if (rank === 3) {
-                    trophy = '<span class="trophy">🥉</span>';
+                    trophy = '<span style="font-size: 1.2em;">🥉</span>';
                 }
 
                 const row = leaderboardBody.insertRow();
@@ -241,12 +282,12 @@
                  renderAuthControls();
              }
              loadHighScore(); 
-             // On ne rend pas le classement ici, il se rendra au clic
+             renderLeaderboard(); 
              resetGame();
              requestAnimationFrame(gameLoop);
         });
         
-        // --- 2. LOGIQUE DU JEU SPACE INVADERS (Inchangée) ---
+        // --- 2. LOGIQUE DU JEU SPACE INVADERS ---
         
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -280,12 +321,13 @@
         let lastSpawnTime = 0;
         let animationFrameId = null;
 
+        // **ATTENTION :** J'ai augmenté la taille des caractères pour tenter de corriger l'affichage.
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(player.angle + Math.PI / 2); 
             ctx.fillStyle = '#00ff00';
-            ctx.font = `${player.size * 2}px monospace`; 
+            ctx.font = `${player.size * 2.5}px monospace`; // Augmenté la taille
             ctx.textAlign = 'center';
             ctx.fillText("▲", 0, player.size * 0.7); 
             ctx.restore();
@@ -303,7 +345,7 @@
         function drawEnemies() {
             ctx.fillStyle = '#ff0000';
             enemies.forEach(enemy => {
-                ctx.font = `${ENEMY_SIZE}px monospace`;
+                ctx.font = `${ENEMY_SIZE * 1.3}px monospace`; // Augmenté la taille
                 ctx.textAlign = 'center';
                 ctx.fillText("👾", enemy.x, enemy.y + ENEMY_SIZE / 4); 
             });
@@ -321,8 +363,9 @@
             ctx.fillText('Appuyez sur ESPACE ou cliquez sur Recommencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
             resetButton.style.display = 'block'; 
             
-            // Ouvrir le classement après la fin du jeu
-            if (!document.getElementById('leaderboardContainer').classList.contains('expanded')) {
+            // S'assurer que le classement est visible à la fin du jeu
+            const container = document.getElementById('leaderboardContainer');
+            if (container.classList.contains('hidden')) {
                  toggleLeaderboard();
             }
         }
@@ -351,6 +394,7 @@
                     if (user && typeof saveGameData !== 'undefined') {
                         saveGameData(user, GAME_ID, { score: score });
                         loadHighScore(); // Mise à jour du meilleur score après la partie
+                        renderLeaderboard(); // Mise à jour du classement
                     } 
                     gameOver = true;
                 }
@@ -439,10 +483,6 @@
             player.velY = 0;
             enemySpawnInterval = 1500;
             resetButton.style.display = 'none'; 
-            
-            // Fermer le classement au début du jeu
-            document.getElementById('leaderboardContainer').classList.remove('expanded');
-            document.getElementById('leaderboardTitle').innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour afficher/masquer) ⬇️';
         }
         
         function resetGameAndStart() {
@@ -505,7 +545,8 @@
         });
 
         window.resetGameAndStart = resetGameAndStart; 
-        window.toggleLeaderboard = toggleLeaderboard; // Rendre accessible
+        window.toggleLeaderboard = toggleLeaderboard; 
+        window.renderLeaderboard = renderLeaderboard; 
     </script>
 </body>
 </html>
