@@ -1,5 +1,5 @@
 /* ========================================================= */
-/* 1. STYLES GÉNÉRAUX ET RESET (Couleurs finales : Noir & Gris) */
+/* 1. STYLES GÉNÉRAUX ET RESET (Rétablissement des couleurs) */
 /* ========================================================= */
 
 body {
@@ -43,7 +43,6 @@ h1 {
     transform: translateX(-50%); /* Centre la barre de navigation */
     z-index: 2000; 
     
-    /* Style du conteneur de la barre */
     background-color: #1E1E1E; /* Fond de la barre (Gris foncé, subtil) */
     border: 1px solid #333; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
@@ -55,7 +54,6 @@ h1 {
 }
 
 #navbar a {
-    /* Style des liens dans la barre */
     margin: 0 10px; 
     padding: 5px 8px;
     display: inline-flex; 
