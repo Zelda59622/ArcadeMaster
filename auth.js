@@ -2,7 +2,7 @@
 const AUTH_CONTROLS = document.getElementById('auth-controls');
 const STORAGE_KEY = 'arcadeMasterUsers';
 const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
-// !!! Administrateur par défaut - Changez si nécessaire !!!
+// Administrateur par défaut
 const ADMIN_USERS = ['Zelda5962']; 
 
 // --- Fonctions de base de données (Chargement/Sauvegarde) ---
@@ -13,7 +13,6 @@ function loadUsers() {
         return {}; 
     }
     
-    // Ajout d'une gestion d'erreur (try/catch) pour éviter le crash en cas de JSON invalide
     try {
         const users = JSON.parse(usersJson);
         if (typeof users === 'object' && users !== null) {
@@ -21,7 +20,6 @@ function loadUsers() {
         }
     } catch (error) {
         console.error("Erreur de décodage des données utilisateurs dans localStorage. Le cache est corrompu.", error);
-        // Retourne un objet vide pour empêcher le script de planter
         return {};
     }
     return {};
@@ -44,7 +42,57 @@ function getUserData(username) {
     return users[username] || null; 
 }
 
-// --- Fonctions de Sauvegarde de Jeu (CLÉ POUR LE CLASSEMENT) ---
+// --- Fonctions d'Authentification (à compléter si non présentes) ---
+
+function login(username, password) {
+    const users = loadUsers();
+    if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
+        renderAuthControls();
+        return true;
+    }
+    return false;
+}
+
+function register(username, password) {
+    const users = loadUsers();
+    if (users[username]) {
+        return false; 
+    }
+    users[username] = { password: password, games: {} };
+    saveUsers(users);
+    return true;
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    renderAuthControls();
+    window.location.href = 'index.html';
+}
+
+function changePassword(username, newPassword) {
+    const users = loadUsers();
+    if (users[username]) {
+        users[username].password = newPassword;
+        saveUsers(users);
+        return true;
+    }
+    return false;
+}
+
+function updatePDP(username, newUrl) {
+    const users = loadUsers();
+    if (users[username]) {
+        users[username].pdp = newUrl;
+        saveUsers(users);
+        renderAuthControls();
+        return true;
+    }
+    return false;
+}
+
+
+// --- Fonction de Sauvegarde de Jeu ---
 
 function saveGameData(username, game, data) {
     const users = loadUsers();
@@ -57,7 +105,6 @@ function saveGameData(username, game, data) {
             users[username].games[game] = { highScore: 0 };
         }
         
-        // Sauvegarde seulement si le nouveau score est supérieur
         if (data.score > users[username].games[game].highScore) {
             users[username].games[game].highScore = data.score;
             saveUsers(users); 
@@ -83,7 +130,6 @@ function getFullLeaderboard(game = 'space_invaders') {
             });
         }
     }
-    // Trie tous les scores par ordre décroissant
     scores.sort((a, b) => b.score - a.score); 
     return scores;
 }
@@ -118,8 +164,9 @@ function renderAuthControls() {
         const userData = getUserData(currentUser);
         const pdpUrl = userData ? userData.pdp || DEFAULT_PDP_URL : DEFAULT_PDP_URL;
         
+        // CORRECTION DU LIEN ADMIN
         const adminLink = isAdmin(currentUser) 
-            ? '<a href="admin.html" class="nav-link" style="color:yellow; text-decoration:none;">ADMIN</a>' 
+            ? '<a href="admin.html" class="nav-link" style="color:yellow; text-decoration:none;">🛡️ ADMIN</a>' 
             : '';
 
         AUTH_CONTROLS.innerHTML = `
@@ -155,17 +202,18 @@ function renderAuthControls() {
     }
 }
 
-// --- Les autres fonctions d'authentification (login, register, logout, etc.)
-// ... doivent être présentes ici ...
-
 // --- Initialisation ---
 document.addEventListener('DOMContentLoaded', renderAuthControls);
 
-// Rendre les fonctions importantes accessibles globalement (ajoutez ici les fonctions manquantes comme login, register, etc.)
+// Rendre les fonctions importantes accessibles globalement
 window.saveGameData = saveGameData;
 window.getCurrentUser = getCurrentUser; 
 window.getLeaderboard = getLeaderboard; 
 window.getPersonalRank = getPersonalRank;
 window.getUserData = getUserData;
 window.renderAuthControls = renderAuthControls;
-// ... etc.
+window.login = login;
+window.register = register;
+window.logout = logout;
+window.updatePDP = updatePDP;
+window.changePassword = changePassword;
