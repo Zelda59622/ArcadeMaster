@@ -5,6 +5,7 @@ const AUTH_CONTROLS = document.getElementById('auth-controls');
 const STORAGE_KEY = 'arcadeMasterUsers';
 
 // --- Constantes de Rôles et Defaults ---
+const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
 const ADMIN_USERS = ['Zelda5962']; // Utilisateurs ayant le rôle ADMIN
 
 // --- Fonctions de base de données ---
@@ -41,14 +42,21 @@ function logout() {
     }
 }
 
-// Fonction utilitaire pour obtenir les données complètes d'un utilisateur
 function getUserData(username) {
     const users = loadUsers();
-    // Retourne l'objet utilisateur, ou null s'il n'existe pas
     return users[username] || null; 
 }
 
-// Gestion du mot de passe
+function updatePDP(username, newUrl) {
+    const users = loadUsers();
+    if (users[username]) {
+        users[username].pdp = newUrl;
+        saveUsers(users);
+        return true;
+    }
+    return false;
+}
+
 function changePassword(username, newPassword) {
     const users = loadUsers();
     if (users[username]) {
@@ -63,16 +71,17 @@ function changePassword(username, newPassword) {
 function saveGameData(username, game, data) {
     const users = loadUsers();
     
-    // Initialisation si l'utilisateur n'existe pas
+    // Initialisation si l'utilisateur n'existe pas ou n'a pas de PDP
     if (!users[username]) {
         users[username] = { 
             password: '', 
-            games: {}
-            // Pas de PDP ici
+            games: {}, 
+            pdp: DEFAULT_PDP_URL 
         };
+    } else if (users[username].pdp === undefined) {
+         users[username].pdp = DEFAULT_PDP_URL;
     }
     
-    // Assurez-vous que l'objet games existe
     if (!users[username].games) {
         users[username].games = {};
     }
@@ -123,18 +132,20 @@ function renderAuthControls() {
     AUTH_CONTROLS.innerHTML = ''; 
 
     if (currentUser) {
-        // Utilisateur connecté : Montrer le nom et le bouton Compte (SANS PDP)
+        const userData = getUserData(currentUser);
+        const pdpUrl = userData ? userData.pdp || DEFAULT_PDP_URL : DEFAULT_PDP_URL;
+        
         const adminLink = isAdmin(currentUser) 
             ? '<a href="admin.html" class="nav-link" style="color:yellow; text-decoration:none;">ADMIN</a>' 
             : '';
 
         AUTH_CONTROLS.innerHTML = `
+            <img src="${pdpUrl}" alt="PDP" id="nav-pdp">
             <span id="user-info-display">${currentUser}</span> 
             <a href="authentification.html" id="account-button">⚙️ Compte</a>
             ${adminLink}
         `;
     } else {
-        // Utilisateur déconnecté : Montrer le bouton S'inscrire/Se Connecter
         AUTH_CONTROLS.innerHTML = `
             <button id="login-button" onclick="window.location.href='authentification.html'">
                 S'inscrire / Se Connecter
@@ -142,7 +153,6 @@ function renderAuthControls() {
         `;
     }
     
-    // Gestion du lien Admin dans la Sidebar
     const sidebarElement = document.getElementById('sidebar');
     if (sidebarElement) {
         let adminLinkSidebar = sidebarElement.querySelector('.admin-link');
@@ -161,7 +171,6 @@ function renderAuthControls() {
 }
 
 // --- Initialisation ---
-
 document.addEventListener('DOMContentLoaded', renderAuthControls);
 
 // Rendre les fonctions importantes accessibles globalement
@@ -174,4 +183,4 @@ window.changePassword = changePassword;
 window.login = login;
 window.isAdmin = isAdmin;
 window.getUserData = getUserData;
-// Suppression de window.updatePDP
+window.updatePDP = updatePDP;
