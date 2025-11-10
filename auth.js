@@ -1,6 +1,5 @@
 // =========================================================
-// 1. GESTION DES UTILISATEURS ET AUTHENTIFICATION
-// Les sons de clic de menu (button-pressed.mp3) ont été retirés.
+// 1. GESTION DES UTILISATEURS ET AUTHENTIFICATION (SANS AUCUN SON)
 // =========================================================
 
 // Sauvegarde l'objet utilisateurs dans le localStorage
@@ -75,13 +74,11 @@ if (typeof module !== 'undefined' && module.exports) {
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    
     // --- GESTION DES FORMULAIRES ET DÉCONNEXION ---
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const logoutButton = document.getElementById('logoutButton');
 
-    // Gère l'envoi du formulaire de connexion
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -91,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gère l'envoi du formulaire d'inscription
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -101,11 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Gère le bouton de déconnexion
     if (logoutButton) {
         logoutButton.addEventListener('click', logout);
     }
-    
-    // Remarque : La logique pour afficher/masquer un menu déroulant 
-    // (si vous en aviez un) doit être ajoutée ici si elle était dans vos anciens menus.
 });
