@@ -1,14 +1,11 @@
 // Fichier: auth.js
-// ... (Fonctions loadUsers, saveUsers, getCurrentUser, isAdmin, etc. restent inchangées)
-
 const AUTH_CONTROLS = document.getElementById('auth-controls');
 const STORAGE_KEY = 'arcadeMasterUsers';
 const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
+// !!! Changez 'Zelda5962' par votre nom d'utilisateur si vous avez changé d'Admin
 const ADMIN_USERS = ['Zelda5962']; 
 
-// ... (Autres fonctions de base de auth.js - login, logout, getUserData, updatePDP, changePassword, saveGameData)
-
-// --- Fonctions de base de données (Inchangé) ---
+// --- Fonctions de base de données (Chargement/Sauvegarde) ---
 
 function loadUsers() {
     const usersJson = localStorage.getItem(STORAGE_KEY);
@@ -31,10 +28,83 @@ function getUserData(username) {
     const users = loadUsers();
     return users[username] || null; 
 }
-// ... (Toutes les autres fonctions jusqu'à saveGameData, incluses, sont conservées)
 
-// --- Fonction de Classement (MODIFIÉE) ---
+// --- Fonctions d'Authentification (Inchangé si vous les aviez) ---
 
+function login(username, password) {
+    const users = loadUsers();
+    if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
+        renderAuthControls();
+        return true;
+    }
+    return false;
+}
+
+function register(username, password) {
+    const users = loadUsers();
+    if (users[username]) {
+        return false; // Utilisateur existe déjà
+    }
+    users[username] = { password: password, games: {} };
+    saveUsers(users);
+    return true;
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    renderAuthControls();
+    window.location.href = 'index.html';
+}
+
+function updatePDP(username, newUrl) {
+    const users = loadUsers();
+    if (users[username]) {
+        users[username].pdp = newUrl;
+        saveUsers(users);
+        renderAuthControls();
+        return true;
+    }
+    return false;
+}
+
+function changePassword(username, newPassword) {
+    const users = loadUsers();
+    if (users[username]) {
+        users[username].password = newPassword;
+        saveUsers(users);
+        return true;
+    }
+    return false;
+}
+
+// --- Fonction de Sauvegarde de Jeu (CLÉ POUR LE CLASSEMENT) ---
+
+function saveGameData(username, game, data) {
+    const users = loadUsers();
+    
+    if (users[username]) {
+        if (!users[username].games) {
+            users[username].games = {};
+        }
+        if (!users[username].games[game]) {
+            users[username].games[game] = { highScore: 0 };
+        }
+        
+        // Sauvegarde seulement si le nouveau score est supérieur
+        if (data.score > users[username].games[game].highScore) {
+            users[username].games[game].highScore = data.score;
+            saveUsers(users); 
+            console.log(`Nouveau meilleur score (${data.score}) sauvegardé pour ${username} dans ${game}.`);
+            return true;
+        }
+    }
+    return false;
+}
+
+// --- Fonctions de Classement ---
+
+// Récupère l'intégralité des scores pour un jeu donné
 function getFullLeaderboard(game = 'space_invaders') {
     const users = loadUsers();
     let scores = [];
@@ -48,31 +118,28 @@ function getFullLeaderboard(game = 'space_invaders') {
             });
         }
     }
-    // Trie tous les scores, sans limite
+    // Trie tous les scores par ordre décroissant
     scores.sort((a, b) => b.score - a.score);
     return scores;
 }
 
+// Récupère le Top X (par défaut Top 10)
 function getLeaderboard(game = 'space_invaders', limit = 10) {
-    // Utilise la fonction complète et la limite ensuite pour le Top X
     return getFullLeaderboard(game).slice(0, limit);
 }
 
-// NOUVELLE FONCTION : Trouve le rang d'un utilisateur spécifique
+// Trouve le rang d'un utilisateur spécifique
 function getPersonalRank(username, game = 'space_invaders') {
     const fullLeaderboard = getFullLeaderboard(game);
     
-    // Si l'utilisateur n'a pas de score, son rang est null
     if (!username) return null;
 
-    // Trouver l'index (position) du joueur dans la liste triée
     const index = fullLeaderboard.findIndex(entry => entry.username === username);
 
     if (index === -1) {
         return null; // Pas de score enregistré
     }
     
-    // Le rang est l'index + 1
     const rank = index + 1;
     const score = fullLeaderboard[index].score;
 
@@ -80,7 +147,7 @@ function getPersonalRank(username, game = 'space_invaders') {
 }
 
 
-// --- Rendu de l'interface utilisateur (UI) (Inchangé) ---
+// --- Rendu de l'interface utilisateur (UI) ---
 
 function renderAuthControls() {
     const currentUser = getCurrentUser();
@@ -111,6 +178,7 @@ function renderAuthControls() {
         `;
     }
     
+    // Ajout/suppression du lien ADMIN dans la SIDEBAR
     const sidebarElement = document.getElementById('sidebar');
     if (sidebarElement) {
         let adminLinkSidebar = sidebarElement.querySelector('.admin-link');
@@ -120,6 +188,7 @@ function renderAuthControls() {
             adminAnchor.href = "admin.html";
             adminAnchor.textContent = "🛡️ Admin";
             adminAnchor.classList.add('admin-link');
+            // Insérer avant le dernier lien 'Compte' ou à la fin
             sidebarElement.appendChild(adminAnchor); 
             
         } else if (!isAdmin(currentUser) && adminLinkSidebar) {
@@ -137,9 +206,11 @@ window.getCurrentUser = getCurrentUser;
 window.logout = logout;
 window.loadUsers = loadUsers; 
 window.getLeaderboard = getLeaderboard; 
-window.getPersonalRank = getPersonalRank; // NOUVEAU
+window.getPersonalRank = getPersonalRank;
 window.changePassword = changePassword;
 window.login = login;
 window.isAdmin = isAdmin;
 window.getUserData = getUserData;
 window.updatePDP = updatePDP;
+window.renderAuthControls = renderAuthControls; // Rendu accessible pour toutes les pages
+window.register = register;
