@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css">
     
     <script>
-        // --- Fonction du Menu Hamburger (CORRIGÉE: Utilise la largeur) ---
+        // --- Fonction du Menu Hamburger (UNIFORME ET ESSENTIELLE) ---
         function toggleMenu(x) {
             x.classList.toggle("change");
             const sidebar = document.getElementById("sidebar");
@@ -20,26 +20,18 @@
     </script>
 
     <style>
-        /* Styles spécifiques pour le classement */
+        /* Styles spécifiques pour le classement (pour les tableaux) */
         .leaderboard-table th:nth-child(4), 
-        .leaderboard-table td:nth-child(4) { 
-            text-align: right; 
-            font-weight: bold; 
-        }
+        .leaderboard-table td:nth-child(4) { text-align: right; font-weight: bold; }
         .leaderboard-table th:nth-child(1),
-        .leaderboard-table td:nth-child(1) {
-             text-align: center;
-             width: 50px;
-        }
+        .leaderboard-table td:nth-child(1) { text-align: center; width: 50px; }
     </style>
 </head>
 <body>
     
     <div id="navbar">
         <div class="hamburger-menu" onclick="toggleMenu(this)">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
         </div>
         <div id="auth-controls">
             </div>
@@ -64,12 +56,7 @@
                 <h2>Space Invaders (Top 10)</h2>
                 <table class="leaderboard-table">
                     <thead>
-                        <tr>
-                            <th>Rng</th>
-                            <th>Joueur</th>
-                            <th>PDP</th> 
-                            <th>Score</th>
-                        </tr>
+                        <tr><th>Rng</th><th>Joueur</th><th>PDP</th> <th>Score</th></tr>
                     </thead>
                     <tbody id="leaderboardTable_space_invaders">
                         <tr><td colspan="4" style="text-align:center;">Chargement du classement...</td></tr>
@@ -81,12 +68,7 @@
                 <h2>Jeu Exemple (Top 10)</h2>
                 <table class="leaderboard-table">
                     <thead>
-                        <tr>
-                            <th>Rng</th>
-                            <th>Joueur</th>
-                            <th>PDP</th> 
-                            <th>Score</th>
-                        </tr>
+                        <tr><th>Rng</th><th>Joueur</th><th>PDP</th> <th>Score</th></tr>
                     </thead>
                     <tbody id="leaderboardTable_jeu_exemple">
                          <tr><td colspan="4" style="text-align:center;">Classement non disponible.</td></tr>
@@ -100,13 +82,14 @@
     <script src="auth.js"></script>
     <script>
         const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
-
+        
+        // Rend le classement TOP 10 pour un jeu donné
         function renderTopLeaderboard(gameId) {
             const leaderboardBody = document.getElementById(`leaderboardTable_${gameId}`);
             if (!leaderboardBody) return;
 
             if (typeof getLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
-                leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: auth.js ne semble pas chargé.</td></tr>';
+                leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: auth.js non chargé.</td></tr>';
                 return;
             }
 
@@ -142,15 +125,15 @@
             });
         }
         
+        // Rend le classement personnel (sous le H1)
         function renderPersonalRank(gameId) {
+            const container = document.getElementById('personal-rank-container');
             if (typeof getCurrentUser === 'undefined' || typeof getPersonalRank === 'undefined') {
-                 document.getElementById('personal-rank-container').style.display = 'none';
+                 container.style.display = 'none';
                  return;
             }
             
             const currentUser = getCurrentUser();
-            const container = document.getElementById('personal-rank-container');
-            
             if (!currentUser) {
                 container.style.display = 'none';
                 return;
@@ -158,9 +141,7 @@
 
             const rankData = getPersonalRank(currentUser, gameId);
 
-            if (rankData && rankData.rank <= 10) {
-                container.style.display = 'none';
-            } else if (rankData) {
+            if (rankData && rankData.score > 0) {
                 container.style.display = 'block';
                 container.innerHTML = `
                     <h3>Votre Classement Personnel (Space Invaders)</h3>
@@ -180,16 +161,19 @@
         }
 
         function initializeLeaderboard() {
+            // S'assure que les fonctions d'Auth sont rendues
             if (typeof renderAuthControls === 'function') {
                 renderAuthControls();
             }
             
+            // Rend les classements
             renderTopLeaderboard('space_invaders');
             renderTopLeaderboard('jeu_exemple'); 
             renderPersonalRank('space_invaders');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Petit délai pour laisser auth.js se charger complètement
             setTimeout(initializeLeaderboard, 150); 
         });
     </script>
