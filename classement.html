@@ -3,17 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>ArcadeMaster - Classement</title>
-    <link rel="stylesheet" href="styles.css"> <style>
-        /* Conserver les styles spécifiques au classement */
-        body { padding-top: 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { max-width: 600px; margin: 40px auto; padding: 20px; background-color: #333; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
-        h1 { color: #00ff00; font-size: 2.5em; border-bottom: 2px solid #555; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles spécifiques pour le classement (petits ajustements de colonnes) */
+        
+        /* Ajuster la colonne score/pdp */
+        #leaderboardTable th:nth-child(4), 
+        #leaderboardTable td:nth-child(4) { 
+            text-align: right; 
+            font-weight: bold; 
+        }
+        
+        /* Centrer la colonne Rang */
+        #leaderboardTable th:nth-child(1),
+        #leaderboardTable td:nth-child(1) {
+             text-align: center;
+             width: 50px;
+        }
 
-        table { width: 100%; border-collapse: collapse; color: white; }
-        th, td { border: 1px solid #555; padding: 10px; text-align: left; }
-        th { background-color: #111; color: #00ff00; }
-        td:nth-child(3) { text-align: right; font-weight: bold; }
-        .trophy { color: gold; font-size: 1.2em; }
     </style>
 </head>
 <body>
@@ -32,56 +39,27 @@
         <a href="index.html">🏠 Accueil</a>
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
-        <a href="classement.html">🏆 Classement</a>
-    </div>
+        <a href="authentification.html">⚙️ Compte</a>
+        </div>
 
     <div class="container">
         <h1>🏆 Classement : Space Invaders</h1>
-        <div id="leaderboard-content">
-            <p style="text-align: center;">Chargement du classement...</p>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rang</th>
+                    <th>Joueur</th>
+                    <th>PDP</th> <th>Meilleur Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardTable">
+                </tbody>
+        </table>
     </div>
-    
+
     <script src="auth.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const leaderboardContent = document.getElementById('leaderboard-content');
-            
-            // Logique de chargement du classement (déjà dans le fichier précédent, mais répété pour la cohérence)
-            if (typeof getLeaderboard === 'undefined') {
-                leaderboardContent.innerHTML = '<p class="error" style="color:red; text-align:center;">Erreur de chargement du système de comptes.</p>';
-                return;
-            }
-
-            const leaderboard = getLeaderboard('space_invaders', 10);
-
-            if (leaderboard.length === 0) {
-                leaderboardContent.innerHTML = '<p style="text-align:center;">Aucun score enregistré pour Space Invaders. Jouez pour apparaître ici !</p>';
-                return;
-            }
-
-            let tableHTML = '<table><thead><tr><th>#</th><th>Pseudo</th><th>Meilleur Score</th></tr></thead><tbody>';
-            
-            leaderboard.forEach((item, index) => {
-                const rank = index + 1;
-                let rankIcon = rank;
-                if (rank === 1) rankIcon = '<span class="trophy">🥇</span>';
-                else if (rank === 2) rankIcon = '<span class="trophy">🥈</span>';
-                else if (rank === 3) rankIcon = '<span class="trophy">🥉</span>';
-                
-                tableHTML += `
-                    <tr>
-                        <td>${rankIcon}</td>
-                        <td>${item.username}</td>
-                        <td>${item.score}</td>
-                    </tr>
-                `;
-            });
-
-            tableHTML += '</tbody></table>';
-            leaderboardContent.innerHTML = tableHTML;
-        });
-
+        // --- Logique du Menu Hamburger ---
         function toggleMenu(x) {
             x.classList.toggle("change");
             const sidebar = document.getElementById("sidebar");
@@ -91,6 +69,66 @@
                 sidebar.style.width = "250px";
             }
         }
+        
+        const leaderboardBody = document.getElementById('leaderboardTable');
+        const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; // Doit correspondre à auth.js dans l'autre fichier
+
+        function renderLeaderboard() {
+            // S'assurer que les fonctions existent (elles viennent de auth.js)
+            if (typeof getLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
+                console.error("Erreur : Les fonctions getLeaderboard ou getUserData ne sont pas définies. Vérifiez auth.js.");
+                leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur de chargement du classement.</td></tr>';
+                return;
+            }
+
+            const leaderboardData = getLeaderboard('space_invaders', 10);
+            leaderboardBody.innerHTML = ''; // Nettoyer l'ancien contenu
+
+            leaderboardData.forEach((entry, index) => {
+                const rank = index + 1;
+                let trophy = '';
+                
+                // Obtenir les données complètes de l'utilisateur pour la PDP
+                const userData = getUserData(entry.username);
+                const pdpUrl = userData ? userData.pdp || DEFAULT_PDP_URL : DEFAULT_PDP_URL;
+
+                if (rank === 1) {
+                    trophy = '<span class="trophy">🥇</span>';
+                } else if (rank === 2) {
+                    trophy = '<span class="trophy">🥈</span>';
+                } else if (rank === 3) {
+                    trophy = '<span class="trophy">🥉</span>';
+                }
+
+                const row = leaderboardBody.insertRow();
+                
+                // Cellule 1: Rang
+                row.insertCell().innerHTML = `${trophy} ${rank}`;
+                
+                // Cellule 2: Joueur (Nom)
+                row.insertCell().textContent = entry.username;
+                
+                // Cellule 3: PDP (Photo de Profil)
+                row.insertCell().innerHTML = `
+                    <div class="user-display">
+                        <img src="${pdpUrl}" alt="PDP" class="leaderboard-pdp">
+                    </div>
+                `;
+                
+                // Cellule 4: Score
+                row.insertCell().textContent = entry.score;
+            });
+        }
+
+        // Lancement du rendu après le chargement des scripts (avec vérification)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof getLeaderboard !== 'undefined') {
+                renderLeaderboard();
+            } else {
+                // Délai de secours si auth.js n'est pas chargé immédiatement
+                setTimeout(renderLeaderboard, 200);
+            }
+        });
     </script>
 </body>
 </html>
