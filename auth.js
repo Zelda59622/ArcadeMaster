@@ -5,9 +5,9 @@ const AUTH_CONTROLS = document.getElementById('auth-controls');
 const STORAGE_KEY = 'arcadeMasterUsers';
 
 // --- Liste des utilisateurs administrateurs ---
-const ADMIN_USERS = ['Zelda5962']; // <--- VOUS ÊTES L'ADMIN DÉSORMAIS
+const ADMIN_USERS = ['Zelda5962']; // <--- L'utilisateur Zelda5962 est l'admin
 
-// --- Fonctions de base de données (Inchangées) ---
+// --- Fonctions de base de données ---
 
 function loadUsers() {
     const usersJson = localStorage.getItem(STORAGE_KEY);
@@ -25,6 +25,7 @@ function getCurrentUser() {
 }
 
 function isAdmin(username) {
+    // Vérifie si l'utilisateur est dans la liste des administrateurs
     return ADMIN_USERS.includes(username);
 }
 
@@ -36,12 +37,13 @@ function login(username) {
 function logout() {
     localStorage.removeItem('currentUser');
     renderAuthControls();
+    // Redirige vers la page d'authentification si on s'y trouve, pour rafraîchir
     if (window.location.pathname.endsWith('authentification.html')) {
         window.location.reload(); 
     }
 }
 
-// --- Gestion du mot de passe (Inchangée) ---
+// --- Gestion du mot de passe ---
 
 function changePassword(username, newPassword) {
     const users = loadUsers();
@@ -53,7 +55,7 @@ function changePassword(username, newPassword) {
     return false;
 }
 
-// --- Sauvegarde des Scores/Progression (Inchangée) ---
+// --- Sauvegarde des Scores/Progression ---
 
 function saveGameData(username, game, data) {
     const users = loadUsers();
@@ -65,6 +67,7 @@ function saveGameData(username, game, data) {
         users[username].games[game] = {};
     }
 
+    // Gestion du meilleur score pour Space Invaders
     if (game === 'space_invaders' && data.score !== undefined) {
         const currentBest = users[username].games[game].highScore || 0;
         if (data.score > currentBest) {
@@ -77,7 +80,7 @@ function saveGameData(username, game, data) {
     saveUsers(users);
 }
 
-// --- Fonction de Classement (Inchangée) ---
+// --- Fonction de Classement ---
 
 function getLeaderboard(game = 'space_invaders', limit = 10) {
     const users = loadUsers();
@@ -102,12 +105,15 @@ function getLeaderboard(game = 'space_invaders', limit = 10) {
 function renderAuthControls() {
     const currentUser = getCurrentUser();
     
+    // Vérifie si l'élément de contrôle existe sur la page (il devrait exister sur toutes les pages)
     if (!AUTH_CONTROLS) return; 
     
     AUTH_CONTROLS.innerHTML = ''; 
 
     if (currentUser) {
         // Utilisateur connecté : Montrer le nom et le bouton Compte
+        
+        // Ajout du lien ADMIN si l'utilisateur est un administrateur
         const adminLink = isAdmin(currentUser) 
             ? '<a href="admin.html" class="nav-link" style="color:yellow; text-decoration:none;">ADMIN</a>' 
             : '';
@@ -131,7 +137,7 @@ function renderAuthControls() {
 
 document.addEventListener('DOMContentLoaded', renderAuthControls);
 
-// Rendre les fonctions importantes accessibles globalement
+// Rendre les fonctions importantes accessibles globalement (pour les autres scripts)
 window.saveGameData = saveGameData;
 window.getCurrentUser = getCurrentUser; 
 window.logout = logout;
@@ -139,4 +145,4 @@ window.loadUsers = loadUsers;
 window.getLeaderboard = getLeaderboard; 
 window.changePassword = changePassword;
 window.login = login;
-window.isAdmin = isAdmin; // Nouvelle fonction accessible
+window.isAdmin = isAdmin;
