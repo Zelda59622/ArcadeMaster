@@ -13,6 +13,7 @@
         .game-title { 
             color: #00ff00; 
             margin-top: 20px; 
+            margin-bottom: 20px;
         }
         body { 
             display: flex; 
@@ -22,33 +23,56 @@
             min-height: 100vh;
         } 
         
-        /* Conteneur principal pour centrer le jeu et le classement */
-        #game-wrapper {
+        /* Conteneur principal: Jeu au centre, Infos à Gauche, Classement à Droite */
+        #main-game-area {
             display: flex;
             flex-direction: row; 
-            align-items: flex-start; 
-            gap: 30px; 
-            margin-top: 20px;
+            align-items: flex-start; /* Aligner les trois blocs en haut */
+            gap: 20px; /* Espace entre les blocs */
             width: fit-content; 
-            /* Centre le wrapper complet sur la page */
-            margin-left: auto;
-            margin-right: auto;
+            margin: 20px auto; /* Centrer le tout */
         }
         
-        /* Conteneur du jeu (Canvas et Info) */
-        #game-controls-container {
+        /* Conteneur du jeu (Canvas et Bouton) */
+        #game-center-container {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
+        /* --- NOUVEAU: Panneau d'Information Personnelle (Gauche) --- */
+        #personal-score-panel {
+            width: 250px; 
+            margin-top: 50px; /* Aligner avec le haut du Canvas */
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-primary);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--color-text);
+        }
+        #personal-score-panel h3 {
+            color: var(--color-secondary);
+            margin-top: 0;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        #personal-score-panel p {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
         
-        #infoPanel { 
+        /* --- Ancien panneau d'info (maintenant pour le score en cours) --- */
+        #current-info-bar { 
             color: white; 
-            font-size: 1.2em; 
+            font-size: 1.4em; 
             display: flex; 
             justify-content: space-around;
             width: 800px;
             margin-bottom: 10px;
+            padding: 10px 0;
+            background-color: #1a1a1a;
+            border-radius: 5px;
         }
         #reset-button {
             background-color: #f39c12; 
@@ -67,40 +91,24 @@
             background-color: #e67e22; 
         }
         
-        /* Styles pour le classement à droite */
+        /* --- Classement Mondial (Droite) - Rendu permanent --- */
         #leaderboard-panel {
             width: 300px; 
-            margin-top: 55px; /* Décaler vers le bas pour aligner le haut du classement avec l'infoPanel */
+            margin-top: 50px; /* Aligner avec le haut du Canvas */
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-primary);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
         }
         
         #leaderboardTitle {
-            cursor: pointer;
             background-color: #3a3a3a;
             color: var(--color-primary);
             padding: 10px;
             text-align: center;
             font-size: 1.2em;
             border-bottom: 1px solid var(--color-primary);
-            border-radius: 8px 8px 0 0;
-        }
-        
-        #leaderboardContainer {
-            width: 300px; 
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-primary);
-            border-top: none; 
-            border-radius: 0 0 8px 8px;
-            overflow: hidden;
-            max-height: 500px; 
-            opacity: 1; 
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-        }
-        
-        #leaderboardContainer.hidden {
-             max-height: 0;
-             opacity: 0;
-             border: none;
         }
         
         .leaderboard-table {
@@ -152,16 +160,23 @@
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
         <a href="authentification.html">⚙️ Compte</a>
-        </div>
+    </div>
 
     <h1 class="game-title">SPACE INVADERS</h1>
     
-    <div id="game-wrapper">
-    
-        <div id="game-controls-container">
-            <div id="infoPanel">
+    <div id="main-game-area">
+        
+        <div id="personal-score-panel">
+            <h3>Score Personnel</h3>
+            <p><strong>Joueur :</strong> <span id="personal-username">Déconnecté</span></p>
+            <p><strong>Meilleur Score :</strong> <span id="personal-high-score">-</span></p>
+            <p><strong>Rang Mondial :</strong> <span id="personal-rank">-</span></p>
+        </div>
+
+        <div id="game-center-container">
+            <div id="current-info-bar">
                 <span>Score: <span id="scoreValue">0</span></span>
-                <span id="highScoreDisplay">Meilleur Score: <span>-</span></span> 
+                <span>Meilleur Score Partie: <span id="highScoreDisplay">-</span></span> 
             </div>
             
             <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -170,8 +185,8 @@
         </div>
 
         <div id="leaderboard-panel">
-            <div id="leaderboardTitle" onclick="toggleLeaderboard()">
-                🏆 CLASSEMENT MONDIAL (Cliquez pour masquer) ⬆️
+            <div id="leaderboardTitle">
+                🏆 CLASSEMENT MONDIAL (TOP 10)
             </div>
 
             <div id="leaderboardContainer">
@@ -205,28 +220,16 @@
         const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
         const GAME_ID = 'space_invaders';
         
-        function toggleLeaderboard() {
-            const container = document.getElementById('leaderboardContainer');
-            const title = document.getElementById('leaderboardTitle');
-            const isHidden = container.classList.toggle('hidden');
-            
-            if(isHidden) {
-                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour afficher) ⬇️';
-            } else {
-                 title.innerHTML = '🏆 CLASSEMENT MONDIAL (Cliquez pour masquer) ⬆️';
-                 renderLeaderboard();
-            }
-        }
-        
         function renderLeaderboard() {
             const leaderboardBody = document.getElementById('leaderboardTableBody');
             
-            if (typeof getLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
+            if (typeof getFullLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
                 leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: auth.js non chargé.</td></tr>';
                 return;
             }
 
-            const leaderboardData = getLeaderboard(GAME_ID, 10); 
+            const fullLeaderboard = getFullLeaderboard(GAME_ID);
+            const leaderboardData = fullLeaderboard.slice(0, 10);
             leaderboardBody.innerHTML = ''; 
 
             if (leaderboardData.length === 0) {
@@ -256,6 +259,39 @@
                 row.insertCell().innerHTML = `<img src="${pdpUrl}" alt="PDP" class="leaderboard-pdp">`;
                 row.insertCell().textContent = entry.score;
             });
+            
+            // Mise à jour du panneau personnel
+            updatePersonalScorePanel(fullLeaderboard);
+        }
+        
+        function updatePersonalScorePanel(fullLeaderboard) {
+             const user = getCurrentUser();
+             const rankElement = document.getElementById('personal-rank');
+             const scoreElement = document.getElementById('personal-high-score');
+             const usernameElement = document.getElementById('personal-username');
+             
+             if (!user) {
+                 usernameElement.textContent = 'Déconnecté';
+                 scoreElement.textContent = '-';
+                 rankElement.textContent = '-';
+                 return;
+             }
+
+             usernameElement.textContent = user;
+             const userData = getUserData(user);
+             let personalHighScore = 0;
+             if (userData && userData.games && userData.games[GAME_ID]) {
+                 personalHighScore = userData.games[GAME_ID].highScore || 0;
+             }
+             scoreElement.textContent = personalHighScore;
+             
+             // Trouver le rang de l'utilisateur dans le classement complet
+             const userRankIndex = fullLeaderboard.findIndex(entry => entry.username === user);
+             if (userRankIndex !== -1) {
+                 rankElement.textContent = `#${userRankIndex + 1}`;
+             } else {
+                 rankElement.textContent = 'N/A';
+             }
         }
         
         // --- Variables Globales de Score du Jeu ---
@@ -289,7 +325,7 @@
              requestAnimationFrame(gameLoop);
         });
         
-        // --- 2. LOGIQUE DU JEU SPACE INVADERS ---
+        // --- 2. LOGIQUE DU JEU SPACE INVADERS (Même code de jeu, seule la fonction de dessin a été revue) ---
         
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -365,11 +401,6 @@
             ctx.fillText(`Score final : ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
             ctx.fillText('Appuyez sur ESPACE ou cliquez sur Recommencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
             resetButton.style.display = 'block'; 
-            
-            const container = document.getElementById('leaderboardContainer');
-            if (container.classList.contains('hidden')) {
-                 toggleLeaderboard();
-            }
         }
 
         function updateEnemies() {
@@ -394,7 +425,7 @@
                     if (user && typeof saveGameData !== 'undefined') {
                         saveGameData(user, GAME_ID, { score: score });
                         loadHighScore(); 
-                        renderLeaderboard(); 
+                        renderLeaderboard(); // MÀJ après la fin de partie
                     } 
                     gameOver = true;
                 }
@@ -545,7 +576,6 @@
         });
 
         window.resetGameAndStart = resetGameAndStart; 
-        window.toggleLeaderboard = toggleLeaderboard; 
         window.renderLeaderboard = renderLeaderboard; 
     </script>
 </body>
