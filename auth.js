@@ -1,5 +1,5 @@
 // =========================================================
-// 1. GESTION DES UTILISATEURS ET AUTHENTIFICATION (SANS AUCUN SON)
+// 1. GESTION DES UTILISATEURS ET AUTHENTIFICATION
 // =========================================================
 
 // Sauvegarde l'objet utilisateurs dans le localStorage
@@ -22,6 +22,7 @@ function getCurrentUser() {
 function logout() {
     localStorage.removeItem('currentUser');
     alert("Déconnexion réussie.");
+    // Redirige vers la page d'authentification
     window.location.href = 'authentification.html'; 
 }
 
@@ -31,7 +32,10 @@ function login(username, password) {
     if (users[username] && users[username].password === password) {
         localStorage.setItem('currentUser', username);
         alert(`Bienvenue, ${username}!`);
-        window.location.href = 'index.html'; 
+        
+        // Redirection corrigée vers la racine du dépôt GitHub (/ArcadeMaster/)
+        window.location.href = '/ArcadeMaster/'; 
+        
         return true;
     } else {
         alert("Nom d'utilisateur ou mot de passe incorrect.");
@@ -59,7 +63,10 @@ function register(username, password) {
     saveUsers(users);
     localStorage.setItem('currentUser', username);
     alert(`Compte créé et connecté. Bienvenue, ${username}!`);
-    window.location.href = 'index.html';
+    
+    // Redirection corrigée vers la racine du dépôt GitHub (/ArcadeMaster/)
+    window.location.href = '/ArcadeMaster/';
+    
     return true;
 }
 
@@ -74,11 +81,13 @@ if (typeof module !== 'undefined' && module.exports) {
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    
     // --- GESTION DES FORMULAIRES ET DÉCONNEXION ---
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const logoutButton = document.getElementById('logoutButton');
 
+    // Gère l'envoi du formulaire de connexion
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -88,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Gère l'envoi du formulaire d'inscription
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -97,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Gère le bouton de déconnexion
     if (logoutButton) {
         logoutButton.addEventListener('click', logout);
     }
