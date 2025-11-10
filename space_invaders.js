@@ -61,7 +61,7 @@ function getHighScores() {
     if (highScores.length === 0 && typeof loadUsers !== 'function') {
         highScores = [
             { username: 'Arcade_King', score: 5000 },
-            { username: 'Zelda5962', score: 2500 }, 
+            { username: 'Zelda59622', score: 2500 }, 
             { username: 'RetroPlayer', score: 1800 },
         ];
     }
@@ -317,7 +317,8 @@ function updatePowerUpTimers() {
 
 function spawnPowerUp() {
     if (Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = ['shield', 'bomb', 'shotgun'];
+        // Fréquence des bonus : Shield (2), Bomb (1), Shotgun (2)
+        const types = ['shield', 'shield', 'bomb', 'shotgun', 'shotgun'];
         const type = types[Math.floor(Math.random() * types.length)];
         
         const x = Math.random() * (GAME_WIDTH - POWERUP_SIZE);
