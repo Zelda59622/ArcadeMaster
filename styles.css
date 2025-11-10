@@ -1,0 +1,139 @@
+/* Fichier: styles.css */
+
+/* --- Base et Layout --- */
+body { margin: 0; font-family: 'Arial', sans-serif; background-color: #222; color: white; padding-top: 0 !important; }
+
+/* --- Menu Hamburger (Navigation) --- */
+#navbar {
+    background-color: #2c3e50;
+    padding: 10px 20px;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 2000; /* Assure que le menu est au-dessus de tout */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Bouton Hamburger */
+.hamburger-menu {
+    display: inline-block;
+    cursor: pointer;
+    padding: 10px;
+}
+.bar {
+    width: 25px;
+    height: 3px;
+    background-color: white;
+    margin: 5px 0;
+    transition: 0.4s;
+}
+
+/* Transformation du bouton en X */
+.change .bar:nth-child(1) { transform: translate(0, 8px) rotate(-45deg); }
+.change .bar:nth-child(2) { opacity: 0; }
+.change .bar:nth-child(3) { transform: translate(0, -8px) rotate(45deg); }
+
+/* Menu Latéral (Déroulant) */
+#sidebar {
+    height: 100%;
+    width: 0; /* Caché par défaut */
+    position: fixed;
+    z-index: 1001;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+#sidebar a {
+    padding: 15px 8px 15px 32px;
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+#sidebar a:hover {
+    color: #f1f1f1;
+    background-color: #333;
+}
+
+/* --- Section de Compte (à droite de la NavBar) --- */
+#auth-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+#auth-controls button, #auth-controls a {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+#login-button {
+    background-color: #00ff00;
+    color: #222;
+}
+#login-button:hover {
+    background-color: #00cc00;
+}
+
+#user-info-display {
+    color: #00ff00;
+    font-weight: bold;
+}
+.nav-link {
+    color: white !important;
+    text-decoration: none;
+    font-size: 1em !important;
+    padding: 5px 10px !important;
+}
+
+/* --- Styles de la page d'authentification --- */
+.auth-container {
+    padding-top: 100px;
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+.auth-container h1 {
+    color: #00ff00;
+}
+.auth-form {
+    background: #333;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+.auth-form input {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: white;
+}
+.auth-form button {
+    background-color: #00ff00;
+    color: #222;
+    padding: 10px;
+    font-size: 1.1em;
+}
+.message {
+    margin-top: 15px;
+    color: #999;
+    cursor: pointer;
+    text-decoration: underline;
+}
