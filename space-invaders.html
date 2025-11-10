@@ -16,6 +16,8 @@
             color: white; 
             margin-top: 10px; 
             font-size: 1.2em; 
+            display: flex; /* Utilisation de flexbox pour aligner les scores */
+            gap: 20px;
         }
         .game-title { 
             color: #00ff00; 
@@ -28,8 +30,6 @@
             align-items: center; 
             padding-top: 55px;
         } 
-        
-        /* Style du bouton Recommencer */
         #reset-button {
             background-color: #f39c12; 
             color: white;
@@ -64,11 +64,14 @@
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
         <a href="classement.html">🏆 Classement</a>
-    </div>
+        </div>
 
     <h1 class="game-title">SPACE INVADERS</h1>
     
-    <div id="infoPanel">Score: <span id="scoreValue">0</span></div>
+    <div id="infoPanel">
+        <span>Score: <span id="scoreValue">0</span></span>
+        <span id="highScoreDisplay">Meilleur Score: <span>-</span></span> 
+    </div>
     
     <button id="reset-button" onclick="resetGameAndStart()">Recommencer la Partie</button>
     
@@ -87,12 +90,37 @@
             }
         }
         
+        // --- Variables Globales de Score ---
+        let currentHighScore = 0; 
+        const GAME_ID = 'space_invaders';
+
+        function loadHighScore() {
+            const user = getCurrentUser();
+            const highScoreElement = document.getElementById('highScoreDisplay').querySelector('span');
+            
+            if (user && typeof getUserData !== 'undefined') {
+                const userData = getUserData(user);
+                if (userData && userData.games && userData.games[GAME_ID]) {
+                    currentHighScore = userData.games[GAME_ID].highScore || 0;
+                    highScoreElement.textContent = currentHighScore;
+                    return;
+                }
+            }
+            // Si non connecté ou aucun score
+            currentHighScore = 0;
+            highScoreElement.textContent = '-';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-             setTimeout(() => {
-                 if (typeof renderAuthControls === 'function') {
-                     renderAuthControls();
-                 }
-             }, 100);
+             // 1. Rend la navigation
+             if (typeof renderAuthControls === 'function') {
+                 renderAuthControls();
+             }
+             // 2. Charge le meilleur score
+             loadHighScore(); 
+             // 3. Démarre le jeu
+             resetGame();
+             requestAnimationFrame(gameLoop);
         });
         
         // --- 2. LOGIQUE DU JEU SPACE INVADERS ---
@@ -155,7 +183,7 @@
             enemies.forEach(enemy => {
                 ctx.font = `${ENEMY_SIZE}px monospace`;
                 ctx.textAlign = 'center';
-                // L'emoji monstre 👾
+                // Monstre 👾
                 ctx.fillText("👾", enemy.x, enemy.y + ENEMY_SIZE / 4); 
             });
         }
@@ -195,13 +223,11 @@
                 
                 if (distPlayerEnemy < collisionDist) {
                     const user = getCurrentUser();
-                    // SAUVEGARDE DU SCORE (L'appel critique)
+                    // SAUVEGARDE DU SCORE
                     if (user && typeof saveGameData !== 'undefined') {
-                        saveGameData(user, 'space_invaders', { score: score });
-                        console.log(`Score final ${score} enregistré pour ${user}.`);
-                    } else {
-                        console.warn("Utilisateur non connecté ou saveGameData non disponible. Score non sauvegardé.");
-                    }
+                        saveGameData(user, GAME_ID, { score: score });
+                        loadHighScore(); // Mise à jour du meilleur score après la partie
+                    } 
                     gameOver = true;
                 }
             });
@@ -350,10 +376,6 @@
             }
         });
 
-        // Démarrage initial
-        resetGame();
-        requestAnimationFrame(gameLoop);
-        
         window.resetGameAndStart = resetGameAndStart; 
     </script>
 </body>
