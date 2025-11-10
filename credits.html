@@ -3,53 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Crédits - ArcadeMaster</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding-top: 60px; }
-        header { background-color: #2c3e50; color: white; padding: 10px 0; position: fixed; width: 100%; top: 0; z-index: 1000; }
-        nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; width: 100%; box-sizing: border-box; }
-        nav a { color: white; text-decoration: none; padding: 10px 15px; display: block; }
-        nav a:hover { background-color: #34495e; }
-        
-        /* Styles spécifiques à cette page */
+    <link rel="stylesheet" href="styles.css"> <style>
+        /* Conserver les styles spécifiques aux crédits */
+        body { background-color: #f4f4f4; color: #333; padding-top: 60px; }
         .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
         h1 { color: #e74c3c; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
         ul { list-style-type: disc; padding-left: 20px; }
-        
-        /* Styles d'authentification */
-        #auth-section {
-            padding: 10px 0;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-        #user-info {
-            color: #00ff00;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
 
-    <header>
-        <nav>
-            <div>
-                <a href="index.html">🏠 Accueil</a>
-                <a href="jeux.html">🕹️ Menu Jeux</a>
-                <a href="credits.html">📝 Crédits</a>
-                <a href="classement.html">🏆 Classement</a>
+    <div id="navbar">
+        <div class="hamburger-menu" onclick="toggleMenu(this)">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div id="auth-controls">
             </div>
-            <div id="auth-section">
-                </div>
-        </nav>
-    </header>
+    </div>
+
+    <div id="sidebar">
+        <a href="index.html">🏠 Accueil</a>
+        <a href="jeux.html">🕹️ Menu Jeux</a>
+        <a href="credits.html">📝 Crédits</a>
+        <a href="classement.html">🏆 Classement</a>
+    </div>
 
     <div class="container">
         <h1>📝 Crédits et Remerciements</h1>
         
         <h2>Développement et Conception</h2>
         <ul>
-            <li>**Projet :** [Zelda5962] </li>
+            <li>**Projet :** [Votre Nom/Pseudo] (`azertyuiop930`)</li>
             <li>**Assistance au Codage :** Gemini (Un modèle de langage de Google)</li>
         </ul>
         
@@ -57,5 +43,16 @@
     </div>
     
     <script src="auth.js"></script>
+    <script>
+        function toggleMenu(x) {
+            x.classList.toggle("change");
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
+    </script>
 </body>
 </html>
