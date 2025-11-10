@@ -2,121 +2,36 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>ArcadeMaster - L'Arcade Rétro du Web</title>
+    <title>ArcadeMaster - Accueil</title>
     <style>
-        /* CSS GENERAL */
-        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding-top: 60px; }
-        header { background-color: #2c3e50; color: white; padding: 10px 0; position: fixed; width: 100%; top: 0; z-index: 1000; }
-        nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: flex-start; }
-        nav a { color: white; text-decoration: none; padding: 10px 15px; display: block; }
-        nav a:hover { background-color: #34495e; }
-        .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        h1, h2 { color: #e74c3c; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
-        
-        /* CSS pour le Vaisseau et le Lanceur */
-        #game-launcher-container { position: relative; height: 100px; width: 100%; margin-top: 20px; border-top: 2px dashed #ccc; }
-        #spaceship { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 3em; cursor: pointer; transition: left 0.1s linear; user-select: none; outline: none; }
-        #dev-dashboard { margin-top: 30px; padding: 20px; border: 1px dashed red; background-color: #ffebeb; border-radius: 5px; }
-        #local-record { font-weight: bold; color: #007bff; }
-        
-        /* Style temporaire pour le Jeu de Devinettes (maintenant caché) */
-        #devinettes-launch { display: none; } 
+        body { font-family: 'Arial', sans-serif; background-color: #222; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+        h1 { color: #00ff00; font-size: 3em; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 40px; }
+        .menu-list { list-style: none; padding: 0; }
+        .menu-list li { margin: 20px 0; }
+        .menu-list a { 
+            text-decoration: none; 
+            color: #00ff00; 
+            font-size: 1.5em; 
+            padding: 10px 20px; 
+            border: 2px solid #00ff00; 
+            border-radius: 5px;
+            display: inline-block;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .menu-list a:hover { 
+            background-color: #00ff00; 
+            color: #222; 
+        }
     </style>
 </head>
 <body>
-
-    <header>
-        <nav>
-            <a href="index.html">🕹️ Jeux</a>
-            <a href="#info-jeux">📖 Infos</a>
-            <a href="credits.html">📝 Crédits</a>
-        </nav>
-    </header>
-
-    <div class="container">
-        
-        <h2>Lancez le Space Invaders !</h2>
-        <p style="text-align: center;">Déplacez le vaisseau avec les flèches ← et →. Tirez (clic ou espace) pour lancer le jeu secret !</p>
-        
-        <div id="game-launcher-container">
-            <div id="spaceship">🚀</div>
-        </div>
-        
-        <script>
-            document.addEventListener('keydown', (e) => {
-                if (e.key === ' ' || e.key === 'Spacebar') {
-                    e.preventDefault(); 
-                    window.location.href = 'jeu-secret.html'; // LIEN VERS LE JEU SECRET
-                }
-            });
-            document.getElementById('spaceship').addEventListener('click', () => {
-                window.location.href = 'jeu-secret.html'; // LIEN VERS LE JEU SECRET
-            });
-        </script>
-
-        <div id="dev-dashboard" style="display:none;">
-            <h2>🔒 Tableau de Bord du Dev (Code Konami Réussi)</h2>
-            <p>Le Tableau de Bord est déverrouillé !</p>
-            
-            <h3>Lancement du Jeu Secret :</h3>
-            <p>Jeu Secret (Konami) : <button id="launch-secret-game">Lancer le Space Invaders</button></p>
-        </div>
-
-        <h2 id="info-jeux">📖 Infos & Jeux</h2>
-        <p><strong>ArcadeMaster</strong> est un projet d'arcade numérique pour le web, utilisant uniquement HTML, CSS et JavaScript pur.</p>
-        <p>L'expérience complète se lance directement sur cette page avec notre vaisseau lanceur !</p>
-        
-        <h2 id="credits-section">📝 Crédits</h2>
-        <p>Retrouvez toutes les informations sur les contributeurs et les technologies utilisées sur notre <a href="credits.html">Page de Crédits dédiée.</a></p>
-    </div>
-
-    <script>
-        const spaceship = document.getElementById('spaceship');
-        let positionX = 50; 
-        
-        // 1. MOUVEMENT DU VAISSEAU
-        document.addEventListener('keydown', (e) => {
-            const step = 2; 
-            if (e.key === 'ArrowLeft') {
-                positionX = Math.max(0, positionX - step);
-            } else if (e.key === 'ArrowRight') {
-                positionX = Math.min(100, positionX + step);
-            }
-            if (spaceship) spaceship.style.left = `${positionX}%`;
-        });
-        
-        // 2. GESTION DU CODE KONAMI (pour le tableau de bord secret)
-        const konamiCode = [
-            'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
-            'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
-            'KeyB', 'KeyA'
-        ];
-        let konamiIndex = 0;
-        const dashboard = document.getElementById('dev-dashboard');
-        
-        function showDashboard() {
-            dashboard.style.display = 'block';
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.code === konamiCode[konamiIndex]) {
-                konamiIndex++;
-                if (konamiIndex === konamiCode.length) {
-                    showDashboard();
-                    konamiIndex = 0;
-                }
-            } else {
-                if (!e.key.startsWith('Arrow')) {
-                     konamiIndex = 0;
-                }
-            }
-        });
-        
-        if(document.getElementById('launch-secret-game')) {
-             document.getElementById('launch-secret-game').addEventListener('click', () => {
-                window.location.href = 'jeu-secret.html';
-            });
-        }
-    </script>
+    
+    <h1>Bienvenue sur ArcadeMaster 🚀</h1>
+    
+    <ul class="menu-list">
+        <li><a href="jeux.html">🕹️ Lancer les Jeux</a></li>
+        <li><a href="credits.html">📝 Crédits</a></li>
+    </ul>
+    
 </body>
 </html>
