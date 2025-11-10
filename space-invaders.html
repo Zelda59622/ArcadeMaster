@@ -15,7 +15,6 @@
         #gameCanvas { border: 2px solid #00ff00; background-color: #000; margin-top: 20px; }
         #infoPanel { color: white; margin-top: 10px; font-size: 1.2em; }
         .game-title { color: #00ff00; margin-top: 20px; }
-        /* Cacher la barre de défilement si le canvas est trop grand */
         body { overflow: hidden; } 
     </style>
 </head>
@@ -23,8 +22,8 @@
     
     <header>
         <nav>
-            <a href="index.html">🏠 Menu Jeux</a>
-            <a href="space-invaders.html">🕹️ Space Invaders</a>
+            <a href="index.html">🏠 Accueil</a>
+            <a href="jeux.html">🕹️ Menu Jeux</a>
             <a href="credits.html">📝 Crédits</a>
         </nav>
     </header>
@@ -35,7 +34,7 @@
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <script>
-        // *** LOGIQUE DU JEU SPACE INVADERS AMÉLIORÉ ***
+        // *** LOGIQUE DU JEU SPACE INVADERS AMÉLIORÉ (Identique à la version précédente) ***
         
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -46,7 +45,6 @@
         let score = 0;
         let gameOver = false;
         
-        // --- Joueur (Vaisseau) ---
         let player = {
             x: GAME_WIDTH / 2,
             y: GAME_HEIGHT - 50,
@@ -57,34 +55,25 @@
             velY: 0
         };
 
-        // --- Souris (Visée) ---
         let mouse = { x: 0, y: 0 };
-
-        // --- Lasers ---
         let bullets = [];
         const BULLET_SPEED = 10;
         let lastShotTime = 0;
         const FIRE_RATE = 200; 
-
-        // --- Ennemis ---
         let enemies = [];
         const ENEMY_SIZE = 30;
-        const ENEMY_SPEED_BASE = 0.5; // Vitesse de base ralentie
-        let enemySpawnInterval = 1500; // Ralentissement du spawn
+        const ENEMY_SPEED_BASE = 0.5; 
+        let enemySpawnInterval = 1500; 
         let lastSpawnTime = 0;
-
-        // --- Fonctions de Dessin ---
 
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(player.angle + Math.PI / 2); 
-            
             ctx.fillStyle = '#00ff00';
-            ctx.font = `${player.size * 2}px monospace`; // Utilisation d'une police
+            ctx.font = `${player.size * 2}px monospace`; 
             ctx.textAlign = 'center';
-            ctx.fillText("▲", 0, player.size * 0.7); // Dessiner le triangle (vaisseau)
-
+            ctx.fillText("▲", 0, player.size * 0.7); 
             ctx.restore();
         }
 
@@ -92,7 +81,7 @@
             ctx.fillStyle = '#ff0000';
             bullets.forEach(bullet => {
                 ctx.font = '16px monospace';
-                ctx.fillText('|', bullet.x, bullet.y); // Dessiner le laser
+                ctx.fillText('|', bullet.x, bullet.y); 
             });
         }
 
@@ -101,7 +90,7 @@
             enemies.forEach(enemy => {
                 ctx.font = `${ENEMY_SIZE}px monospace`;
                 ctx.textAlign = 'center';
-                ctx.fillText("❌", enemy.x, enemy.y + ENEMY_SIZE / 4); // Dessiner la croix (ennemi)
+                ctx.fillText("❌", enemy.x, enemy.y + ENEMY_SIZE / 4); 
             });
         }
         
@@ -117,17 +106,13 @@
             ctx.fillText('Appuyez sur ESPACE pour recommencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
         }
 
-        // --- Fonctions de Mise à Jour ---
-
         function updatePlayer() {
             player.x += player.velX;
             player.y += player.velY;
-
             if (player.x < 0) player.x = 0;
             if (player.x > GAME_WIDTH) player.x = GAME_WIDTH;
             if (player.y < 0) player.y = 0;
             if (player.y > GAME_HEIGHT) player.y = GAME_HEIGHT;
-
             const dx = mouse.x - player.x;
             const dy = mouse.y - player.y;
             player.angle = Math.atan2(dy, dx); 
@@ -137,7 +122,6 @@
             bullets.forEach((bullet, index) => {
                 bullet.x += bullet.velX;
                 bullet.y += bullet.velY;
-
                 if (bullet.x < 0 || bullet.x > GAME_WIDTH || bullet.y < 0 || bullet.y > GAME_HEIGHT) {
                     bullets.splice(index, 1);
                 }
@@ -146,47 +130,32 @@
 
         function updateEnemies() {
             enemies.forEach((enemy, index) => {
-                // *** IA: Se déplace vers le joueur ***
                 const dx = player.x - enemy.x;
                 const dy = player.y - enemy.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // Normaliser le mouvement (vitesse constante vers le joueur)
                 if (distance > 1) {
                     enemy.x += (dx / distance) * enemy.speed;
                     enemy.y += (dy / distance) * enemy.speed;
                 }
-                // *** FIN IA ***
-
-                // Vérifier la collision avec le joueur
                 const collisionDist = player.size / 2 + ENEMY_SIZE / 2;
                 const distPlayerEnemy = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
-                
                 if (distPlayerEnemy < collisionDist) {
                     gameOver = true;
                 }
             });
         }
 
-        // --- Gestion des Collisions Laser/Ennemis ---
-
         function checkCollisions() {
             for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
                 const bullet = bullets[bIndex];
                 for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) {
                     const enemy = enemies[eIndex];
-                    
                     const distance = Math.sqrt(Math.pow(bullet.x - enemy.x, 2) + Math.pow(bullet.y - enemy.y, 2));
-
-                    if (distance < ENEMY_SIZE / 2 + 10) { // Tolérance élargie pour le symbole
-                        
+                    if (distance < ENEMY_SIZE / 2 + 10) { 
                         enemies.splice(eIndex, 1);
                         bullets.splice(bIndex, 1);
-                        
                         score += 10;
                         scoreDisplay.textContent = score;
-
-                        // Augmentation de la difficulté : vitesse et fréquence
                         if (enemySpawnInterval > 300 && score % 100 === 0) {
                             enemySpawnInterval = Math.max(300, enemySpawnInterval - 100);
                         }
@@ -196,19 +165,14 @@
             }
         }
 
-        // --- Fonctions de Jeu ---
-
         function shoot() {
             const now = Date.now();
             if (now - lastShotTime > FIRE_RATE) {
                 lastShotTime = now;
-
                 const velX = BULLET_SPEED * Math.cos(player.angle);
                 const velY = BULLET_SPEED * Math.sin(player.angle);
-
                 const startX = player.x + (player.size * Math.cos(player.angle) * 1.2);
                 const startY = player.y + (player.size * Math.sin(player.angle) * 1.2);
-
                 bullets.push({ x: startX, y: startY, velX, velY });
             }
         }
@@ -217,15 +181,10 @@
             const now = Date.now();
             if (now - lastSpawnTime > enemySpawnInterval) {
                 lastSpawnTime = now;
-
-                // Position de spawn aléatoire sur le bord supérieur
                 const x = Math.random() * GAME_WIDTH;
                 const y = -ENEMY_SIZE;
-                
-                // Vitesse de l'ennemi (légèrement augmentée avec le score)
                 let currentSpeed = ENEMY_SPEED_BASE + Math.floor(score / 200) * 0.1;
-                currentSpeed = Math.min(2.5, currentSpeed); // Vitesse max pour ne pas rendre ça impossible
-
+                currentSpeed = Math.min(2.5, currentSpeed); 
                 enemies.push({ x, y, speed: currentSpeed });
             }
         }
@@ -243,34 +202,28 @@
             enemySpawnInterval = 1500;
         }
 
-        // --- Boucle Principale du Jeu ---
         function gameLoop() {
             if (gameOver) {
                 drawGameOver();
                 return;
             }
-
             updatePlayer();
             updateBullets();
             spawnEnemy();
             updateEnemies();
             checkCollisions();
-            
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             drawPlayer();
             drawBullets();
             drawEnemies();
-
             requestAnimationFrame(gameLoop);
         }
         
-        // --- Événements (Contrôles) ---
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'q') player.velX = -player.speed;
             else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') player.velX = player.speed;
             else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'z') player.velY = -player.speed;
             else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') player.velY = player.speed;
-            
             if (gameOver && e.key === ' ') {
                 e.preventDefault();
                 resetGame();
