@@ -1,33 +1,73 @@
-const STORAGE_KEY = 'arcadeMasterUsers';
+// --- FONCTIONS DE BASE DE L'AUTHENTIFICATION ---
 
-// --- Fonctions de gestion des utilisateurs ---
+// Initialisation des utilisateurs mock si aucune donnée n'existe
+const mockUsers = {
+    'admin': { 
+        password: 'password', 
+        pdp: 'https://i.imgur.com/39hN7hG.png', 
+        role: 'admin', 
+        games: { 
+            space_invaders: { highScore: 8000 } 
+        } 
+    },
+    'joueur': { 
+        password: 'pass', 
+        pdp: '', 
+        role: 'user', 
+        games: { 
+            space_invaders: { highScore: 2500 } 
+        } 
+    }
+};
 
 function loadUsers() {
-    const json = localStorage.getItem(STORAGE_KEY);
-    let users = json ? JSON.parse(json) : {};
-
-    let usersUpdated = false;
-
-    // INITIALISATION OU CORRECTION FORCÉE DU RÔLE ADMIN
-    if (!users["Zelda5962"] || users["Zelda5962"].role !== "admin") {
-        users["Zelda5962"] = {
-            password: users["Zelda5962"] ? users["Zelda5962"].password : "password", 
-            role: "admin", // <-- Rôle critique FORCÉ
-            pdp: users["Zelda5962"] ? users["Zelda5962"].pdp : "https://i.imgur.com/39hN7hG.png", 
-            games: users["Zelda5962"] ? users["Zelda5962"].games : {}
-        };
-        usersUpdated = true;
+    const usersData = localStorage.getItem('arcadeMasterUsers');
+    if (!usersData) {
+        // Initialiser avec les données mock si localStorage est vide
+        localStorage.setItem('arcadeMasterUsers', JSON.stringify(mockUsers));
+        return mockUsers;
     }
-
-    if (usersUpdated) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-        console.log("Compte Admin 'Zelda5962' créé/mis à jour en rôle Admin et sauvegardé.");
-    }
-    return users;
+    return JSON.parse(usersData);
 }
 
 function saveUsers(users) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+    localStorage.setItem('arcadeMasterUsers', JSON.stringify(users));
+}
+
+function getCurrentUser() {
+    return localStorage.getItem('currentUser');
+}
+
+function login(username, password) {
+    const users = loadUsers();
+    if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
+        return true;
+    }
+    return false;
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html'; // Redirige vers l'accueil
+}
+
+function registerUser(username, password, pdpUrl) {
+    const users = loadUsers();
+    if (users[username]) {
+        return false; // Utilisateur déjà existant
+    }
+    
+    const finalPdp = pdpUrl && pdpUrl.startsWith('http') ? pdpUrl : 'https://i.imgur.com/39hN7hG.png';
+
+    users[username] = {
+        password: password,
+        pdp: finalPdp,
+        role: 'user',
+        games: { space_invaders: { highScore: 0 } } // Initialisation du score
+    };
+    saveUsers(users);
+    return true;
 }
 
 function getUserData(username) {
@@ -35,169 +75,77 @@ function getUserData(username) {
     return users[username] || null;
 }
 
-function getCurrentUser() {
-    return sessionStorage.getItem('currentUser');
-}
-
-function login(username, password) {
-    const users = loadUsers();
-    const user = users[username];
-
-    if (user && user.password === password) {
-        sessionStorage.setItem('currentUser', username);
-        if (typeof renderAuthControls === 'function') {
-             renderAuthControls();
-        }
-        return true;
-    }
-    return false;
-}
-
-function logout() {
-    sessionStorage.removeItem('currentUser');
-    if (typeof renderAuthControls === 'function') {
-        renderAuthControls();
-    }
-    window.location.href = 'index.html'; 
-}
-
-function registerUser(username, password, pdpURL = 'https://i.imgur.com/39hN7hG.png') {
-    const users = loadUsers();
-    if (users[username]) {
-        return false; 
-    }
-
-    users[username] = {
-        password: password,
-        role: "user",
-        pdp: pdpURL,
-        games: {}
-    };
-    saveUsers(users);
-    return true;
-}
-
-/**
- * Met à jour le mot de passe et/ou la PDP pour l'utilisateur actuel.
- * @param {string} username - Nom de l'utilisateur à modifier.
- * @param {string|null} newPassword - Nouveau mot de passe (ou null pour ne pas changer).
- * @param {string|null} newPdp - Nouvelle URL de PDP (ou null pour ne pas changer).
- * @returns {boolean} True si la mise à jour a réussi.
- */
+// --- FONCTION DE MISE À JOUR DU PROFIL (Utilisée dans authentification.html) ---
 function updateUserData(username, newPassword, newPdp) {
     const users = loadUsers();
-    const user = users[username];
-
-    if (!user) {
-        return false;
-    }
-
+    const userData = users[username];
     let changed = false;
 
-    if (newPassword && newPassword.length >= 5) {
-        user.password = newPassword;
+    if (!userData) return false;
+
+    if (newPassword) {
+        userData.password = newPassword;
         changed = true;
     }
-
-    if (newPdp !== null) { // On autorise une chaîne vide pour réinitialiser
-        // Validation simple de l'URL
-        if (newPdp === "" || newPdp.startsWith('http')) { 
-            user.pdp = newPdp || 'https://i.imgur.com/39hN7hG.png'; 
-            changed = true;
+    
+    // Mettre à jour l'image de profil si l'URL est fournie ou vidée
+    if (newPdp !== undefined) {
+        const finalPdp = newPdp.trim().startsWith('http') ? newPdp.trim() : 'https://i.imgur.com/39hN7hG.png';
+        if (userData.pdp !== finalPdp) {
+             userData.pdp = finalPdp;
+             changed = true;
         }
     }
-    
+
     if (changed) {
         saveUsers(users);
-        // Après la mise à jour, on rafraîchit les contrôles pour la navbar
-        if (typeof renderAuthControls === 'function') {
-            renderAuthControls();
+        if (newPassword) {
+            // Déconnexion forcée après changement de mot de passe
+            localStorage.removeItem('currentUser'); 
         }
         return true;
     }
     return false;
 }
 
+// --- RENDU DE LA NAVBAR (Affichage de Connexion/Compte) ---
 
-function deleteUser(username) {
-    const currentUser = getCurrentUser();
-    
-    if (username === currentUser) { 
-        alert("Vous ne pouvez pas supprimer votre propre compte depuis le panneau Admin."); 
-        return; 
-    }
-    
-    const users = loadUsers();
-    if (users[username] && users[username].role === 'admin') { 
-        alert("Impossible de supprimer un autre administrateur."); 
-        return; 
-    }
-
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${username}" ? Cette action est irréversible.`)) {
-        delete users[username];
-        saveUsers(users);
-        if (typeof renderAdminPanel === 'function') { 
-            renderAdminPanel(); 
-        } else { 
-            window.location.reload(); 
-        }
-    }
-}
-
-// --- Fonction de rendu de l'interface (Navbar & Sidebar) ---
-// (Reste inchangée)
 function renderAuthControls() {
-    const currentUser = getCurrentUser();
     const authControls = document.getElementById('auth-controls');
     const sidebar = document.getElementById('sidebar');
+    const user = getCurrentUser();
     
-    if (!authControls || !sidebar) {
-        return;
-    }
+    if (authControls) {
+        if (user) {
+            const userData = getUserData(user);
+            const pdpUrl = userData && userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
 
-    let authHTML = '';
-    
-    const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
-    if (oldAdminLink) sidebar.removeChild(oldAdminLink);
-
-    if (currentUser) {
-        const userData = getUserData(currentUser); 
-
-        if (userData) {
-            const pdpUrl = userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
-            
-            authHTML = `
-                <span style="color: #00ff00; font-weight: bold; margin-right: 10px;">${currentUser}</span>
-                <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #00ff00; vertical-align: middle; margin-right: 5px;">
-                <a href="authentification.html" title="Mon Compte" style="color: white; margin-left: 10px;">Compte</a>
-                <a href="#" onclick="logout(); return false;" title="Déconnexion" style="color: #e74c3c; margin-left: 15px;">Déconnexion</a>
+            authControls.innerHTML = `
+                <a href="authentification.html" class="user-link">
+                    <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                    <span>${user}</span>
+                </a>
+                <button onclick="logout()">Déconnexion</button>
             `;
-
-            if (userData.role === 'admin') { 
-                 const adminLinkHTML = '<a href="admin.html" style="color: #f39c12;">🛡️ Admin Panel</a>';
-                 sidebar.insertAdjacentHTML('beforeend', adminLinkHTML);
+            
+            // Ajout du lien Admin dans la sidebar si l'utilisateur est admin
+            if (sidebar && userData && userData.role === 'admin' && !document.getElementById('admin-link')) {
+                 const adminLink = document.createElement('a');
+                 adminLink.href = 'admin.html'; // Assurez-vous d'avoir une page admin.html
+                 adminLink.textContent = '⚙️ Admin';
+                 adminLink.id = 'admin-link';
+                 sidebar.appendChild(adminLink);
             }
+
         } else {
-             logout();
-             return;
+            authControls.innerHTML = `
+                <a href="authentification.html">Connexion / Inscription</a>
+            `;
+            // Suppression du lien Admin si l'utilisateur n'est pas connecté ou est déconnecté
+            const adminLink = document.getElementById('admin-link');
+            if (adminLink) {
+                 sidebar.removeChild(adminLink);
+            }
         }
-
-    } else {
-        authHTML = `<a href="authentification.html" style="color: white;">Connexion / Inscription</a>`;
     }
-
-    authControls.innerHTML = authHTML;
 }
-
-// Globalisation et Exécution Sûre
-window.loadUsers = loadUsers;
-window.saveUsers = saveUsers;
-window.getUserData = getUserData;
-window.getCurrentUser = getCurrentUser;
-window.registerUser = registerUser;
-window.login = login;
-window.logout = logout;
-window.updateUserData = updateUserData; // <-- NOUVELLE GLOBALISATION
-window.deleteUser = deleteUser;
-window.renderAuthControls = renderAuthControls;
-window.onload = renderAuthControls;
