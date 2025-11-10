@@ -1,1 +1,1 @@
-ttps://azertyuiop930.github.io/ArcadeMaster/
+The site: https://azertyuiop930.github.io/ArcadeMaster/
