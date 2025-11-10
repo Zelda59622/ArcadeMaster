@@ -1,151 +1,66 @@
-// --- FONCTIONS DE BASE DE L'AUTHENTIFICATION ---
+// =========================================================
+// 1. CLASSE SON POUR LES MENUS (utilise button-pressed.mp3)
+// =========================================================
 
-// Initialisation des utilisateurs mock si aucune donnée n'existe
-const mockUsers = {
-    'admin': { 
-        password: 'password', 
-        pdp: 'https://i.imgur.com/39hN7hG.png', 
-        role: 'admin', 
-        games: { 
-            space_invaders: { highScore: 8000 } 
-        } 
-    },
-    'joueur': { 
-        password: 'pass', 
-        pdp: '', 
-        role: 'user', 
-        games: { 
-            space_invaders: { highScore: 2500 } 
-        } 
+class Sound {
+    constructor(src, volume = 0.5) {
+        this.sound = document.createElement("audio");
+        this.sound.src = src;
+        this.sound.setAttribute("preload", "auto");
+        this.sound.setAttribute("controls", "none");
+        this.sound.style.display = "none";
+        document.body.appendChild(this.sound);
+        this.sound.volume = volume;
     }
-};
 
-function loadUsers() {
-    const usersData = localStorage.getItem('arcadeMasterUsers');
-    if (!usersData) {
-        // Initialiser avec les données mock si localStorage est vide
-        localStorage.setItem('arcadeMasterUsers', JSON.stringify(mockUsers));
-        return mockUsers;
+    play() {
+        this.sound.currentTime = 0; 
+        this.sound.play().catch(e => {
+            // Empêche les erreurs si l'utilisateur n'a pas encore cliqué sur la page
+        });
     }
-    return JSON.parse(usersData);
 }
 
-function saveUsers(users) {
-    localStorage.setItem('arcadeMasterUsers', JSON.stringify(users));
-}
+// Déclaration du son de clic (bouton)
+const sfxButtonClick = new Sound("button-pressed.mp3", 0.3);
 
-function getCurrentUser() {
-    return localStorage.getItem('currentUser');
-}
 
-function login(username, password) {
-    const users = loadUsers();
-    if (users[username] && users[username].password === password) {
-        localStorage.setItem('currentUser', username);
-        return true;
-    }
-    return false;
-}
+// =========================================================
+// 2. FONCTION POUR DÉCLENCHER LE SON AU CLIC DU MENU
+// =========================================================
 
-function logout() {
-    localStorage.removeItem('currentUser');
-    window.location.href = 'index.html'; // Redirige vers l'accueil
-}
-
-function registerUser(username, password, pdpUrl) {
-    const users = loadUsers();
-    if (users[username]) {
-        return false; // Utilisateur déjà existant
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    // Éléments ciblés pour le son : tous les liens/boutons des menus/comptes
+    const elementsToListen = [
+        '#sidebar a',            // Liens de la barre latérale
+        '#auth-controls button', // Boutons d'authentification
+        '#navbar a',             // Liens de navigation (en haut)
+        '#score-board div',      // Bloc du classement
+        '#score-board li',       // Éléments du classement
+        '.hamburger-menu',       // Menu hamburger
+        '.main-game-area button',// Boutons divers
+        '.deconnexion-button'    // Bouton de déconnexion (si vous en avez un)
+    ];
     
-    const finalPdp = pdpUrl && pdpUrl.startsWith('http') ? pdpUrl : 'https://i.imgur.com/39hN7hG.png';
-
-    users[username] = {
-        password: password,
-        pdp: finalPdp,
-        role: 'user',
-        games: { space_invaders: { highScore: 0 } } // Initialisation du score
-    };
-    saveUsers(users);
-    return true;
-}
-
-function getUserData(username) {
-    const users = loadUsers();
-    return users[username] || null;
-}
-
-// --- FONCTION DE MISE À JOUR DU PROFIL (Utilisée dans authentification.html) ---
-function updateUserData(username, newPassword, newPdp) {
-    const users = loadUsers();
-    const userData = users[username];
-    let changed = false;
-
-    if (!userData) return false;
-
-    if (newPassword) {
-        userData.password = newPassword;
-        changed = true;
+    // Fonction qui joue le son
+    function playClickSound() {
+        sfxButtonClick.play();
     }
+
+    // Ajoute l'écouteur d'événement à chaque élément cible
+    elementsToListen.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            // Nous utilisons 'mousedown' pour que le son se déclenche immédiatement
+            // et soit synchronisé avec l'animation CSS :active.
+            element.addEventListener('mousedown', playClickSound);
+        });
+    });
+
+    // ----------------------------------------------------
+    // VOS FONCTIONS D'AUTHENTIFICATION DOIVENT ÊTRE ICI
+    // (ex: login, register, getCurrentUser, loadUsers, etc.)
+    // ----------------------------------------------------
+    // ... (Votre code auth.js existant)
     
-    // Mettre à jour l'image de profil si l'URL est fournie ou vidée
-    if (newPdp !== undefined) {
-        const finalPdp = newPdp.trim().startsWith('http') ? newPdp.trim() : 'https://i.imgur.com/39hN7hG.png';
-        if (userData.pdp !== finalPdp) {
-             userData.pdp = finalPdp;
-             changed = true;
-        }
-    }
-
-    if (changed) {
-        saveUsers(users);
-        if (newPassword) {
-            // Déconnexion forcée après changement de mot de passe
-            localStorage.removeItem('currentUser'); 
-        }
-        return true;
-    }
-    return false;
-}
-
-// --- RENDU DE LA NAVBAR (Affichage de Connexion/Compte) ---
-
-function renderAuthControls() {
-    const authControls = document.getElementById('auth-controls');
-    const sidebar = document.getElementById('sidebar');
-    const user = getCurrentUser();
-    
-    if (authControls) {
-        if (user) {
-            const userData = getUserData(user);
-            const pdpUrl = userData && userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
-
-            authControls.innerHTML = `
-                <a href="authentification.html" class="user-link">
-                    <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
-                    <span>${user}</span>
-                </a>
-                <button onclick="logout()">Déconnexion</button>
-            `;
-            
-            // Ajout du lien Admin dans la sidebar si l'utilisateur est admin
-            if (sidebar && userData && userData.role === 'admin' && !document.getElementById('admin-link')) {
-                 const adminLink = document.createElement('a');
-                 adminLink.href = 'admin.html'; // Assurez-vous d'avoir une page admin.html
-                 adminLink.textContent = '⚙️ Admin';
-                 adminLink.id = 'admin-link';
-                 sidebar.appendChild(adminLink);
-            }
-
-        } else {
-            authControls.innerHTML = `
-                <a href="authentification.html">Connexion / Inscription</a>
-            `;
-            // Suppression du lien Admin si l'utilisateur n'est pas connecté ou est déconnecté
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                 sidebar.removeChild(adminLink);
-            }
-        }
-    }
-}
+});
