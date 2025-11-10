@@ -19,12 +19,12 @@ class Sound {
     }
 }
 
-// Déclaration du son de clic (bouton)
+// Déclaration du son de clic
 const sfxButtonClick = new Sound("button-pressed.mp3", 0.3);
 
 
 // =========================================================
-// 2. GESTION DES UTILISATEURS (Fonctions d'Authentification)
+// 2. GESTION DES UTILISATEURS ET AUTHENTIFICATION
 // =========================================================
 
 // Sauvegarde l'objet utilisateurs dans le localStorage
@@ -47,17 +47,15 @@ function getCurrentUser() {
 function logout() {
     localStorage.removeItem('currentUser');
     alert("Déconnexion réussie.");
-    // Redirection vers la page de connexion
     window.location.href = 'authentification.html'; 
 }
 
-// Fonction de Connexion (Exemple de base)
+// Fonction de Connexion
 function login(username, password) {
     const users = loadUsers();
     if (users[username] && users[username].password === password) {
         localStorage.setItem('currentUser', username);
         alert(`Bienvenue, ${username}!`);
-        // Redirection vers l'index ou la page de jeu
         window.location.href = 'index.html'; 
         return true;
     } else {
@@ -66,7 +64,7 @@ function login(username, password) {
     }
 }
 
-// Fonction d'Inscription (Exemple de base)
+// Fonction d'Inscription
 function register(username, password) {
     const users = loadUsers();
     if (users[username]) {
@@ -74,7 +72,6 @@ function register(username, password) {
         return false;
     }
 
-    // Ajout du nouvel utilisateur avec un score initial de 0
     users[username] = {
         password: password,
         role: "Joueur Standard",
@@ -91,26 +88,27 @@ function register(username, password) {
     return true;
 }
 
+// Exportation des fonctions pour qu'elles soient utilisables dans d'autres scripts (comme space_invaders.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { saveUsers, loadUsers, getCurrentUser };
+}
+
 
 // =========================================================
-// 3. LOGIQUE D'INITIALISATION ET DÉCLENCHEMENT DU SON
+// 3. LOGIQUE D'INITIALISATION ET ÉVÉNEMENTS DOM
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // ----------------------------------------------------
-    // A. DÉCLENCHEMENT DES SONS AU CLIC
-    // ----------------------------------------------------
-    
+    // --- A. DÉCLENCHEMENT DES SONS AU CLIC ---
     const elementsToListen = [
-        '#sidebar a',            
-        '#auth-controls button', 
-        '#navbar a',             
-        '#score-board div',      
-        '#score-board li',       
-        '.hamburger-menu',       
-        '.main-game-area button',
-        '.deconnexion-button'    
+        '#navbar a',
+        '#auth-controls button',
+        '.menu-dropdown a', 
+        'button', 
+        '#score-board div',
+        '#score-board li',
+        '.hamburger-menu'
     ];
     
     function playClickSound() {
@@ -120,19 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
     elementsToListen.forEach(selector => {
         const elements = document.querySelectorAll(selector);
         elements.forEach(element => {
-            // Utilise 'mousedown' pour être synchronisé avec l'animation CSS :active
             element.addEventListener('mousedown', playClickSound);
         });
     });
 
-    // ----------------------------------------------------
-    // B. GESTION DES FORMULAIRES DE CONNEXION/INSCRIPTION
-    // ----------------------------------------------------
-    
+    // --- B. GESTION DES FORMULAIRES ET DÉCONNEXION ---
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const logoutButton = document.getElementById('logoutButton');
+    const hamburgerMenu = document.getElementById('hamburgerMenu'); // ID supposé
+    const menuDropdown = document.getElementById('menuDropdown');   // ID supposé
 
+    // Gère l'envoi du formulaire de connexion
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -142,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Gère l'envoi du formulaire d'inscription
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -151,7 +149,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Gère le bouton de déconnexion (sur Mon Compte)
     if (logoutButton) {
         logoutButton.addEventListener('click', logout);
+    }
+    
+    // Gère l'affichage du menu déroulant (Hamburger/Profil)
+    if (hamburgerMenu && menuDropdown) {
+        hamburgerMenu.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêche la fermeture immédiate
+            menuDropdown.classList.toggle('show');
+        });
+
+        // Ferme le menu si l'utilisateur clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!menuDropdown.contains(e.target) && !hamburgerMenu.contains(e.target)) {
+                menuDropdown.classList.remove('show');
+            }
+        });
     }
 });
