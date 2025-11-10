@@ -13,7 +13,8 @@ const ADMIN_USERS = ['Zelda5962']; // Utilisateurs ayant le rôle ADMIN
 
 function loadUsers() {
     const usersJson = localStorage.getItem(STORAGE_KEY);
-    return usersJson ? JSON.parse(usersJson) : {};
+    // Retourne un objet vide si rien n'est trouvé pour éviter les erreurs de lecture
+    return usersJson ? JSON.parse(usersJson) : {}; 
 }
 
 function saveUsers(users) {
@@ -27,7 +28,6 @@ function getCurrentUser() {
 }
 
 function isAdmin(username) {
-    // Vérifie si l'utilisateur est dans la liste ADMIN_USERS
     return ADMIN_USERS.includes(username);
 }
 
@@ -39,6 +39,7 @@ function login(username) {
 function logout() {
     localStorage.removeItem('currentUser');
     renderAuthControls();
+    // Recharger la page si l'utilisateur est sur la page de compte après déconnexion
     if (window.location.pathname.endsWith('authentification.html')) {
         window.location.reload(); 
     }
@@ -47,7 +48,8 @@ function logout() {
 // Fonction utilitaire pour obtenir les données complètes d'un utilisateur
 function getUserData(username) {
     const users = loadUsers();
-    return users[username];
+    // Retourne l'objet utilisateur, ou null s'il n'existe pas
+    return users[username] || null; 
 }
 
 // FONCTION PDP: Mise à jour de l'URL de la Photo de Profil
@@ -61,7 +63,7 @@ function updatePDP(username, newUrl) {
     return false;
 }
 
-// --- Gestion du mot de passe (Inchangée) ---
+// --- Gestion du mot de passe ---
 
 function changePassword(username, newPassword) {
     const users = loadUsers();
@@ -73,13 +75,23 @@ function changePassword(username, newPassword) {
     return false;
 }
 
-// --- Sauvegarde des Scores/Progression (Inchangée) ---
-
+// --- Sauvegarde des Scores/Progression ---
+// Cette fonction inclut l'initialisation du champ pdp si l'utilisateur est nouveau
 function saveGameData(username, game, data) {
     const users = loadUsers();
-    // S'assurer que l'objet users[username] existe (pour les nouvelles inscriptions)
+    
+    // Initialisation si l'utilisateur n'existe pas
     if (!users[username]) {
-        users[username] = { password: '', games: {}, pdp: DEFAULT_PDP_URL };
+        users[username] = { 
+            password: '', 
+            games: {}, 
+            pdp: DEFAULT_PDP_URL // S'assure que la PDP par défaut est présente
+        };
+    }
+    
+    // Assurez-vous que la clé 'pdp' existe (au cas où l'utilisateur est très ancien)
+    if (users[username].pdp === undefined) {
+        users[username].pdp = DEFAULT_PDP_URL;
     }
     
     // Assurez-vous que l'objet games existe
@@ -103,7 +115,7 @@ function saveGameData(username, game, data) {
     saveUsers(users);
 }
 
-// --- Fonction de Classement (Inchangée) ---
+// --- Fonction de Classement ---
 
 function getLeaderboard(game = 'space_invaders', limit = 10) {
     const users = loadUsers();
@@ -177,6 +189,7 @@ function renderAuthControls() {
 
 // --- Initialisation ---
 
+// Assurez-vous que l'initialisation est bien déclenchée au chargement du DOM
 document.addEventListener('DOMContentLoaded', renderAuthControls);
 
 // Rendre les fonctions importantes accessibles globalement
