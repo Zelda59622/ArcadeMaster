@@ -10,53 +10,25 @@ function loadUsers() {
     if (!users["Zelda5962"]) {
         users["Zelda5962"] = {
             password: "password", 
-            role: "admin",
+            role: "admin", // <-- VÉRIFIEZ CE RÔLE
             pdp: "https://i.imgur.com/39hN7hG.png", 
             games: {} 
         };
+        // Si on vient de créer l'admin, on sauvegarde pour garantir sa présence
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
     }
     return users;
 }
 
-function saveUsers(users) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-}
+// ... (Les autres fonctions comme saveUsers, getUserData, getCurrentUser, login, logout restent les mêmes que dans la réponse précédente) ...
 
-function getUserData(username) {
-    const users = loadUsers();
-    return users[username] || null;
-}
-
-function getCurrentUser() {
-    return sessionStorage.getItem('currentUser');
-}
-
-function setCurrentUser(username) {
-    sessionStorage.setItem('currentUser', username);
-}
-
-function registerUser(username, password, pdpURL = 'https://i.imgur.com/39hN7hG.png') {
-    const users = loadUsers();
-    if (users[username]) {
-        return false; 
-    }
-
-    users[username] = {
-        password: password,
-        role: "user",
-        pdp: pdpURL,
-        games: {}
-    };
-    saveUsers(users);
-    return true;
-}
-
+// Remplacer les fonctions login et logout pour être sûrs :
 function login(username, password) {
     const users = loadUsers();
     const user = users[username];
 
     if (user && user.password === password) {
-        setCurrentUser(username);
+        sessionStorage.setItem('currentUser', username);
         if (typeof renderAuthControls === 'function') {
              renderAuthControls();
         }
@@ -73,7 +45,8 @@ function logout() {
     window.location.href = 'index.html'; 
 }
 
-// --- Fonctions de rendu de l'interface (Navbar & Sidebar) ---
+
+// --- Fonction de rendu de l'interface (Navbar & Sidebar) ---
 
 function renderAuthControls() {
     const currentUser = getCurrentUser();
@@ -87,7 +60,7 @@ function renderAuthControls() {
 
     let authHTML = '';
     
-    // Suppression de l'ancien lien Admin si il existe
+    // 1. Suppression de tout ancien lien Admin
     const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
     if (oldAdminLink) sidebar.removeChild(oldAdminLink);
 
@@ -104,12 +77,14 @@ function renderAuthControls() {
                 <a href="#" onclick="logout(); return false;" title="Déconnexion" style="color: #e74c3c; margin-left: 15px;">Déconnexion</a>
             `;
 
-            // Ajout du lien Admin
-            if (userData.role === 'admin') {
+            // 2. AJOUT DU LIEN ADMIN
+            // Le rôle doit être strictement 'admin' pour que cela s'affiche.
+            if (userData.role === 'admin') { 
                  const adminLinkHTML = '<a href="admin.html" style="color: #f39c12;">🛡️ Admin Panel</a>';
                  sidebar.insertAdjacentHTML('beforeend', adminLinkHTML);
             }
         } else {
+             // Si données corrompues, on déconnecte
              logout();
              return;
         }
@@ -121,59 +96,4 @@ function renderAuthControls() {
     authControls.innerHTML = authHTML;
 }
 
-// --- Fonctions de jeu (Laissez celles-ci telles quelles si vous les utilisez) ---
-
-function saveGameData(username, gameId, data) {
-    const users = loadUsers();
-    const user = users[username];
-    if (!user) return; 
-
-    if (!user.games[gameId]) {
-        user.games[gameId] = { highScore: 0 };
-    }
-    if (data.score > user.games[gameId].highScore) {
-        user.games[gameId].highScore = data.score;
-    }
-    saveUsers(users);
-}
-
-function getFullLeaderboard(gameId) {
-    const users = loadUsers();
-    const leaderboard = [];
-    for (const username in users) {
-        const user = users[username];
-        if (user.games[gameId] && user.games[gameId].highScore > 0) {
-            leaderboard.push({ username: username, score: user.games[gameId].highScore });
-        }
-    }
-    leaderboard.sort((a, b) => b.score - a.score);
-    return leaderboard;
-}
-
-function deleteUser(username) {
-    const currentUser = getCurrentUser();
-    if (username === currentUser) { alert("Vous ne pouvez pas supprimer votre propre compte."); return; }
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${username}" ?`)) {
-        const users = loadUsers();
-        if (users[username] && users[username].role === 'admin') { alert("Impossible de supprimer un autre admin."); return; }
-        delete users[username];
-        saveUsers(users);
-        if (typeof renderAdminPanel === 'function') { renderAdminPanel(); } else { window.location.reload(); }
-    }
-}
-
-// Globalisation et Exécution Sûre
-window.loadUsers = loadUsers;
-window.saveUsers = saveUsers;
-window.getUserData = getUserData;
-window.getCurrentUser = getCurrentUser;
-window.registerUser = registerUser;
-window.login = login;
-window.logout = logout;
-window.renderAuthControls = renderAuthControls;
-window.saveGameData = saveGameData;
-window.getFullLeaderboard = getFullLeaderboard;
-window.deleteUser = deleteUser;
-
-
-window.onload = renderAuthControls;
+// ... (Le reste du code, y compris window.onload = renderAuthControls;) ...
