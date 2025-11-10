@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css">
     
     <script>
-        // --- Fonction du Menu Hamburger (Utilise la largeur pour l'ouverture) ---
+        // --- Fonction du Menu Hamburger (CORRIGÉE: Utilise la largeur) ---
         function toggleMenu(x) {
             x.classList.toggle("change");
             const sidebar = document.getElementById("sidebar");
@@ -105,7 +105,6 @@
             const leaderboardBody = document.getElementById(`leaderboardTable_${gameId}`);
             if (!leaderboardBody) return;
 
-            // Vérification de sécurité
             if (typeof getLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
                 leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: auth.js ne semble pas chargé.</td></tr>';
                 return;
@@ -186,7 +185,6 @@
             }
             
             renderTopLeaderboard('space_invaders');
-            // Vous pouvez commenter les lignes ci-dessous si vous ne voulez pas voir les exemples
             renderTopLeaderboard('jeu_exemple'); 
             renderPersonalRank('space_invaders');
         }
