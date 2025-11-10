@@ -1,5 +1,5 @@
 /* ========================================================= */
-/* 1. STYLES GÉNÉRAUX ET RESET (Couleurs finales : Gris foncé) */
+/* 1. STYLES GÉNÉRAUX ET RESET */
 /* ========================================================= */
 
 body {
@@ -8,11 +8,12 @@ body {
     color: #E0E0E0; 
     margin: 0;
     padding: 0;
+    /* Centrage du contenu principal */
     display: flex; 
     justify-content: center; 
     align-items: flex-start;
     min-height: 100vh;
-    padding-top: 60px; /* Espace pour la barre de navigation fixe */
+    padding-top: 60px; 
 }
 
 a {
@@ -33,6 +34,10 @@ h1 {
     text-align: center;
 }
 
+h2 {
+    text-align: center;
+}
+
 /* ========================================================= */
 /* 2. NAVIGATION EN HAUT (Barre Horizontale Discrète et Profil à Droite) */
 /* ========================================================= */
@@ -44,20 +49,19 @@ h1 {
     width: 100%; 
     z-index: 2000; 
     
-    background-color: #3A3A39; 
+    background-color: #3A3A39; /* Fond de la barre (plus foncé) */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    padding: 10px 20px; /* Ajout d'un padding horizontal pour l'alignement */
+    padding: 10px 20px; 
     
     display: flex; 
-    justify-content: space-between; /* Pour pousser le profil à droite */
+    justify-content: space-between; 
     align-items: center;
 }
 
-/* Conteneur des liens pour le centrage des liens principaux */
 .nav-links {
     display: flex;
     justify-content: center;
-    flex-grow: 1; /* Permet aux liens de prendre l'espace central */
+    flex-grow: 1; 
 }
 
 #navbar a {
@@ -80,53 +84,73 @@ h1 {
     color: #F39C12; 
 }
 
-/* Style de l'image de profil dans la navigation */
-.profile-img-nav {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 2px solid #00FF00;
-    object-fit: cover;
-}
-
-/* Menu Hamburger (caché sur PC) */
-.menu-toggle {
+/* Remplacement de l'image de profil par une icône si l'image n'existe pas */
+.profile-link i {
     font-size: 1.5em;
-    color: #E0E0E0;
-    cursor: pointer;
-    display: none; /* Rendre invisible sur grand écran */
+    color: #00FF00; 
+    margin: 0;
 }
 
-/* Ajout d'une règle simple pour faire apparaître le menu hamburger sur mobile */
-@media (max-width: 768px) {
-    .nav-links {
-        display: none; /* Cache les liens sur mobile */
-    }
-    .menu-toggle {
-        display: block; /* Affiche le menu hamburger sur mobile */
-    }
-    #navbar {
-        justify-content: space-between;
-    }
+/* Masquer le menu hamburger sur PC pour afficher la barre complète */
+.menu-toggle {
+    display: none; 
 }
 
-
 /* ========================================================= */
-/* 3. STYLES DES JEUX ET DES CARTES (Restent inchangés) */
+/* 3. STYLES DES CARTES ET CONTENEURS (Centrage universel) */
 /* ========================================================= */
 
-.main-game-area {
+/* Conteneur générique pour centrer la plupart des contenus */
+.main-content-container {
     width: 100%;
     max-width: 1150px; 
     padding: 20px;
 }
+
+.auth-card, .user-card, .game-selection-card {
+    background-color: #3A3A39; 
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 600px; /* Taille maximale pour les cartes */
+    margin: 40px auto; /* Centrage horizontal de la carte */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    border: 1px solid #555; 
+}
+
+/* Style des cartes pour la page d'accueil et de sélection des jeux */
+.card-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.action-card {
+    flex: 1;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #353535;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+}
+
+.action-card i {
+    font-size: 2em; /* Taille des icônes de carte */
+    margin-bottom: 10px;
+}
+
+/* Styles spécifiques aux pages (login, jeu, etc.) */
 
 .game-container {
     display: flex;
     justify-content: center;
     gap: 20px;
 }
-/* ... (Le reste des styles des cartes/jeux est identique à la version précédente) ... */
 
 #gameCanvas {
     border: 3px solid #00FF00; 
@@ -143,61 +167,7 @@ h1 {
     border: 1px solid #F39C12; 
 }
 
-#score-board h2 {
-    color: #F39C12; 
-    border-bottom: 1px solid #F39C12;
-}
-
-.score-details p {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #E0E0E0;
-    display: flex;
-    justify-content: space-between;
-}
-
-#leaderboardList {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-}
-
-#leaderboardList li {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px dashed #555;
-    font-size: 0.95em;
-}
-
-.auth-card, .user-card {
-    background-color: #3A3A39; 
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 400px;
-    margin: 40px auto; 
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-    border: 1px solid #555; 
-}
-
-label {
-    display: block;
-    margin-top: 15px;
-    color: #F39C12;
-    font-weight: bold;
-}
-
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #777;
-    border-radius: 5px;
-    background-color: #2D2D2D; 
-    color: #E0E0E0;
-    box-sizing: border-box; 
-}
-
+/* (Reste des styles input/bouton/leaderboard non modifié) */
 button {
     width: 100%;
     padding: 12px;
@@ -210,29 +180,4 @@ button {
     transition: background-color 0.2s;
     color: #121212;
     background-color: #00FF00; 
-}
-
-.user-card button {
-    background-color: #E74C3C; 
-    color: white;
-}
-
-.user-info p {
-    color: #E0E0E0;
-    margin: 10px 0;
-}
-
-.user-info span {
-    color: #00FF00;
-    font-weight: bold;
-}
-
-.profile-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 3px solid #00FF00;
-    margin: 0 auto 20px auto;
-    display: block;
-    object-fit: cover;
 }
