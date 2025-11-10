@@ -2,21 +2,63 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Crédits - ArcadeMaster</title>
-    <link rel="stylesheet" href="styles.css"> 
+    <title>ArcadeMaster - Crédits</title>
+    <link rel="stylesheet" href="styles.css">
+    
     <style>
-        /* Conserver les styles spécifiques aux crédits */
-        body { background-color: #f4f4f4; color: #333; padding-top: 60px; }
-        .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        h1 { color: #e74c3c; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
-        h2 { color: #2c3e50; margin-top: 25px; border-bottom: 1px dashed #ecf0f1; padding-bottom: 5px; }
-        ul { list-style-type: disc; padding-left: 20px; }
-        .tester-list { list-style-type: none; padding-left: 0; }
-        .tester-list li { margin-bottom: 5px; color: #555; }
+        /* Styles spécifiques pour les crédits */
+        .credits-section {
+            background-color: var(--color-surface); /* Utilise la couleur de surface sombre */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            margin: 30px auto;
+            text-align: center;
+        }
+        .credits-section h2 {
+            color: var(--color-primary); /* Couleur verte principale */
+            border-bottom: 2px solid var(--color-primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .credits-section p, .credits-section ul {
+            margin: 10px 0;
+            color: var(--color-text); /* Couleur de texte claire */
+            line-height: 1.6;
+        }
+        .credits-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .credits-section ul li {
+            margin-bottom: 5px;
+        }
+        .credits-section a {
+            color: var(--color-secondary); /* Couleur d'accentuation */
+            text-decoration: none;
+        }
+        .credits-section a:hover {
+            text-decoration: underline;
+        }
     </style>
+    
+    <script>
+        // --- Fonction du Menu Hamburger (UNIFORME ET ESSENTIELLE) ---
+        function toggleMenu(x) {
+            x.classList.toggle("change");
+            const sidebar = document.getElementById("sidebar");
+            
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
+    </script>
 </head>
 <body>
-
+    
     <div id="navbar">
         <div class="hamburger-menu" onclick="toggleMenu(this)">
             <div class="bar"></div>
@@ -31,44 +73,47 @@
         <a href="index.html">🏠 Accueil</a>
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
-        <a href="classement.html">🏆 Classement</a>
-    </div>
+        <a href="authentification.html">⚙️ Compte</a>
+        </div>
 
     <div class="container">
-        <h1>📝 Crédits et Remerciements</h1>
+        <h1>📜 Crédits</h1>
         
-        <h2>Chef de Projet</h2>
-        <ul>
-            <li>**Zelda5962**</li>
-        </ul>
+        <div class="credits-section">
+            <h2>Développement et Design</h2>
+            <p><strong>Chef de Projet / Développeur Principal :</strong> Zelda5962</p>
+            <p><strong>Assistance et Scripts Backend :</strong> Gemini AI</p>
+            
+            <hr style="border-color: #555; margin: 20px 0;">
 
-        <h2>Développement et Assistance</h2>
-        <ul>
-            <li>**Assistance au Codage :** Gemini (Un modèle de langage de Google)</li>
-        </ul>
+            <h2>Testeurs et Contributeurs</h2>
+            <ul>
+                <li>[Nom du Testeur 1]</li>
+                <li>[Nom du Testeur 2]</li>
+                <li>[Nom du Testeur 3]</li>
+                <li>[Nom du Testeur 4]</li>
+                <li style="color: #aaa;">*(Ajoutez ici les noms de vos testeurs)*</li>
+            </ul>
 
-        <h2>Équipe de Test et de Qualité</h2>
-        <ul class="tester-list">
-            <li>Testeur 1 : [Nom du Testeur A]</li>
-            <li>Testeur 2 : [Nom du Testeur B]</li>
-            <li>Testeur 3 : [Nom du Testeur C]</li>
-            <li>Testeur 4 : [Nom du Testeur D]</li>
-        </ul>
-        
-        <p style="margin-top: 40px;"><a href="index.html">← Retourner à l'Accueil</a></p>
+            <hr style="border-color: #555; margin: 20px 0;">
+
+            <h2>Ressources et Licence</h2>
+            <p><strong>Inspiré par :</strong> Classic Space Invaders (Taito)</p>
+            <p><strong>Icônes :</strong> Emoji et caractères Unicode.</p>
+            <p>Ce projet est développé à des fins éducatives et de loisir.</p>
+
+            <h2>Remerciements Spéciaux</h2>
+            <p>Merci à tous les testeurs pour leur aide précieuse.</p>
+        </div>
     </div>
-    
+
     <script src="auth.js"></script>
     <script>
-        function toggleMenu(x) {
-            x.classList.toggle("change");
-            const sidebar = document.getElementById("sidebar");
-            if (sidebar.style.width === "250px") {
-                sidebar.style.width = "0";
-            } else {
-                sidebar.style.width = "250px";
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderAuthControls === 'function') {
+                renderAuthControls();
             }
-        }
+        });
     </script>
 </body>
 </html>
