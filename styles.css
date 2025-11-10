@@ -129,7 +129,7 @@ h1 {
 /* --- Barre Latérale (Sidebar) --- */
 #sidebar {
     height: 100%;
-    width: 0; /* Fermé par défaut */
+    width: 0; /* Fermé par défaut (CORRECTION) */
     position: fixed;
     top: 50px; 
     left: 0;
