@@ -4,66 +4,44 @@
     <meta charset="UTF-8">
     <title>ArcadeMaster - Accueil</title>
     <link rel="stylesheet" href="styles.css">
-    
     <style>
-        /* Styles spécifiques pour l'accueil */
-        .main-menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 colonnes */
-            gap: 20px;
-            max-width: 600px;
-            margin-top: 50px;
-        }
-        
-        .menu-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 20px;
-            background-color: var(--color-surface);
-            color: var(--color-text);
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 1.2em;
+        /* Styles spécifiques à l'accueil si vous en avez */
+        .hero-section {
             text-align: center;
-            transition: transform 0.2s, background-color 0.2s;
-            border: 2px solid var(--color-primary);
+            padding: 50px 20px;
+            background-color: var(--color-surface);
+            margin: 50px auto;
+            border-radius: 10px;
+            max-width: 800px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
-
-        .menu-button:hover {
-            background-color: #3a3a3a;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.2);
-        }
-        
-        .menu-button span {
-            display: block;
+        .hero-section h1 {
+            color: var(--color-primary);
             font-size: 3em;
             margin-bottom: 10px;
         }
-        
-        /* Styles spécifiques aux boutons */
-        .menu-button.play {
-            border-color: #00ff00; /* Vert */
-        }
-        .menu-button.credits {
-            border-color: #f39c12; /* Jaune/Orange */
-        }
-        .menu-button.account {
-            border-color: #3498db; /* Bleu */
-        }
-        /* Style pour l'élément qui n'est pas un bouton (le texte de bienvenue) */
-        .home-welcome {
-            grid-column: 1 / -1; /* Prend toute la largeur */
-            text-align: center;
-            margin-bottom: 20px;
+        .hero-section p {
             color: var(--color-text);
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        .hero-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: var(--color-primary);
+            color: black;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .hero-button:hover {
+            background-color: var(--color-secondary);
         }
     </style>
-
     <script>
-        // --- Fonction du Menu Hamburger (UNIFORME ET ESSENTIELLE) ---
+        // --- Fonction du Menu Hamburger (Essentielle pour la Navbar) ---
         function toggleMenu(x) {
             x.classList.toggle("change");
             const sidebar = document.getElementById("sidebar");
@@ -96,39 +74,15 @@
         </div>
 
     <div class="container">
-        <h1>Bienvenue sur ArcadeMaster</h1>
-        
-        <div class="main-menu-grid">
-            
-            <div class="home-welcome">
-                <p>Le meilleur endroit pour jouer à vos classiques d'arcade. Choisissez une option ci-dessous :</p>
-            </div>
-            
-            <a href="jeux.html" class="menu-button play">
-                <span>🕹️</span>
-                Jouer aux Jeux
-            </a>
-            
-            <a href="authentification.html" class="menu-button account">
-                <span>⚙️</span>
-                Mon Compte
-            </a>
-            
-            <a href="credits.html" class="menu-button credits" style="grid-column: 1 / -1;">
-                <span>📜</span>
-                Crédits du Projet
-            </a>
-            
+        <div class="hero-section">
+            <h1>Bienvenue sur ArcadeMaster</h1>
+            <p>Redécouvrez les classiques du rétro-gaming !</p>
+            <a href="jeux.html" class="hero-button">Commencer à Jouer !</a>
         </div>
-    </div>
+        
+        </div>
 
-    <script src="auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof renderAuthControls === 'function') {
-                renderAuthControls();
-            }
-        });
-    </script>
-</body>
+    <script src="auth.js"></script> 
+    
+    </body>
 </html>
