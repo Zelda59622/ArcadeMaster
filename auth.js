@@ -4,6 +4,9 @@
 const AUTH_CONTROLS = document.getElementById('auth-controls');
 const STORAGE_KEY = 'arcadeMasterUsers';
 
+// --- Liste des utilisateurs administrateurs ---
+const ADMIN_USERS = ['Zelda5962']; // <--- VOUS ÊTES L'ADMIN DÉSORMAIS
+
 // --- Fonctions de base de données (Inchangées) ---
 
 function loadUsers() {
@@ -21,6 +24,10 @@ function getCurrentUser() {
     return localStorage.getItem('currentUser');
 }
 
+function isAdmin(username) {
+    return ADMIN_USERS.includes(username);
+}
+
 function login(username) {
     localStorage.setItem('currentUser', username);
     renderAuthControls();
@@ -30,11 +37,11 @@ function logout() {
     localStorage.removeItem('currentUser');
     renderAuthControls();
     if (window.location.pathname.endsWith('authentification.html')) {
-        window.location.reload(); // Recharger pour montrer l'écran de connexion
+        window.location.reload(); 
     }
 }
 
-// --- Gestion du mot de passe ---
+// --- Gestion du mot de passe (Inchangée) ---
 
 function changePassword(username, newPassword) {
     const users = loadUsers();
@@ -101,10 +108,14 @@ function renderAuthControls() {
 
     if (currentUser) {
         // Utilisateur connecté : Montrer le nom et le bouton Compte
+        const adminLink = isAdmin(currentUser) 
+            ? '<a href="admin.html" class="nav-link" style="color:yellow; text-decoration:none;">ADMIN</a>' 
+            : '';
+
         AUTH_CONTROLS.innerHTML = `
             <span id="user-info-display">${currentUser}</span> 
             <a href="authentification.html" id="account-button">⚙️ Compte</a>
-            ${currentUser === 'admin' ? '<a href="admin.html" class="nav-link" style="color:yellow;">ADMIN</a>' : ''}
+            ${adminLink}
         `;
     } else {
         // Utilisateur déconnecté : Montrer le bouton S'inscrire/Se Connecter
@@ -128,3 +139,4 @@ window.loadUsers = loadUsers;
 window.getLeaderboard = getLeaderboard; 
 window.changePassword = changePassword;
 window.login = login;
+window.isAdmin = isAdmin; // Nouvelle fonction accessible
