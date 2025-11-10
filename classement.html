@@ -4,17 +4,29 @@
     <meta charset="UTF-8">
     <title>ArcadeMaster - Classement</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <script>
+        // --- Correction Menu Hamburger (Définie tôt pour garantir l'accessibilité) ---
+        function toggleMenu(x) {
+            x.classList.toggle("change");
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
+    </script>
+
     <style>
         /* Styles spécifiques pour le classement */
         
-        /* Ajuster la colonne score/pdp */
         .leaderboard-table th:nth-child(4), 
         .leaderboard-table td:nth-child(4) { 
             text-align: right; 
             font-weight: bold; 
         }
         
-        /* Centrer la colonne Rang */
         .leaderboard-table th:nth-child(1),
         .leaderboard-table td:nth-child(1) {
              text-align: center;
@@ -62,7 +74,8 @@
                         </tr>
                     </thead>
                     <tbody id="leaderboardTable_space_invaders">
-                        </tbody>
+                        <tr><td colspan="4" style="text-align:center;">Chargement en cours...</td></tr>
+                    </tbody>
                 </table>
             </div>
 
@@ -88,34 +101,20 @@
 
     <script src="auth.js"></script>
     <script>
-        // --- 1. Logique du Menu Hamburger (CORRIGÉ) ---
-        // Cette fonction DOIT être définie ici pour l'onclick
-        function toggleMenu(x) {
-            x.classList.toggle("change");
-            const sidebar = document.getElementById("sidebar");
-            if (sidebar.style.width === "250px") {
-                sidebar.style.width = "0";
-            } else {
-                sidebar.style.width = "250px";
-            }
-        }
-        
         const DEFAULT_PDP_URL = 'https://i.imgur.com/39hN7hG.png'; 
 
-        // Fonction générique pour rendre n'importe quel classement Top X (Top 10)
+        // Fonction générique pour rendre n'importe quel classement Top X
         function renderTopLeaderboard(gameId) {
             const leaderboardBody = document.getElementById(`leaderboardTable_${gameId}`);
-            if (!leaderboardBody) return; 
+            if (!leaderboardBody) return;
 
-            // Vérification des fonctions essentielles
+            // VÉRIFICATION DE SÉCURITÉ : Assurez-vous que les fonctions d'AUTH sont là
             if (typeof getLeaderboard === 'undefined' || typeof getUserData === 'undefined') {
-                console.error("Erreur: Les fonctions de auth.js ne sont pas chargées.");
-                leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: Script d\'authentification manquant.</td></tr>';
+                leaderboardBody.innerHTML = '<tr><td colspan="4">Erreur: Script d\'authentification (auth.js) manquant ou fonctions non disponibles.</td></tr>';
                 return;
             }
 
-            // --- CORRECTION DU CLASSEMENT : S'assure de récupérer les scores à jour
-            const leaderboardData = getLeaderboard(gameId, 10); 
+            const leaderboardData = getLeaderboard(gameId, 10); // Top 10
             leaderboardBody.innerHTML = ''; 
 
             if (leaderboardData.length === 0) {
@@ -140,25 +139,27 @@
 
                 const row = leaderboardBody.insertRow();
                 
+                // Rng, Joueur, PDP, Score
                 row.insertCell().innerHTML = `${trophy} ${rank}`;
                 row.insertCell().textContent = entry.username;
-                
-                row.insertCell().innerHTML = `
-                    <div class="user-display">
-                        <img src="${pdpUrl}" alt="PDP" class="leaderboard-pdp">
-                    </div>
-                `;
-                
+                row.insertCell().innerHTML = `<div class="user-display"><img src="${pdpUrl}" alt="PDP" class="leaderboard-pdp"></div>`;
                 row.insertCell().textContent = entry.score;
             });
         }
         
         // Fonction pour afficher le classement personnel du joueur
         function renderPersonalRank(gameId) {
+            
+            if (typeof getCurrentUser === 'undefined' || typeof getPersonalRank === 'undefined') {
+                 // Si les fonctions sont manquantes, on ne fait rien
+                 document.getElementById('personal-rank-container').style.display = 'none';
+                 return;
+            }
+            
             const currentUser = getCurrentUser();
             const container = document.getElementById('personal-rank-container');
             
-            if (!currentUser || typeof getPersonalRank === 'undefined') {
+            if (!currentUser) {
                 container.style.display = 'none';
                 return;
             }
@@ -185,23 +186,20 @@
                 `;
             }
         }
-        
-        // Fonction principale de rendu au chargement de la page
+
         function initializeLeaderboard() {
-            // Ces fonctions viennent de auth.js et s'assurent que la nav bar est bien rendue, 
-            // y compris le lien Admin si l'utilisateur est Zelda5962.
+            // S'assurer que la navbar est rendue (Admin Link/PDP)
             if (typeof renderAuthControls === 'function') {
                 renderAuthControls();
             }
             
             // Rendu des classements
             renderTopLeaderboard('space_invaders');
-            // renderTopLeaderboard('jeu_exemple'); // Décommenter si le jeu est ajouté
             renderPersonalRank('space_invaders');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Appel initial avec un petit délai pour s'assurer que auth.js est chargé
+            // Utiliser un délai pour s'assurer que auth.js a fini d'être chargé et exécuté
             setTimeout(initializeLeaderboard, 150); 
         });
     </script>
