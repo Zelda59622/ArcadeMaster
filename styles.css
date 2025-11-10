@@ -26,7 +26,7 @@ body {
 .container {
     width: 90%;
     max-width: 1200px;
-    margin: 80px auto 20px auto; /* Espace pour la navbar */
+    margin: 80px auto 20px auto; 
     padding: 20px;
 }
 
@@ -63,7 +63,6 @@ h1 {
     z-index: 1000;
 }
 
-/* Auth Controls (PDP et boutons Connexion/Déconnexion) */
 #auth-controls {
     display: flex;
     align-items: center;
@@ -128,7 +127,6 @@ h1 {
 }
 
 /* --- Barre Latérale (Sidebar) --- */
-/* CORRECTION: Utilisation de width: 0 pour l'état fermé, géré par JS */
 #sidebar {
     height: 100%;
     width: 0; /* Fermé par défaut */
@@ -215,7 +213,7 @@ h1 {
 
 .form-group input[type="text"],
 .form-group input[type="password"],
-.form-group input[type="url"] { /* Ajout de type URL pour la PDP */
+.form-group input[type="url"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #555;
@@ -378,13 +376,13 @@ h1 {
     background-color: #3a3a3a;
 }
 
-.leaderboard-table td:nth-child(4) { /* Score */
+.leaderboard-table td:nth-child(4) { 
     text-align: right;
     font-weight: bold;
     color: var(--color-secondary);
 }
 
-.leaderboard-table td:nth-child(1) { /* Rang */
+.leaderboard-table td:nth-child(1) { 
     text-align: center;
     font-weight: bold;
     color: var(--color-primary);
@@ -420,5 +418,4 @@ h1 {
         padding: 10px 20px;
         font-size: 1.2em;
     }
-    /* La sidebar n'a pas besoin de styles spéciaux ici car la transition est gérée par width */
 }
