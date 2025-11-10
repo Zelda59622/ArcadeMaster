@@ -6,7 +6,8 @@ body {
     font-family: 'Arial', sans-serif; 
     background-color: #222; 
     color: white; 
-    padding-top: 55px; /* Espace pour la navbar fixe */
+    /* Espace pour la navbar fixe */
+    padding-top: 55px; 
 }
 
 /* --- Menu Hamburger (Navigation) --- */
@@ -23,6 +24,7 @@ body {
     align-items: center;
 }
 
+/* Bouton Hamburger */
 .hamburger-menu {
     display: inline-block;
     cursor: pointer;
@@ -35,13 +37,16 @@ body {
     margin: 5px 0;
     transition: 0.4s;
 }
+
+/* Transformation du bouton en X */
 .change .bar:nth-child(1) { transform: translate(0, 8px) rotate(-45deg); }
 .change .bar:nth-child(2) { opacity: 0; }
 .change .bar:nth-child(3) { transform: translate(0, -8px) rotate(45deg); }
 
+/* Menu Latéral (Déroulant) */
 #sidebar {
     height: 100%;
-    width: 0;
+    width: 0; 
     position: fixed;
     z-index: 1001;
     top: 0;
@@ -51,6 +56,7 @@ body {
     transition: 0.5s;
     padding-top: 60px;
 }
+
 #sidebar a {
     padding: 15px 8px 15px 32px;
     text-decoration: none;
@@ -59,10 +65,12 @@ body {
     display: block;
     transition: 0.3s;
 }
+
 #sidebar a:hover {
     color: #f1f1f1;
     background-color: #333;
 }
+/* Style spécifique pour le lien Admin dans la sidebar */
 #sidebar a.admin-link {
     color: yellow;
     font-weight: bold;
@@ -72,7 +80,7 @@ body {
 #auth-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 15px; 
 }
 #auth-controls button, #auth-controls a {
     padding: 8px 15px;
@@ -83,6 +91,7 @@ body {
     text-decoration: none;
     transition: background-color 0.3s;
 }
+
 #login-button {
     background-color: #00ff00;
     color: #222;
@@ -90,6 +99,7 @@ body {
 #login-button:hover {
     background-color: #00cc00;
 }
+
 #user-info-display {
     color: #00ff00;
     font-weight: bold;
@@ -100,12 +110,14 @@ body {
     font-size: 1em !important;
     padding: 5px 10px !important;
 }
+
+/* Style de la Photo de Profil dans la Navbar */
 #nav-pdp {
     width: 30px;
     height: 30px;
-    border-radius: 50%;
+    border-radius: 50%; 
     object-fit: cover;
-    border: 2px solid #00ff00;
+    border: 2px solid #00ff00; 
 }
 
 
@@ -213,9 +225,9 @@ body {
     border: 2px solid #00ff00; /* Contour vert */
 }
 
-/* --- Styles du classement --- */
+/* --- Styles du classement général --- */
 .container { 
-    max-width: 700px; 
+    max-width: 900px; /* Augmenté pour la grille 2x2 */
     margin: 40px auto; 
     padding: 20px; 
     background-color: #333; 
@@ -230,32 +242,31 @@ h1 {
     margin-bottom: 20px; 
     text-align: center; 
 }
-table { 
+.leaderboard-table { 
     width: 100%; 
     border-collapse: collapse; 
     color: white; 
 }
-th, td { 
+.leaderboard-table th, .leaderboard-table td { 
     border: 1px solid #555; 
     padding: 10px; 
     text-align: left; 
 }
-th { 
+.leaderboard-table th { 
     background-color: #111; 
     color: #00ff00; 
 }
-td:nth-child(4) { 
-    text-align: right; 
-    font-weight: bold; 
-}
+
+/* Style des rangs */
 .trophy { 
     color: gold; 
     font-size: 1.2em; 
 }
-/* Styles pour la grille de classements (pour futures implémentations multi-jeux) */
+
+/* --- Styles de la Grille 2x2 (Multi-Classements) --- */
 .leaderboard-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Une seule colonne par défaut */
+    grid-template-columns: 1fr; /* Une seule colonne par défaut (mobile) */
     gap: 30px;
     margin-top: 30px;
 }
@@ -269,4 +280,13 @@ td:nth-child(4) {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.leaderboard-box h2 {
+    color: #00ff00;
+    font-size: 1.5em;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
 }
