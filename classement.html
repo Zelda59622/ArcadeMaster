@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>ArcadeMaster - Classement</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; background-color: #222; color: white; margin: 0; padding-top: 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        header { background-color: #2c3e50; color: white; padding: 10px 0; position: fixed; width: 100%; top: 0; z-index: 1000; }
-        nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; width: 100%; box-sizing: border-box; }
-        nav a { color: white; text-decoration: none; padding: 10px 15px; display: block; }
-        nav a:hover { background-color: #34495e; }
-        
+    <link rel="stylesheet" href="styles.css"> <style>
+        /* Conserver les styles spécifiques au classement */
+        body { padding-top: 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .container { max-width: 600px; margin: 40px auto; padding: 20px; background-color: #333; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
         h1 { color: #00ff00; font-size: 2.5em; border-bottom: 2px solid #555; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
 
@@ -22,18 +18,22 @@
 </head>
 <body>
     
-    <header>
-        <nav>
-            <div>
-                <a href="index.html">🏠 Accueil</a>
-                <a href="jeux.html">🕹️ Menu Jeux</a>
-                <a href="credits.html">📝 Crédits</a>
-                <a href="classement.html">🏆 Classement</a>
+    <div id="navbar">
+        <div class="hamburger-menu" onclick="toggleMenu(this)">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div id="auth-controls">
             </div>
-            <div id="auth-section">
-                </div>
-        </nav>
-    </header>
+    </div>
+
+    <div id="sidebar">
+        <a href="index.html">🏠 Accueil</a>
+        <a href="jeux.html">🕹️ Menu Jeux</a>
+        <a href="credits.html">📝 Crédits</a>
+        <a href="classement.html">🏆 Classement</a>
+    </div>
 
     <div class="container">
         <h1>🏆 Classement : Space Invaders</h1>
@@ -46,7 +46,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const leaderboardContent = document.getElementById('leaderboard-content');
-
+            
+            // Logique de chargement du classement (déjà dans le fichier précédent, mais répété pour la cohérence)
             if (typeof getLeaderboard === 'undefined') {
                 leaderboardContent.innerHTML = '<p class="error" style="color:red; text-align:center;">Erreur de chargement du système de comptes.</p>';
                 return;
@@ -80,6 +81,16 @@
             tableHTML += '</tbody></table>';
             leaderboardContent.innerHTML = tableHTML;
         });
+
+        function toggleMenu(x) {
+            x.classList.toggle("change");
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
+        }
     </script>
 </body>
 </html>
