@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>ArcadeMaster - Panneau Admin</title>
-    <link rel="stylesheet" href="styles.css"> <style>
+    <link rel="stylesheet" href="styles.css"> 
+    <style>
         /* Conserver les styles spécifiques à l'admin */
         body { padding-top: 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { max-width: 800px; margin: 40px auto; padding: 20px; background-color: #333; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+        .container { max-width: 1000px; margin: 40px auto; padding: 20px; background-color: #333; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
         h1 { color: #ff0000; font-size: 2em; border-bottom: 2px solid #555; padding-bottom: 10px; margin-bottom: 20px; }
 
         table { width: 100%; border-collapse: collapse; color: white; }
         th, td { border: 1px solid #555; padding: 10px; text-align: left; }
         th { background-color: #111; color: #00ff00; }
         .error { color: #ff0000; font-weight: bold; }
+        .delete-btn { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .delete-btn:hover { background-color: #c0392b; }
     </style>
 </head>
 <body>
@@ -43,44 +46,6 @@
     
     <script src="auth.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const contentDiv = document.getElementById('content');
-            const currentUser = getCurrentUser();
-
-            if (currentUser !== 'admin') {
-                contentDiv.innerHTML = '<p class="error">Accès refusé. Seul l\'utilisateur "admin" peut accéder à cette page.</p>';
-                document.getElementById('admin-title').textContent = "Accès Restreint";
-                return;
-            }
-
-            // La fonction loadUsers est rendue globale dans auth.js
-            const users = loadUsers(); 
-            const userKeys = Object.keys(users);
-
-            if (userKeys.length === 0) {
-                contentDiv.innerHTML = '<p>Aucun compte utilisateur enregistré.</p>';
-                return;
-            }
-
-            let tableHTML = '<table><thead><tr><th>Pseudo</th><th>Mot de passe</th><th>Données de Jeu</th></tr></thead><tbody>';
-            
-            userKeys.forEach(username => {
-                const user = users[username];
-                const gameData = JSON.stringify(user.games);
-                
-                tableHTML += `
-                    <tr>
-                        <td>${username}</td>
-                        <td>${user.password}</td>
-                        <td><pre style="white-space: pre-wrap; margin: 0;">${gameData}</pre></td>
-                    </tr>
-                `;
-            });
-
-            tableHTML += '</tbody></table>';
-            contentDiv.innerHTML = tableHTML;
-        });
-
         function toggleMenu(x) {
             x.classList.toggle("change");
             const sidebar = document.getElementById("sidebar");
@@ -90,6 +55,66 @@
                 sidebar.style.width = "250px";
             }
         }
+
+        function deleteUser(usernameToDelete) {
+            if (usernameToDelete === 'admin') {
+                return alert("Interdit de supprimer le compte 'admin'.");
+            }
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur : ${usernameToDelete} ? Cette action est irréversible.`)) {
+                return;
+            }
+
+            const users = loadUsers();
+            if (users[usernameToDelete]) {
+                delete users[usernameToDelete];
+                saveUsers(users);
+                alert(`Compte ${usernameToDelete} supprimé avec succès.`);
+                renderAdminPanel(); // Recharger le panneau
+            }
+        }
+        
+        function renderAdminPanel() {
+            const contentDiv = document.getElementById('content');
+            const currentUser = getCurrentUser();
+
+            if (currentUser !== 'admin') {
+                contentDiv.innerHTML = '<p class="error">Accès refusé. Seul l\'utilisateur "admin" peut accéder à cette page.</p>';
+                document.getElementById('admin-title').textContent = "Accès Restreint";
+                return;
+            }
+
+            const users = loadUsers(); 
+            const userKeys = Object.keys(users);
+
+            if (userKeys.length === 0) {
+                contentDiv.innerHTML = '<p>Aucun compte utilisateur enregistré.</p>';
+                return;
+            }
+
+            let tableHTML = '<table><thead><tr><th>Pseudo</th><th>Mot de passe</th><th>Données de Jeu</th><th>Action</th></tr></thead><tbody>';
+            
+            userKeys.forEach(username => {
+                const user = users[username];
+                const gameData = JSON.stringify(user.games);
+                
+                tableHTML += `
+                    <tr>
+                        <td>${username}</td>
+                        <td>${user.password}</td>
+                        <td><pre style="white-space: pre-wrap; margin: 0; max-height: 100px; overflow-y: auto;">${gameData}</pre></td>
+                        <td><button class="delete-btn" onclick="deleteUser('${username}')">Supprimer</button></td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            contentDiv.innerHTML = tableHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', renderAdminPanel);
+
+        // Rendre la fonction accessible globalement pour le bouton
+        window.deleteUser = deleteUser; 
     </script>
 </body>
 </html>
