@@ -215,7 +215,7 @@ body {
 
 /* --- Styles du classement --- */
 .container { 
-    max-width: 700px; /* Mise à jour de la largeur pour la PDP */
+    max-width: 700px; 
     margin: 40px auto; 
     padding: 20px; 
     background-color: #333; 
@@ -251,4 +251,22 @@ td:nth-child(4) {
 .trophy { 
     color: gold; 
     font-size: 1.2em; 
+}
+/* Styles pour la grille de classements (pour futures implémentations multi-jeux) */
+.leaderboard-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Une seule colonne par défaut */
+    gap: 30px;
+    margin-top: 30px;
+}
+@media (min-width: 768px) {
+    .leaderboard-grid {
+        grid-template-columns: 1fr 1fr; /* Deux colonnes sur grand écran */
+    }
+}
+.leaderboard-box {
+    background: #282828;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
