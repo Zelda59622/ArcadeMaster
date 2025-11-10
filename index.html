@@ -18,45 +18,56 @@
         #spaceship { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 3em; cursor: pointer; transition: left 0.1s linear; user-select: none; outline: none; }
         #dev-dashboard { margin-top: 30px; padding: 20px; border: 1px dashed red; background-color: #ffebeb; border-radius: 5px; }
         #local-record { font-weight: bold; color: #007bff; }
+        
+        /* Style temporaire pour le Jeu de Devinettes (maintenant caché) */
+        #devinettes-launch { display: none; } 
     </style>
 </head>
 <body>
 
     <header>
         <nav>
-            <a href="index.html">🕹️ Jouer</a>
-            <a href="#info-jeux">📖 Infos & Jeux</a>
-            <a href="#credits-section">📝 Crédits</a>
+            <a href="index.html">🕹️ Jeux</a>
+            <a href="#info-jeux">📖 Infos</a>
+            <a href="credits.html">📝 Crédits</a>
         </nav>
     </header>
 
     <div class="container">
-        <h2>Lancez votre jeu !</h2>
-        <p style="text-align: center;">Déplacez le vaisseau avec les flèches ← et →. Tirez (clic ou espace) pour lancer le jeu de devinettes !</p>
+        
+        <h2>Lancez le Space Invaders !</h2>
+        <p style="text-align: center;">Déplacez le vaisseau avec les flèches ← et →. Tirez (clic ou espace) pour lancer le jeu secret !</p>
         
         <div id="game-launcher-container">
             <div id="spaceship">🚀</div>
         </div>
+        
+        <script>
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault(); 
+                    window.location.href = 'jeu-secret.html'; // LIEN VERS LE JEU SECRET
+                }
+            });
+            document.getElementById('spaceship').addEventListener('click', () => {
+                window.location.href = 'jeu-secret.html'; // LIEN VERS LE JEU SECRET
+            });
+        </script>
 
         <div id="dev-dashboard" style="display:none;">
             <h2>🔒 Tableau de Bord du Dev (Code Konami Réussi)</h2>
-            <h3>Stats Jeu de Devinettes :</h3>
-            <p>Meilleur Record Personnel : <span id="local-record">--</span> tentatives.</p>
+            <p>Le Tableau de Bord est déverrouillé !</p>
             
-            <h3>Jeu Secret :</h3>
-            <p>Jeu Secret (Konami) : <button id="launch-secret-game">Lancer le Jeu Secret</button></p>
+            <h3>Lancement du Jeu Secret :</h3>
+            <p>Jeu Secret (Konami) : <button id="launch-secret-game">Lancer le Space Invaders</button></p>
         </div>
 
         <h2 id="info-jeux">📖 Infos & Jeux</h2>
-        <p><strong>ArcadeMaster</strong> est un projet d'arcade numérique pour le web, utilisant uniquement HTML, CSS et JavaScript pur pour des jeux rapides et sans installation.</p>
+        <p><strong>ArcadeMaster</strong> est un projet d'arcade numérique pour le web, utilisant uniquement HTML, CSS et JavaScript pur.</p>
         <p>L'expérience complète se lance directement sur cette page avec notre vaisseau lanceur !</p>
         
         <h2 id="credits-section">📝 Crédits</h2>
-        <ul>
-            <li><strong>Concept, Design :</strong> [Votre Nom/Pseudo] (azertyuiop930)</li>
-            <li><strong>Assistance au Codage et Architecture :</strong> Gemini (Un modèle de langage de Google)</li>
-            <li><strong>Testeurs :</strong> [Ajoutez les noms de vos testeurs ici]</li>
-        </ul>
+        <p>Retrouvez toutes les informations sur les contributeurs et les technologies utilisées sur notre <a href="credits.html">Page de Crédits dédiée.</a></p>
     </div>
 
     <script>
@@ -66,29 +77,14 @@
         // 1. MOUVEMENT DU VAISSEAU
         document.addEventListener('keydown', (e) => {
             const step = 2; 
-
             if (e.key === 'ArrowLeft') {
                 positionX = Math.max(0, positionX - step);
             } else if (e.key === 'ArrowRight') {
                 positionX = Math.min(100, positionX + step);
             }
-            
             if (spaceship) spaceship.style.left = `${positionX}%`;
-
-            // Lancement du jeu au clic/Espace 
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault(); 
-                // IMPORTANT : Lien vers le deuxième fichier HTML
-                window.location.href = 'jeu-devinettes.html'; 
-            }
         });
-
-        if (spaceship) {
-            spaceship.addEventListener('click', () => {
-                window.location.href = 'jeu-devinettes.html';
-            });
-        }
-
+        
         // 2. GESTION DU CODE KONAMI (pour le tableau de bord secret)
         const konamiCode = [
             'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
@@ -100,10 +96,6 @@
         
         function showDashboard() {
             dashboard.style.display = 'block';
-            
-            // Récupérer le record local
-            const record = localStorage.getItem('devinettes_record');
-            document.getElementById('local-record').textContent = record ? record : 'Aucun record enregistré';
         }
 
         document.addEventListener('keydown', (e) => {
@@ -114,10 +106,7 @@
                     konamiIndex = 0;
                 }
             } else {
-                // Réinitialiser si l'utilisateur appuie sur une mauvaise touche (sauf les flèches pour le mouvement)
-                if (e.key.startsWith('Arrow')) {
-                    // Les flèches de mouvement ne réinitialisent pas tout de suite le code Konami
-                } else {
+                if (!e.key.startsWith('Arrow')) {
                      konamiIndex = 0;
                 }
             }
@@ -125,7 +114,7 @@
         
         if(document.getElementById('launch-secret-game')) {
              document.getElementById('launch-secret-game').addEventListener('click', () => {
-                alert('Le Jeu Secret sera codé juste après !');
+                window.location.href = 'jeu-secret.html';
             });
         }
     </script>
