@@ -1,3 +1,40 @@
+// --- CLASSE AUDIO : A AJOUTER EN PREMIER ---
+class Sound {
+    constructor(src, volume = 0.3) {
+        this.sound = document.createElement("audio");
+        this.sound.src = src;
+        this.sound.setAttribute("preload", "auto");
+        this.sound.setAttribute("controls", "none");
+        this.sound.style.display = "none";
+        document.body.appendChild(this.sound);
+        this.sound.volume = volume;
+    }
+
+    play() {
+        this.sound.currentTime = 0; 
+        this.sound.play().catch(e => {});
+    }
+    
+    // Fonction pour la musique de fond
+    loop() {
+        this.sound.loop = true;
+        this.play();
+    }
+    
+    stop() {
+        this.sound.pause();
+        this.sound.currentTime = 0;
+    }
+}
+
+// --- DÉCLARATION DES SONS : UTILISE VOS NOMS DE FICHIERS ---
+const sfxNormalShoot = new Sound("shoot.mp3", 0.2); // Tir normal
+const sfxShotgunShoot = new Sound("shotgun_shoot.mp3", 0.4); // Tir Fusil à Pompe
+const sfxExplosion = new Sound("bonus_ramassé.mp3", 0.5); // Explosion d'ennemi / Bombe
+const sfxPickup = new Sound("bonus_ramassé.mp3", 0.5); // Ramassage Bonus
+const bgMusic = new Sound("background_music.mp3", 0.15); // Musique de fond 
+
+
 // --- VARIABLES GLOBALES DU JEU ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -31,7 +68,6 @@ const EMOJIS = {
     player: '🚀', 
     invader: '👾',
     bullet: '⚡',  
-    // Émojis pour les bonus
     shield_pu: '🛡️',
     bomb_pu: '💣',
     shotgun_pu: '🔫' 
@@ -42,8 +78,8 @@ const EMOJI_FONT_SIZE = 30;
 const PLAYER_SIZE = 30;
 const INVADER_SIZE = 30;
 const POWERUP_SIZE = 30;
-const INVADER_SPAWN_RATE = 120; // Nouvel ennemi toutes les 2 secondes
-const POWERUP_SPAWN_CHANCE = 0.002; // ~1 chance sur 500 par frame
+const INVADER_SPAWN_RATE = 120;
+const POWERUP_SPAWN_CHANCE = 0.002; 
 
 
 // --- FONCTION UTILITAIRE DE COLLISION (AABB) ---
@@ -51,10 +87,10 @@ function checkCollision(objA, objB) {
     return objA.x < objB.x + objB.width &&
            objA.x + objA.width > objB.x &&
            objA.y < objB.y + objB.height &&
-           objA.y + objB.height > objB.y; // Correction dans le check de hauteur
+           objA.y + objB.height > objB.y;
 }
 
-// --- LOGIQUE DE SAUVEGARDE ET CLASSEMENT ---
+// --- LOGIQUE DE SAUVEGARDE ET CLASSEMENT (Inchagée) ---
 function getHighScores() {
     const users = typeof loadUsers === 'function' ? loadUsers() : {};
     let highScores = [];
@@ -174,9 +210,11 @@ class Player extends Entity {
                     const angleOffset = i * spreadAngle;
                     this.bullets.push(new Bullet(centerX, centerY, this.angle + angleOffset));
                 }
+                sfxShotgunShoot.play();
             } else {
                 // LOGIQUE TIR NORMAL (1 tir droit)
                 this.bullets.push(new Bullet(centerX, centerY, this.angle));
+                sfxNormalShoot.play();
             }
             
             this.canShoot = false;
@@ -208,7 +246,6 @@ class Player extends Entity {
             ctx.strokeStyle = 'rgba(0, 200, 255, 0.5)';
             ctx.lineWidth = 4;
             ctx.stroke();
-            // Affiche le temps restant 
             ctx.fillStyle = 'white';
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
@@ -249,7 +286,6 @@ class PowerUp extends Entity {
     
     update() {
         this.y += this.dy;
-        // Si le bonus sort de l'écran, le marquer comme mort
         if (this.y > GAME_HEIGHT) {
             this.dead = true;
         }
@@ -282,6 +318,9 @@ class Bullet extends Entity {
 // --- GESTION DES BONUS ---
 
 function activatePowerUp(type) {
+    // --- SON DE RAMASSAGE BONUS ---
+    sfxPickup.play();
+    
     if (type === 'shield') {
         isShieldActive = true;
         shieldTimer = 10 * 60; // 10 secondes
@@ -290,6 +329,7 @@ function activatePowerUp(type) {
         const enemiesKilled = invaders.length;
         updateScore(enemiesKilled * 10); 
         invaders = []; // Tue tous les ennemis
+        sfxExplosion.play(); // Son de la bombe
     } else if (type === 'shotgun') {
         // LOGIQUE FUSIL À POMPE
         isShotgunActive = true;
@@ -346,6 +386,7 @@ function updateLives(amount) {
     livesElement.textContent = lives;
     if (lives <= 0) {
         gameOver = true;
+        bgMusic.stop(); // Arrête la musique quand c'est Game Over
     }
 }
 
@@ -371,6 +412,8 @@ function handleCollisions() {
                 invader.dead = true;
                 bullet.dead = true;
                 updateScore(invader.points);
+                // --- SON D'EXPLOSION ---
+                sfxExplosion.play();
             }
         });
         return !bullet.dead;
@@ -380,10 +423,11 @@ function handleCollisions() {
     invaders = invaders.filter(invader => {
         if (checkCollision(invader, player)) {
             if (isShieldActive) {
-                 invader.dead = true; // Détruit l'ennemi sans perte de vie
+                 invader.dead = true;
+                 sfxExplosion.play(); 
             } else {
                  invader.dead = true; 
-                 updateLives(-1); // Perte de vie
+                 updateLives(-1);
             }
         }
         return !invader.dead;
@@ -393,12 +437,11 @@ function handleCollisions() {
     powerUps = powerUps.filter(pu => {
         if (checkCollision(pu, player)) {
             activatePowerUp(pu.type);
-            return false; // Supprimer le bonus
+            return false;
         }
-        return !pu.dead; // Conserver s'il n'est pas mort (ou n'est pas sorti de l'écran)
+        return !pu.dead;
     });
     
-    // 4. Nettoyage
     player.bullets = player.bullets.filter(b => !b.dead);
 }
 
@@ -406,13 +449,10 @@ function handleCollisions() {
 function updateGame() {
     if (gameOver || !gameStarted) return;
 
-    // 1. Mise à jour des Timers des bonus
     updatePowerUpTimers();
 
-    // 2. Mise à jour du joueur (mouvement et angle)
     player.update(keys);
     
-    // 3. Gestion des ennemis (spawn et mouvement)
     invaderSpawnCounter++;
     if (invaderSpawnCounter >= INVADER_SPAWN_RATE) {
         spawnInvader();
@@ -420,14 +460,11 @@ function updateGame() {
     }
     invaders.forEach(i => i.update(player));
     
-    // 4. Spawn et mouvement des PowerUps
     spawnPowerUp();
     powerUps.forEach(pu => pu.update());
     
-    // 5. Mise à jour des tirs
     player.bullets.forEach(b => b.update());
 
-    // 6. Gestion des Collisions
     handleCollisions();
 }
 
@@ -473,7 +510,7 @@ function gameLoop() {
     drawGame();
 }
 
-// --- GESTION DES ÉVÉNEMENTS ---
+// --- GESTION DES ÉVÉNEMENTS (Inchagée) ---
 
 document.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -510,7 +547,7 @@ document.addEventListener('keyup', (e) => {
 });
 
 
-// --- INITIALISATION DU JEU ---
+// --- INITIALISATION DU JEU (Lancement Musique) ---
 
 function startGame() {
     if (gameLoopInterval) clearInterval(gameLoopInterval); 
@@ -523,7 +560,6 @@ function startGame() {
     invaders = []; 
     powerUps = []; 
     
-    // Réinitialisation des états des bonus
     isShieldActive = false;
     shieldTimer = 0;
     isShotgunActive = false;
@@ -533,6 +569,9 @@ function startGame() {
     
     scoreElement.textContent = score;
     livesElement.textContent = lives;
+    
+    // LANCE LA MUSIQUE
+    bgMusic.loop(); 
 
     gameLoopInterval = setInterval(gameLoop, 1000 / 60); 
 }
