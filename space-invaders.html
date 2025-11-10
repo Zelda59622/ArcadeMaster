@@ -6,10 +6,44 @@
     <link rel="stylesheet" href="styles.css"> 
     <style>
         /* Styles spécifiques au jeu */
-        #gameCanvas { border: 2px solid #00ff00; background-color: #000; margin-top: 60px; /* Espace pour la navbar */ }
-        #infoPanel { color: white; margin-top: 10px; font-size: 1.2em; }
-        .game-title { color: #00ff00; margin-top: 20px; }
-        body { overflow: hidden; display: flex; flex-direction: column; align-items: center; } 
+        #gameCanvas { 
+            border: 2px solid #00ff00; 
+            background-color: #000; 
+            margin-top: 20px; 
+            margin-bottom: 20px;
+        }
+        #infoPanel { 
+            color: white; 
+            margin-top: 10px; 
+            font-size: 1.2em; 
+        }
+        .game-title { 
+            color: #00ff00; 
+            margin-top: 20px; 
+        }
+        body { 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding-top: 55px; /* S'assurer que le contenu n'est pas sous la navbar */
+        } 
+        
+        /* Style du bouton Recommencer */
+        #reset-button {
+            background-color: #f39c12; /* Orange */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+        #reset-button:hover {
+            background-color: #e67e22; 
+        }
     </style>
 </head>
 <body>
@@ -29,11 +63,14 @@
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
         <a href="classement.html">🏆 Classement</a>
-    </div>
+        </div>
 
     <h1 class="game-title">SPACE INVADERS</h1>
     
     <div id="infoPanel">Score: <span id="scoreValue">0</span></div>
+    
+    <button id="reset-button" onclick="resetGameAndStart()">Recommencer la Partie</button>
+    
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <script src="auth.js"></script>
@@ -49,6 +86,20 @@
             }
         }
         
+        // CORRECTION MAJEURE : S'assurer que la barre de navigation se charge
+        document.addEventListener('DOMContentLoaded', () => {
+             if (typeof renderAuthControls === 'function') {
+                renderAuthControls();
+             } else {
+                // Mesure de sécurité si auth.js est chargé après le DOM
+                setTimeout(() => {
+                    if (typeof renderAuthControls === 'function') {
+                        renderAuthControls();
+                    }
+                }, 100);
+             }
+        });
+        
         // *** LOGIQUE DU JEU SPACE INVADERS (Graphismes ajustés) ***
         
         const canvas = document.getElementById('gameCanvas');
@@ -63,7 +114,7 @@
         let player = {
             x: GAME_WIDTH / 2,
             y: GAME_HEIGHT - 50,
-            size: 20, /* Taille ajustée pour le triangle */
+            size: 20, 
             speed: 5,
             angle: -Math.PI / 2,
             velX: 0,
@@ -76,22 +127,24 @@
         let lastShotTime = 0;
         const FIRE_RATE = 200; 
         let enemies = [];
-        const ENEMY_SIZE = 30; /* Taille ajustée pour la croix */
+        const ENEMY_SIZE = 30; 
         const ENEMY_SPEED_BASE = 0.5; 
         let enemySpawnInterval = 1500; 
         let lastSpawnTime = 0;
+        let animationFrameId = null; // Pour contrôler la boucle
 
         // --- Fonctions de Dessin ---
-
+        // ... (drawPlayer, drawBullets, drawEnemies restent inchangées)
+        
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
-            ctx.rotate(player.angle + Math.PI / 2); // Rotation pour pointer la souris
+            ctx.rotate(player.angle + Math.PI / 2); 
             
             ctx.fillStyle = '#00ff00';
             ctx.font = `${player.size * 2}px monospace`; 
             ctx.textAlign = 'center';
-            ctx.fillText("▲", 0, player.size * 0.7); // Triangle
+            ctx.fillText("▲", 0, player.size * 0.7); 
             
             ctx.restore();
         }
@@ -100,7 +153,7 @@
             ctx.fillStyle = '#ff0000';
             bullets.forEach(bullet => {
                 ctx.beginPath();
-                ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2); /* Les projectiles restent des points */
+                ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2); 
                 ctx.fill();
             });
         }
@@ -110,7 +163,7 @@
             enemies.forEach(enemy => {
                 ctx.font = `${ENEMY_SIZE}px monospace`;
                 ctx.textAlign = 'center';
-                ctx.fillText("❌", enemy.x, enemy.y + ENEMY_SIZE / 4); /* Croix pour les ennemis */
+                ctx.fillText("❌", enemy.x, enemy.y + ENEMY_SIZE / 4); 
             });
         }
         
@@ -123,11 +176,12 @@
             ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30);
             ctx.font = '30px Arial';
             ctx.fillText(`Score final : ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
-            ctx.fillText('Appuyez sur ESPACE pour recommencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
+            ctx.fillText('Appuyez sur ESPACE ou cliquez sur Recommencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
         }
 
-        // --- Fonctions de Mise à Jour (Logique de jeu inchangée) ---
-
+        // --- Fonctions de Mise à Jour ---
+        // ... (updatePlayer, updateBullets, checkCollisions, shoot, spawnEnemy restent inchangées)
+        
         function updatePlayer() {
             player.x += player.velX;
             player.y += player.velY;
@@ -164,14 +218,18 @@
                     enemy.y += (dy / distance) * currentSpeed;
                 }
 
-                // Vérifier la collision avec le joueur (Triangle vs Croix)
+                // Collision avec le joueur
                 const collisionDist = player.size / 2 + ENEMY_SIZE / 2;
                 const distPlayerEnemy = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
                 
                 if (distPlayerEnemy < collisionDist) {
                     const user = getCurrentUser();
-                    if (user) {
+                    // SAUVEGARDE DU SCORE (C'est ici que ça se passe)
+                    if (user && typeof saveGameData !== 'undefined') {
                         saveGameData(user, 'space_invaders', { score: score });
+                        console.log(`Score final ${score} enregistré pour ${user}.`);
+                    } else {
+                        console.warn("Utilisateur non connecté ou saveGameData non disponible. Score non sauvegardé.");
                     }
                     gameOver = true;
                 }
@@ -185,7 +243,7 @@
                     const enemy = enemies[eIndex];
                     const distance = Math.sqrt(Math.pow(bullet.x - enemy.x, 2) + Math.pow(bullet.y - enemy.y, 2));
 
-                    if (distance < ENEMY_SIZE / 2 + 5) { // Ajustement pour la taille de la croix
+                    if (distance < ENEMY_SIZE / 2 + 5) { 
                         enemies.splice(eIndex, 1);
                         bullets.splice(bIndex, 1);
                         score += 10;
@@ -199,7 +257,7 @@
                 }
             }
         }
-
+        
         function shoot() {
             const now = Date.now();
             if (now - lastShotTime > FIRE_RATE) {
@@ -222,7 +280,12 @@
             }
         }
         
+        // Fonction pour réinitialiser le jeu (appelle par le bouton et la touche Espace)
         function resetGame() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
             score = 0;
             scoreDisplay.textContent = 0;
             gameOver = false;
@@ -234,10 +297,16 @@
             player.velY = 0;
             enemySpawnInterval = 1500;
         }
+        
+        function resetGameAndStart() {
+            resetGame();
+            gameLoop();
+        }
 
         function gameLoop() {
             if (gameOver) {
                 drawGameOver();
+                animationFrameId = null;
                 return;
             }
 
@@ -252,8 +321,10 @@
             drawBullets();
             drawEnemies();
 
-            requestAnimationFrame(gameLoop);
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
+        
+        // --- Événements ---
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'q') player.velX = -player.speed;
@@ -263,8 +334,7 @@
             
             if (gameOver && e.key === ' ') {
                 e.preventDefault();
-                resetGame();
-                requestAnimationFrame(gameLoop);
+                resetGameAndStart();
             }
         });
 
@@ -287,9 +357,12 @@
             }
         });
 
+        // Démarrage initial
         resetGame();
         requestAnimationFrame(gameLoop);
-
+        
+        // Rendre la fonction accessible globalement pour le bouton
+        window.resetGameAndStart = resetGameAndStart; 
     </script>
 </body>
 </html>
