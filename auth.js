@@ -9,7 +9,7 @@ function loadUsers() {
     let usersUpdated = false;
 
     // INITIALISATION OU CORRECTION FORCÉE DU RÔLE ADMIN
-    // Si Zelda5962 n'existe pas, on le crée. S'il existe, on s'assure qu'il est 'admin'.
+    // S'il n'existe pas ou si le rôle n'est pas 'admin', on force l'update.
     if (!users["Zelda5962"] || users["Zelda5962"].role !== "admin") {
         users["Zelda5962"] = {
             // Utiliser les données existantes si elles sont là, sinon les défauts
@@ -22,6 +22,7 @@ function loadUsers() {
     }
 
     if (usersUpdated) {
+        // Sauvegarde immédiate du rôle corrigé
         localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
         console.log("Compte Admin 'Zelda5962' créé/mis à jour en rôle Admin et sauvegardé.");
     }
@@ -117,12 +118,12 @@ function renderAuthControls() {
 
     let authHTML = '';
     
-    // Supprime l'ancien lien Admin
     const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
     if (oldAdminLink) sidebar.removeChild(oldAdminLink);
 
     if (currentUser) {
-        const userData = getUserData(currentUser);
+        // Appeler loadUsers ici garantit que l'entrée est vérifiée/corrigée
+        const userData = getUserData(currentUser); 
 
         if (userData) {
             const pdpUrl = userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
@@ -134,7 +135,7 @@ function renderAuthControls() {
                 <a href="#" onclick="logout(); return false;" title="Déconnexion" style="color: #e74c3c; margin-left: 15px;">Déconnexion</a>
             `;
 
-            // AJOUT CRITIQUE DU LIEN ADMIN
+            // C'est cette condition qui doit être remplie
             if (userData.role === 'admin') { 
                  const adminLinkHTML = '<a href="admin.html" style="color: #f39c12;">🛡️ Admin Panel</a>';
                  sidebar.insertAdjacentHTML('beforeend', adminLinkHTML);
