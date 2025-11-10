@@ -3,27 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>ArcadeMaster - Accueil</title>
-    <link rel="stylesheet" href="styles.css"> <style>
-        /* Conserver les styles spécifiques à l'accueil */
-        body { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; text-align: center; padding-top: 60px; } 
-        h1 { color: #00ff00; font-size: 3em; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 40px; margin-top: 40px; }
-        .menu-list { list-style: none; padding: 0; }
-        .menu-list li { margin: 20px 0; }
-        .menu-list a { 
-            text-decoration: none; 
-            color: #00ff00; 
-            font-size: 1.5em; 
-            padding: 10px 20px; 
-            border: 2px solid #00ff00; 
-            border-radius: 5px;
-            display: inline-block;
-            transition: background-color 0.3s, color 0.3s;
+    <link rel="stylesheet" href="styles.css">
+    
+    <script>
+        // --- Fonction du Menu Hamburger (UNIFORME ET ESSENTIELLE) ---
+        function toggleMenu(x) {
+            x.classList.toggle("change");
+            const sidebar = document.getElementById("sidebar");
+            
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+            } else {
+                sidebar.style.width = "250px";
+            }
         }
-        .menu-list a:hover { 
-            background-color: #00ff00; 
-            color: #222; 
-        }
-    </style>
+    </script>
 </head>
 <body>
     
@@ -42,26 +36,19 @@
         <a href="jeux.html">🕹️ Menu Jeux</a>
         <a href="credits.html">📝 Crédits</a>
         <a href="classement.html">🏆 Classement</a>
+        </div>
+
+    <div class="container home-content">
+        <h1>Bienvenue sur ArcadeMaster</h1>
+        <p>Le meilleur endroit pour jouer à vos classiques d'arcade !</p>
+        
+        <a href="jeux.html" class="home-button">Démarrer une Partie</a>
     </div>
-    
-    <h1>Bienvenue sur ArcadeMaster 🚀</h1>
-    
-    <ul class="menu-list">
-        <li><a href="jeux.html">🕹️ Lancer les Jeux</a></li>
-        <li><a href="credits.html">📝 Crédits</a></li>
-    </ul>
-    
+
     <script src="auth.js"></script>
     <script>
-        function toggleMenu(x) {
-            x.classList.toggle("change");
-            const sidebar = document.getElementById("sidebar");
-            if (sidebar.style.width === "250px") {
-                sidebar.style.width = "0";
-            } else {
-                sidebar.style.width = "250px";
-            }
-        }
+        // Le code d'initialisation dans auth.js gère déjà l'affichage de la navbar.
+        // Rien de plus n'est nécessaire ici pour le moment.
     </script>
 </body>
 </html>
