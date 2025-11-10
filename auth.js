@@ -1,11 +1,12 @@
 const STORAGE_KEY = 'arcadeMasterUsers';
 
-// --- Fonctions de base ---
+// --- Fonctions de gestion des utilisateurs ---
 
 function loadUsers() {
     const json = localStorage.getItem(STORAGE_KEY);
     const users = json ? JSON.parse(json) : {};
 
+    // Assure que l'Admin par défaut existe
     if (!users["Zelda5962"]) {
         users["Zelda5962"] = {
             password: "password", 
@@ -50,16 +51,12 @@ function registerUser(username, password, pdpURL = 'https://i.imgur.com/39hN7hG.
     return true;
 }
 
-// --- Focntion login (CLÉ : Assure le rendu après connexion) ---
-
 function login(username, password) {
     const users = loadUsers();
     const user = users[username];
 
     if (user && user.password === password) {
         setCurrentUser(username);
-        
-        // CORRECTION : Forcer la mise à jour de l'interface immédiatement.
         if (typeof renderAuthControls === 'function') {
              renderAuthControls();
         }
@@ -76,7 +73,55 @@ function logout() {
     window.location.href = 'index.html'; 
 }
 
-// --- Fonctions de jeu et Admin (Inchgés) ---
+// --- Fonctions de rendu de l'interface (Navbar & Sidebar) ---
+
+function renderAuthControls() {
+    const currentUser = getCurrentUser();
+    const authControls = document.getElementById('auth-controls');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (!authControls || !sidebar) {
+        console.warn("Éléments de navigation (Navbar ou Sidebar) non trouvés. Rendu Auth annulé.");
+        return;
+    }
+
+    let authHTML = '';
+    
+    // Suppression de l'ancien lien Admin si il existe
+    const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
+    if (oldAdminLink) sidebar.removeChild(oldAdminLink);
+
+    if (currentUser) {
+        const userData = getUserData(currentUser);
+
+        if (userData) {
+            const pdpUrl = userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
+            
+            authHTML = `
+                <span style="color: #00ff00; font-weight: bold; margin-right: 10px;">${currentUser}</span>
+                <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #00ff00; vertical-align: middle; margin-right: 5px;">
+                <a href="authentification.html" title="Mon Compte" style="color: white; margin-left: 10px;">Compte</a>
+                <a href="#" onclick="logout(); return false;" title="Déconnexion" style="color: #e74c3c; margin-left: 15px;">Déconnexion</a>
+            `;
+
+            // Ajout du lien Admin
+            if (userData.role === 'admin') {
+                 const adminLinkHTML = '<a href="admin.html" style="color: #f39c12;">🛡️ Admin Panel</a>';
+                 sidebar.insertAdjacentHTML('beforeend', adminLinkHTML);
+            }
+        } else {
+             logout();
+             return;
+        }
+
+    } else {
+        authHTML = `<a href="authentification.html" style="color: white;">Connexion / Inscription</a>`;
+    }
+
+    authControls.innerHTML = authHTML;
+}
+
+// --- Fonctions de jeu (Laissez celles-ci telles quelles si vous les utilisez) ---
 
 function saveGameData(username, gameId, data) {
     const users = loadUsers();
@@ -117,56 +162,12 @@ function deleteUser(username) {
     }
 }
 
-
-// --- Fonction de Rendu (Doit trouver les éléments) ---
-
-function renderAuthControls() {
-    const currentUser = getCurrentUser();
-    const authControls = document.getElementById('auth-controls');
-    const sidebar = document.getElementById('sidebar');
-    
-    // Vérification essentielle
-    if (!authControls || !sidebar) {
-        console.warn("Éléments Navbar ou Sidebar non trouvés. Rendu Auth annulé.");
-        return;
-    }
-
-    let authHTML = '';
-    
-    if (currentUser) {
-        const userData = getUserData(currentUser);
-        const pdpUrl = userData && userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
-        
-        authHTML = `
-            <span style="color: #00ff00; font-weight: bold; margin-right: 10px;">${currentUser}</span>
-            <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #00ff00; vertical-align: middle; margin-right: 5px;">
-            <a href="authentification.html" title="Mon Compte" style="color: white; margin-left: 10px;">Compte</a>
-            <a href="#" onclick="logout(); return false;" title="Déconnexion" style="color: #e74c3c; margin-left: 15px;">Déconnexion</a>
-        `;
-
-        const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
-        if (oldAdminLink) sidebar.removeChild(oldAdminLink);
-
-        if (userData && userData.role === 'admin') {
-             const adminLinkHTML = '<a href="admin.html" style="color: #f39c12;">🛡️ Admin Panel</a>';
-             sidebar.insertAdjacentHTML('beforeend', adminLinkHTML);
-        }
-
-    } else {
-        authHTML = `<a href="authentification.html" style="color: white;">Connexion / Inscription</a>`;
-        const oldAdminLink = sidebar.querySelector('a[href="admin.html"]');
-        if (oldAdminLink) sidebar.removeChild(oldAdminLink);
-    }
-
-    authControls.innerHTML = authHTML;
-}
-
-// Globalisation des fonctions
+// Globalisation et Exécution Sûre
 window.loadUsers = loadUsers;
 window.saveUsers = saveUsers;
 window.getUserData = getUserData;
 window.getCurrentUser = getCurrentUser;
-window.registerUser = registerUser; // Ajouté pour être sûr
+window.registerUser = registerUser;
 window.login = login;
 window.logout = logout;
 window.renderAuthControls = renderAuthControls;
@@ -175,5 +176,4 @@ window.getFullLeaderboard = getFullLeaderboard;
 window.deleteUser = deleteUser;
 
 
-// CORRECTION MAJEURE: Utilisation de window.onload pour une exécution plus tardive et sûre.
 window.onload = renderAuthControls;
