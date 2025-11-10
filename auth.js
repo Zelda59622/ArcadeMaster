@@ -3,7 +3,7 @@
 // =========================================================
 
 class Sound {
-    constructor(src, volume = 0.5) {
+    constructor(src, volume = 0.3) {
         this.sound = document.createElement("audio");
         this.sound.src = src;
         this.sound.setAttribute("preload", "auto");
@@ -15,9 +15,7 @@ class Sound {
 
     play() {
         this.sound.currentTime = 0; 
-        this.sound.play().catch(e => {
-            // Empêche les erreurs si l'utilisateur n'a pas encore cliqué sur la page
-        });
+        this.sound.play().catch(e => {});
     }
 }
 
@@ -26,41 +24,134 @@ const sfxButtonClick = new Sound("button-pressed.mp3", 0.3);
 
 
 // =========================================================
-// 2. FONCTION POUR DÉCLENCHER LE SON AU CLIC DU MENU
+// 2. GESTION DES UTILISATEURS (Fonctions d'Authentification)
+// =========================================================
+
+// Sauvegarde l'objet utilisateurs dans le localStorage
+function saveUsers(users) {
+    localStorage.setItem('gameUsers', JSON.stringify(users));
+}
+
+// Charge l'objet utilisateurs depuis le localStorage
+function loadUsers() {
+    const usersJson = localStorage.getItem('gameUsers');
+    return usersJson ? JSON.parse(usersJson) : {};
+}
+
+// Récupère l'utilisateur actuellement connecté
+function getCurrentUser() {
+    return localStorage.getItem('currentUser');
+}
+
+// Déconnexion de l'utilisateur
+function logout() {
+    localStorage.removeItem('currentUser');
+    alert("Déconnexion réussie.");
+    // Redirection vers la page de connexion
+    window.location.href = 'authentification.html'; 
+}
+
+// Fonction de Connexion (Exemple de base)
+function login(username, password) {
+    const users = loadUsers();
+    if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
+        alert(`Bienvenue, ${username}!`);
+        // Redirection vers l'index ou la page de jeu
+        window.location.href = 'index.html'; 
+        return true;
+    } else {
+        alert("Nom d'utilisateur ou mot de passe incorrect.");
+        return false;
+    }
+}
+
+// Fonction d'Inscription (Exemple de base)
+function register(username, password) {
+    const users = loadUsers();
+    if (users[username]) {
+        alert("Ce nom d'utilisateur est déjà pris.");
+        return false;
+    }
+
+    // Ajout du nouvel utilisateur avec un score initial de 0
+    users[username] = {
+        password: password,
+        role: "Joueur Standard",
+        games: {
+            space_invaders: {
+                highScore: 0
+            }
+        }
+    };
+    saveUsers(users);
+    localStorage.setItem('currentUser', username);
+    alert(`Compte créé et connecté. Bienvenue, ${username}!`);
+    window.location.href = 'index.html';
+    return true;
+}
+
+
+// =========================================================
+// 3. LOGIQUE D'INITIALISATION ET DÉCLENCHEMENT DU SON
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Éléments ciblés pour le son : tous les liens/boutons des menus/comptes
+    
+    // ----------------------------------------------------
+    // A. DÉCLENCHEMENT DES SONS AU CLIC
+    // ----------------------------------------------------
+    
     const elementsToListen = [
-        '#sidebar a',            // Liens de la barre latérale
-        '#auth-controls button', // Boutons d'authentification
-        '#navbar a',             // Liens de navigation (en haut)
-        '#score-board div',      // Bloc du classement
-        '#score-board li',       // Éléments du classement
-        '.hamburger-menu',       // Menu hamburger
-        '.main-game-area button',// Boutons divers
-        '.deconnexion-button'    // Bouton de déconnexion (si vous en avez un)
+        '#sidebar a',            
+        '#auth-controls button', 
+        '#navbar a',             
+        '#score-board div',      
+        '#score-board li',       
+        '.hamburger-menu',       
+        '.main-game-area button',
+        '.deconnexion-button'    
     ];
     
-    // Fonction qui joue le son
     function playClickSound() {
         sfxButtonClick.play();
     }
 
-    // Ajoute l'écouteur d'événement à chaque élément cible
     elementsToListen.forEach(selector => {
         const elements = document.querySelectorAll(selector);
         elements.forEach(element => {
-            // Nous utilisons 'mousedown' pour que le son se déclenche immédiatement
-            // et soit synchronisé avec l'animation CSS :active.
+            // Utilise 'mousedown' pour être synchronisé avec l'animation CSS :active
             element.addEventListener('mousedown', playClickSound);
         });
     });
 
     // ----------------------------------------------------
-    // VOS FONCTIONS D'AUTHENTIFICATION DOIVENT ÊTRE ICI
-    // (ex: login, register, getCurrentUser, loadUsers, etc.)
+    // B. GESTION DES FORMULAIRES DE CONNEXION/INSCRIPTION
     // ----------------------------------------------------
-    // ... (Votre code auth.js existant)
     
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const logoutButton = document.getElementById('logoutButton');
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+            login(username, password);
+        });
+    }
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+            register(username, password);
+        });
+    }
+    
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
+    }
 });
