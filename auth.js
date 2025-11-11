@@ -23,7 +23,6 @@ const DEFAULT_USERS = [
                 snake_head: '🐍'
             }
         },
-        // NOUVEAU : URL par défaut pour la photo de profil
         profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
     },
     {
@@ -45,13 +44,46 @@ const DEFAULT_USERS = [
             }
         },
         profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
+    },
+    // NOUVEL UTILISATEUR ADMIN DEMANDÉ
+    {
+        id: 3,
+        username: 'Zelda5962',
+        password: 'adminpass',
+        role: 'admin',
+        coins: 50000,
+        highScores: {
+            space_invaders: 0,
+            snake_infini: 0,
+            clicker_arcade: 0
+        },
+        skins: {
+            owned: [0, 1, 4],
+            active: {
+                ship: '🚀',
+                snake_head: '🐍'
+            }
+        },
+        profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
     }
 ];
 
 // Initialisation des utilisateurs
 function initUsers() {
+    // Si la clé existe, on ne la remplace pas pour garder les utilisateurs créés.
+    // Cependant, si on veut garantir que Zelda5962 est là, il faut une logique plus fine.
+    // Pour simplifier, si c'est la première exécution, on initialise.
     if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+    } else {
+        // Logique pour s'assurer que Zelda5962 existe même si d'autres utilisateurs sont déjà là
+        let existingUsers = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+        const zeldaExists = existingUsers.some(u => u.username === 'Zelda5962');
+        
+        if (!zeldaExists) {
+            existingUsers.push(DEFAULT_USERS[2]);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingUsers));
+        }
     }
 }
 
@@ -99,7 +131,7 @@ function registerUser(username, password) {
     users.push(newUser);
     saveUsers(users);
     loginUser(username, password); // Connexion automatique
-    alert("Compte créé avec succès ! Vous êtes maintenant connecté(e)."); // POPUP
+    alert("Compte créé avec succès ! Vous êtes maintenant connecté(e)."); 
     return true;
 }
 
@@ -110,10 +142,10 @@ function loginUser(username, password) {
 
     if (user) {
         localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(user));
-        alert("Connexion réussie ! Bienvenue " + user.username); // POPUP
+        alert("Connexion réussie ! Bienvenue " + user.username); 
         return true;
     } else {
-        alert("Nom d'utilisateur ou mot de passe incorrect."); // POPUP
+        alert("Nom d'utilisateur ou mot de passe incorrect."); 
         return false;
     }
 }
