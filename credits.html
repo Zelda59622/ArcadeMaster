@@ -7,6 +7,31 @@
     
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        .credits-section {
+            background-color: var(--color-card-dark);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--color-neon-green);
+        }
+        .credits-section h2 {
+            text-align: left;
+            color: var(--color-neon-orange);
+            border-bottom: 1px dashed #555;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .credits-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .credits-section li {
+            margin-bottom: 10px;
+            color: var(--color-text-light);
+        }
+    </style>
 </head>
 <body>
 
@@ -15,7 +40,7 @@
             <i class="fa-solid fa-bars"></i>
         </div>
         <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
-            CRÉDITS
+            ARCADE MASTER
         </span>
         <div style="display: flex; align-items: center; gap: 15px;">
             <a href="boutique.html" class="currency-display" title="Boutique">
@@ -31,47 +56,56 @@
     <div id="sidebar" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
         <div id="nav-links">
-            <a href="index.html" data-emoji="🏠">Accueil</a>
-            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
-            <a href="compte.html" data-emoji="👤">Mon Compte</a>
-            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
-            <a href="classement.html" data-emoji="🏆">Classement</a>
-            <a href="credits.html" data-emoji="📜">Crédits</a>
+            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
+            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
+            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
         </div>
     </div>
 
     <div class="main-container" id="mainContent">
         <div style="padding-top: 50px;"></div> 
         
-        <h1 style="font-size: 2.5em; color: var(--color-neon-green);">MENTIONS LÉGALES ET CRÉDITS 📜</h1>
+        <h1 style="font-size: 2em; color: #FF00FF;">CRÉDITS DU PROJET</h1>
         
-        <div class="auth-card" style="max-width: 700px; margin: 0 auto; text-align: left;">
-            
-            <h2 style="color: var(--color-neon-orange); text-align: left; border-bottom: 1px solid #444; padding-bottom: 5px;">Développement du Site</h2>
-            <p>
-                Ce projet a été imaginé et dirigé par **[Votre Nom/Pseudo ici]**.
-            </p>
-            <p style="margin-top: 10px;">
-                Le code a été assisté par une IA (Gemini) pour la structuration HTML, CSS et JavaScript.
-            </p>
-            
-            <h2 style="color: var(--color-neon-orange); text-align: left; border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 30px;">Remerciements Spéciaux</h2>
+        <p style="text-align: center; color: var(--color-neon-green); margin-bottom: 30px;">
+            Merci à tous ceux qui ont contribué à ce projet (ou qui sont fictifs) !
+        </p>
+
+        <div class="credits-section">
+            <h2>💻 Développement & Conception</h2>
             <ul>
-                <li>**Inspiration :** Les jeux d'arcade classiques (Space Invaders, Snake, Clicker).</li>
-                <li>**Design :** Thème Néon/Rétro 👾.</li>
-                <li>**Troll :** Never Gonna Give You Up (Rick Astley).</li>
-                <li>**Support :** Remerciements à la communauté de développement web.</li>
+                <li>**Conception et Développement Principal :** [Votre Nom/Pseudo]</li>
+                <li>**Code Backend (Fictif) :** Node.js et MongoDB (Simulé par localStorage)</li>
+                <li>**Interface Utilisateur :** HTML, CSS (Néon/Rétro), JavaScript</li>
             </ul>
-            
-            <h2 style="color: var(--color-neon-orange); text-align: left; border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 30px;">Propriété et Droits</h2>
-            <p style="font-size: 0.9em; color: #aaa;">
-                Ce projet est un travail d'apprentissage et de démonstration. Tous les jeux sont des adaptations 2.0. Les noms de jeux et concepts originaux appartiennent à leurs propriétaires respectifs.
-            </p>
+        </div>
+
+        <div class="credits-section">
+            <h2>🎨 Ressources & Librairies</h2>
+            <ul>
+                <li>**Icones :** Font Awesome (<i class="fa-solid fa-bars"></i>)</li>
+                <li>**Polices :** Arial (Fallback), Police Monospace pour le rétro.</li>
+                <li>**Couleurs Néon :** Inspirées des thèmes VSCode et des jeux d'arcade classiques.</li>
+                <li>**Musique/Sons :** (À insérer si des fichiers audio sont utilisés).</li>
+            </ul>
+        </div>
+        
+        <div class="credits-section">
+            <h2>🌟 Mentions Spéciales</h2>
+            <ul>
+                <li>**Zelda5962 :** Pour le rôle d'Admin par défaut (N'oubliez pas de changer le mot de passe !).</li>
+                <li>**Les Utilisateurs :** Merci à tous les joueurs pour votre participation.</li>
+                <li>**Notre Coach :** Pour l'inspiration et la validation du concept.</li>
+            </ul>
         </div>
         
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
+
 </body>
 </html>
