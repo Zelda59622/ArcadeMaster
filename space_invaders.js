@@ -12,8 +12,14 @@ const GAME_NAME = 'space_invaders';
 const GRID_SIZE = 40;
 const PLAYER_SIZE = GRID_SIZE;
 const ALIEN_SIZE = GRID_SIZE;
-const BULLET_SIZE = 20; // Taille de l'émoji
+const BULLET_SIZE = 20; // Taille de l'émoji de la balle
+const POINTS_PER_KILL = 10;
 const COINS_PER_KILL = 1; // 1 Pièce par ennemi tué
+
+// --- LOGIQUE DE GAIN DE PIÈCES SUPPLÉMENTAIRES ---
+const COINS_BONUS_SCORE = 100;
+const COINS_BONUS_AMOUNT = 10;
+let lastCoinBonusScore = 0;
 
 // --- ÉTAT DU JEU ---
 let score = 0;
@@ -69,9 +75,10 @@ class Entity {
     }
 
     draw() {
+        // Utilise la taille pour définir la taille de la police
         ctx.font = `${this.size}px Arial`;
         ctx.textAlign = 'center';
-        // Utilise la taille comme référence pour le placement du texte (l'émoji)
+        // Dessine l'émoji centré par rapport à la taille
         ctx.fillText(this.emoji, this.x + this.size / 2, this.y + this.size * 0.85);
     }
 }
@@ -85,6 +92,7 @@ class Player extends Entity {
         // Dessine le bouclier si actif
         if (isShieldActive) {
             ctx.beginPath();
+            // Le cercle de bouclier est légèrement plus grand que le joueur
             ctx.arc(this.x + this.size / 2, this.y + this.size / 2, this.size * 0.7, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; // Cyan transparent
             ctx.fill();
@@ -107,11 +115,14 @@ class Player extends Entity {
 
 /** Synchronise le skin actif depuis auth.js */
 function syncPlayerSkin() {
-    const currentUser = getCurrentUser();
-    if (currentUser && currentUser.skins && currentUser.skins.active) {
-        EMOJI.PLAYER = currentUser.skins.active.ship || '🚀';
-    } else {
-        EMOJI.PLAYER = '🚀'; // Défaut
+    // S'assure que la fonction existe (au cas où auth.js n'est pas chargé)
+    if (typeof getCurrentUser === 'function') {
+        const currentUser = getCurrentUser();
+        if (currentUser && currentUser.skins && currentUser.skins.active) {
+            EMOJI.PLAYER = currentUser.skins.active.ship || '🚀';
+        } else {
+            EMOJI.PLAYER = '🚀'; // Défaut
+        }
     }
 }
 
@@ -130,10 +141,12 @@ window.initGame = function() {
     aliens = [];
     isShieldActive = false;
     isShotgunActive = false;
+    lastCoinBonusScore = 0;
     
     alienMoveTimer = ALIEN_MOVE_INTERVAL;
     alienMoveSpeed = 10;
     
+    // Initialise le joueur avec PLAYER_SIZE
     player = new Player(
         canvas.width / 2 - PLAYER_SIZE / 2,
         canvas.height - PLAYER_SIZE - 20,
@@ -284,6 +297,7 @@ function fireBullet() {
         const dx = Math.cos(dir) * bulletSpeed;
         const dy = Math.sin(dir) * bulletSpeed;
         
+        // La balle est une entité de taille BULLET_SIZE
         const newBullet = new Entity(
             playerCenterX - BULLET_SIZE / 2,
             playerCenterY - BULLET_SIZE / 2,
@@ -380,8 +394,8 @@ function checkCollisions() {
         let hit = false;
         aliens = aliens.filter((alien) => {
             if (checkCollision(bullet, alien) && !hit) {
-                score += 10;
-                coinsGained += COINS_PER_KILL;
+                score += POINTS_PER_KILL; // Ajoute les points
+                coinsGained += COINS_PER_KILL; 
                 hit = true; 
                 return false; 
             }
@@ -389,6 +403,16 @@ function checkCollisions() {
         });
         return !hit; 
     });
+    
+    // NOUVELLE LOGIQUE : Gain de pièces tous les 100 points
+    const currentScoreLevel = Math.floor(score / COINS_BONUS_SCORE);
+    const lastScoreLevel = Math.floor(lastCoinBonusScore / COINS_BONUS_SCORE);
+
+    if (currentScoreLevel > lastScoreLevel) {
+        const bonusCount = currentScoreLevel - lastScoreLevel;
+        coinsGained += bonusCount * COINS_BONUS_AMOUNT;
+        lastCoinBonusScore = currentScoreLevel * COINS_BONUS_SCORE;
+    }
     
     // 2. Collisions Aliens vs Joueur (et Bouclier)
     aliens = aliens.filter((alien) => {
@@ -407,8 +431,18 @@ function checkCollisions() {
     powerUps = powerUps.filter((p) => {
         if (checkCollision(player, p)) {
             if (p.type === 'bomb') {
-                score += aliens.length * 10;
+                score += aliens.length * POINTS_PER_KILL; // Points pour tous
                 coinsGained += aliens.length * COINS_PER_KILL;
+                // Met à jour le score de bonus après l'explosion
+                const scoreAfterBomb = score;
+                const currentScoreLevelAfterBomb = Math.floor(scoreAfterBomb / COINS_BONUS_SCORE);
+                const lastScoreLevelAfterBomb = Math.floor(lastCoinBonusScore / COINS_BONUS_SCORE);
+                if (currentScoreLevelAfterBomb > lastScoreLevelAfterBomb) {
+                    const bonusCount = currentScoreLevelAfterBomb - lastScoreLevelAfterBomb;
+                    coinsGained += bonusCount * COINS_BONUS_AMOUNT;
+                    lastCoinBonusScore = currentScoreLevelAfterBomb * COINS_BONUS_SCORE;
+                }
+                
                 aliens = []; 
             } else {
                 activateBonus(p.type);
@@ -438,7 +472,11 @@ function draw() {
     aliens.forEach(alien => alien.draw());
     powerUps.forEach(p => p.draw());
     bullets.forEach(bullet => bullet.draw());
-    player.draw();
+    
+    // Assure que le joueur est dessiné en dernier pour être au-dessus
+    if (player) { 
+        player.draw();
+    }
     
     // Affichage des durées de bonus
     const currentTime = performance.now();
@@ -476,14 +514,19 @@ function gameLoop(currentTime) {
 // =========================================================
 
 function updateScoreBoard() {
-    document.getElementById('currentScore').textContent = score;
-    document.getElementById('livesCount').textContent = lives;
-    document.getElementById('coinsGained').textContent = coinsGained;
+    // Vérifie si les éléments existent avant de les mettre à jour
+    if(document.getElementById('currentScore')) {
+        document.getElementById('currentScore').textContent = score;
+        document.getElementById('livesCount').textContent = lives;
+        document.getElementById('coinsGained').textContent = coinsGained;
+    }
     
     if (typeof getCurrentUser === 'function') {
         const currentUser = getCurrentUser();
         const personal = (currentUser && currentUser.highScores[GAME_NAME]) || 0;
-        document.getElementById('personalHighScore').textContent = personal;
+        if(document.getElementById('personalHighScore')) {
+            document.getElementById('personalHighScore').textContent = personal;
+        }
     }
     
     updateLeaderboard();
@@ -543,6 +586,7 @@ function endGame(win) {
         `VICTOIRE ! Score final : ${score}` :
         `GAME OVER ! Votre score : ${score}. Pièces gagnées : ${coinsGained}💰`;
     
+    // Affichage du message de fin de partie sur le canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#E0E0E0';
     ctx.font = '30px Arial';
@@ -584,13 +628,17 @@ document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
-// Initialise le jeu au chargement (sans démarrer la loop)
-document.addEventListener('DOMContentLoaded', () => {
-    syncPlayerSkin(); // Synchronise le skin au chargement de la page
-    updateLeaderboard();
-    // Affiche le message de démarrage
+// Message de démarrage (Affiché seulement au chargement initial)
+function displayInitialMessage() {
     ctx.fillStyle = 'var(--color-neon-green)';
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
     ctx.fillText("Appuyez sur 'Nouvelle Partie' pour commencer !", canvas.width / 2, canvas.height / 2);
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    syncPlayerSkin();
+    updateLeaderboard();
+    displayInitialMessage(); // Affichage du message au chargement
 });
