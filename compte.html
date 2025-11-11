@@ -117,21 +117,17 @@
 
         <div id="loginForm" class="auth-card">
             <h2>Se Connecter</h2>
-            <form id="loginSubmit">
-                <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
+            <form id="loginFormTag"> <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
                 <input type="password" id="loginPassword" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-primary">Connexion</button>
-            </form>
+                <button type="button" id="loginButton" class="btn-primary">Connexion</button> </form>
             <p onclick="showRegister()" style="cursor: pointer; color: var(--color-neon-green); margin-top: 15px;">Pas de compte ? S'inscrire</p>
         </div>
 
         <div id="registerForm" class="auth-card" style="display: none;">
             <h2>Créer un Compte</h2>
-            <form id="registerSubmit">
-                <input type="text" id="registerUsername" placeholder="Nom d'utilisateur" required>
+            <form id="registerFormTag"> <input type="text" id="registerUsername" placeholder="Nom d'utilisateur" required>
                 <input type="password" id="registerPassword" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange);">Inscription</button>
-            </form>
+                <button type="button" id="registerButton" class="btn-primary" style="background-color: var(--color-neon-orange);">Inscription</button> </form>
             <p onclick="showLogin()" style="cursor: pointer; color: var(--color-neon-green); margin-top: 15px;">Déjà un compte ? Se Connecter</p>
         </div>
         
@@ -177,7 +173,7 @@
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('registerForm').style.display = 'none';
 
-                // Nettoyer les champs du formulaire de mise à jour après l'affichage
+                // Nettoyer les champs du formulaire de mise à jour
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmNewPassword').value = '';
                 document.getElementById('newProfilePicUrl').value = '';
@@ -200,33 +196,40 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderAccountPage();
             
-            // --- LISTENERS DE CONNEXION/INSCRIPTION ---
-            // Le listener est bien attaché au formulaire entier.
-            document.getElementById('loginSubmit').addEventListener('submit', (e) => {
-                e.preventDefault();
+            // --- LISTENERS DE CONNEXION/INSCRIPTION (sur le clic du bouton) ---
+            document.getElementById('loginButton').addEventListener('click', () => {
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
+                
+                // Vérification manuelle des champs requis
+                if (!username || !password) {
+                    alert("Veuillez remplir tous les champs.");
+                    return;
+                }
+                
                 if (loginUser(username, password)) {
                     renderAccountPage();
                     updateTopBar();
-                } else {
-                    // Si loginUser renvoie false, il y a déjà une alerte dans auth.js
-                    // mais nous nous assurons que l'affichage est maintenu.
-                    renderAccountPage();
                 }
             });
 
-            document.getElementById('registerSubmit').addEventListener('submit', (e) => {
-                e.preventDefault();
+            document.getElementById('registerButton').addEventListener('click', () => {
                 const username = document.getElementById('registerUsername').value;
                 const password = document.getElementById('registerPassword').value;
+
+                // Vérification manuelle des champs requis
+                if (!username || !password) {
+                    alert("Veuillez remplir tous les champs.");
+                    return;
+                }
+                
                 if (registerUser(username, password)) {
                     renderAccountPage();
                     updateTopBar();
                 }
             });
 
-            // --- LISTENER DE MISE À JOUR DE PROFIL ---
+            // --- LISTENER DE MISE À JOUR DE PROFIL (sur la soumission du formulaire) ---
             document.getElementById('profileUpdateForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newPass = document.getElementById('newPassword').value;
@@ -240,7 +243,7 @@
                         alert("Erreur : Le nouveau mot de passe et sa confirmation ne correspondent pas.");
                         return;
                     }
-                    if (newPass.length < 4) { // Exemple de validation minimale
+                    if (newPass.length < 4) { 
                         alert("Le mot de passe doit contenir au moins 4 caractères.");
                         return;
                     }
@@ -248,7 +251,6 @@
                 }
 
                 if (updateProfile(passwordToUpdate, newPicUrl)) {
-                    // Si la mise à jour réussit, on rafraîchit
                     renderAccountPage(); 
                     updateTopBar(); 
                 }
