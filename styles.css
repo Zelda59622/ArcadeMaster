@@ -12,13 +12,6 @@
     --color-neon-red: #E74C3C;
     
     /* Émojis pour les cartes/icônes principales */
-    --emoji-home: '🏠';
-    --emoji-play: '🎮';
-    --emoji-account: '👤';
-    --emoji-shop: '🛍️';
-    --emoji-ranking: '🏆';
-    --emoji-credits: '📜';
-    --emoji-admin: '👑';
     --emoji-coin: '💰';
 }
 
@@ -118,8 +111,6 @@ h2 {
     display: block;
     transition: 0.2s;
 }
-
-/* RETRAIT DU BLOC : #sidebar a:before pour insérer l'émoji directement dans le HTML */
 
 #sidebar a:hover {
     background-color: #333;
@@ -241,7 +232,7 @@ button {
 }
 
 /* Bouton Troll (+) */
-#trollButton {
+#trollButton, #trollButtonBottom {
     /* Style du bouton + pour le Rickroll */
     width: 30px;
     height: 30px;
@@ -258,6 +249,36 @@ button {
     transition: background-color 0.2s;
 }
 
-#trollButton:hover {
+#trollButton:hover, #trollButtonBottom:hover {
     background-color: #C0392B;
+}
+
+/* ========================================================= */
+/* 6. STYLE DE JEU (Space Invaders) */
+/* ========================================================= */
+
+.game-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+#gameCanvas {
+    background-color: #000000;
+    border: 3px solid var(--color-neon-green);
+    box-shadow: 0 0 20px var(--color-neon-green);
+    flex-shrink: 0; /* Empêche le canvas de rétrécir */
+}
+
+#score-board {
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    flex-grow: 1; 
+    min-width: 250px;
+    max-width: 350px;
+    text-align: center;
 }
