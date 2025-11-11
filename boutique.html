@@ -7,66 +7,6 @@
     
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <style>
-        /* Styles spécifiques à la boutique */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-            padding: 0 20px;
-        }
-        .item-card {
-            background-color: var(--color-card-dark);
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-            text-align: center;
-            padding: 20px;
-            transition: transform 0.3s, border-color 0.3s;
-            border: 3px solid transparent;
-        }
-        .item-card.owned {
-            border-color: var(--color-neon-green);
-        }
-        .item-card.equipped {
-            border-color: var(--color-neon-orange);
-            box-shadow: 0 0 20px var(--color-neon-orange);
-        }
-        .item-card h3 {
-            color: var(--color-neon-green);
-            font-size: 2em;
-            margin: 10px 0;
-        }
-        .item-card p {
-            color: var(--color-text-light);
-            margin-bottom: 15px;
-        }
-        .item-price {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--color-neon-orange);
-            margin-bottom: 20px;
-            display: block;
-        }
-        .item-card button {
-            padding: 10px 20px;
-            font-size: 1.1em;
-            min-width: 150px;
-        }
-        .item-card button.buy-btn {
-            background-color: var(--color-neon-orange);
-        }
-        .item-card button.equip-btn {
-            background-color: var(--color-neon-green);
-        }
-        .shop-section h2 {
-            margin-top: 50px;
-            color: var(--color-neon-green);
-            border-bottom: 2px solid var(--color-neon-orange);
-            padding-bottom: 10px;
-        }
-    </style>
 </head>
 <body>
 
@@ -75,9 +15,16 @@
             <i class="fa-solid fa-bars"></i>
         </div>
         <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-orange);">
-            ARCADE SHOP
+            BOUTIQUE
         </span>
-        <div id="right-container" style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
         </div>
     </div>
 
@@ -96,7 +43,7 @@
     <div class="main-container" id="mainContent">
         <div style="padding-top: 50px;"></div> 
         
-        <h1 style="font-size: 2.5em; color: var(--color-neon-orange);">BOUTIQUE DE COSMÉTIQUES</h1>
+        <h1 style="font-size: 2.5em; color: var(--color-neon-orange); text-align: center;">BOUTIQUE ARCADE</h1>
         
         <div id="shopContent" style="text-align: center;">
             <p style="color: var(--color-text-light); margin-top: 30px;">
@@ -106,6 +53,9 @@
                 🔑 Se connecter maintenant
             </a>
         </div>
+
+        <div id="itemsContainer" class="shop-grid" style="display: none;">
+            </div>
         
     </div>
     
@@ -113,21 +63,16 @@
     <script src="auth.js"></script>
     <script>
         // Logique spécifique à la boutique
-        
-        // Liste complète des articles de la boutique
         const SHOP_ITEMS = [
-            // --- Space Invaders Skins (Type: ship) ---
             { id: 0, name: "Vaisseau de base", emoji: '🚀', price: 0, game: 'space_invaders', type: 'ship' },
             { id: 1, name: "Vaisseau Éclair", emoji: '🛸', price: 500, game: 'space_invaders', type: 'ship' },
             { id: 2, name: "Vaisseau Néon", emoji: '👽', price: 1200, game: 'space_invaders', type: 'ship' },
             { id: 3, name: "Vaisseau Royal", emoji: '👑', price: 5000, game: 'space_invaders', type: 'ship' },
             
-            // --- Snake Infini Skins (Type: snake_head) ---
+            // Skins Snake Infini (Placeholders)
             { id: 4, name: "Tête Serpent", emoji: '🐍', price: 0, game: 'snake_infini', type: 'snake_head' },
-            // ... (Ajouter d'autres skins pour Snake plus tard)
         ];
         
-        /** Génère le HTML pour un item */
         function createItemCard(item, isOwned, isEquipped) {
             let statusText;
             let buttonHtml;
@@ -156,17 +101,22 @@
             `;
         }
 
-        /** Affiche la boutique ou le message de connexion */
         function renderShop() {
             const currentUser = getCurrentUser(); 
             const shopContent = document.getElementById('shopContent');
+            const itemsContainer = document.getElementById('itemsContainer');
             
             if (!currentUser) {
-                // Reste sur le message de connexion (déjà dans le HTML)
+                // Afficher le message de connexion
+                shopContent.style.display = 'block';
+                itemsContainer.style.display = 'none';
                 return;
             }
             
-            // --- Utilisateur connecté : Affichage de la boutique ---
+            // Masquer le message de connexion
+            shopContent.style.display = 'none';
+            itemsContainer.style.display = 'grid'; // Afficher la grille
+
             let shopHTML = `
                 <p style="text-align: center; color: var(--color-text-light); margin-bottom: 30px;">
                     Votre solde actuel : <b style="color: var(--color-neon-orange);">${currentUser.coins} 💰</b>
@@ -178,7 +128,8 @@
                         ${SHOP_ITEMS.filter(i => i.game === 'space_invaders').map(item => {
                             const isOwned = currentUser.skins && currentUser.skins.owned && currentUser.skins.owned.includes(item.id);
                             const isEquipped = currentUser.skins && currentUser.skins.active && currentUser.skins.active.ship === item.emoji;
-                            return createItemCard(item, isOwned || item.id === 0, isEquipped);
+                            // ID 0 est toujours possédé
+                            return createItemCard(item, isOwned || item.id === 0, isEquipped); 
                         }).join('')}
                     </div>
                 </div>
@@ -188,7 +139,7 @@
                     <p style="color: gray;">🐍 **COMMING SOON** - Les skins de Snake Infini seront bientôt disponibles à l'achat !</p>
                     <div class="shop-grid">
                         ${SHOP_ITEMS.filter(i => i.game === 'snake_infini').map(item => {
-                            // On peut montrer le skin de base, mais pas les autres.
+                            // On peut montrer le skin de base, mais les autres sont juste des placeholders
                             const isOwned = currentUser.skins && currentUser.skins.owned && currentUser.skins.owned.includes(item.id);
                             const isEquipped = currentUser.skins && currentUser.skins.active && currentUser.skins.active.snake_head === item.emoji;
                             return createItemCard(item, isOwned || item.id === 4, isEquipped);
@@ -202,9 +153,9 @@
                 </div>
             `;
             
-            shopContent.innerHTML = shopHTML;
+            itemsContainer.innerHTML = shopHTML;
         }
-        
+
         window.buyItem = function(itemId) {
             const currentUser = getCurrentUser();
             const item = SHOP_ITEMS.find(i => i.id === itemId);
@@ -212,18 +163,14 @@
             if (!currentUser || !item) return;
 
             if (currentUser.coins >= item.price) {
-                // Achat réussi
                 currentUser.coins -= item.price;
-                if (!currentUser.skins.owned) {
-                    currentUser.skins.owned = [0, 4]; // Skins de base par défaut
-                }
-                if (!currentUser.skins.owned.includes(itemId)) {
-                    currentUser.skins.owned.push(itemId);
-                }
+                if (!currentUser.skins.owned) currentUser.skins.owned = [0, 4]; // Skins de base par défaut
+                if (!currentUser.skins.owned.includes(itemId)) currentUser.skins.owned.push(itemId);
                 
                 updateGlobalUser(currentUser); 
                 alert(`Achat réussi : ${item.name} pour ${item.price} pièces !`);
-                renderShop(); // Rafraîchir l'affichage
+                renderShop();
+                updateTopBar(); // Mise à jour des pièces dans la Top Bar
             } else {
                 alert(`Fonds insuffisants. Il vous manque ${item.price - currentUser.coins} pièces.`);
             }
@@ -235,20 +182,16 @@
             
             if (!currentUser || !item) return;
 
-            // Détermine la clé de skin à mettre à jour (ex: 'ship', 'snake_head')
             let skinKey;
             if (item.game === 'space_invaders' && item.type === 'ship') skinKey = 'ship';
             if (item.game === 'snake_infini' && item.type === 'snake_head') skinKey = 'snake_head';
             
             if (skinKey) {
-                 // Assure que l'objet active existe
                 if (!currentUser.skins.active) currentUser.skins.active = {};
-                
-                // Équipement
                 currentUser.skins.active[skinKey] = item.emoji;
                 updateGlobalUser(currentUser);
                 alert(`${item.name} équipé pour ${item.game} !`);
-                renderShop(); // Rafraîchir l'affichage
+                renderShop();
             }
         }
 
