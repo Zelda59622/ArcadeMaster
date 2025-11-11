@@ -10,57 +10,51 @@
     
 </head>
 <body>
+    <div class="main-container">
 
-    <nav id="navbar">
-        <i class="fa-solid fa-bars menu-toggle"></i>
-        
-        <div class="nav-links">
-            <a href="/ArcadeMaster/"><i class="fa-solid fa-house"></i> Accueil</a>
-            <a href="jeux.html"><i class="fa-solid fa-gamepad"></i> Menu Jeux</a>
-            <a href="credits.html"><i class="fa-solid fa-book"></i> Crédits</a>
-        </div>
-        
-        <a href="authentification.html" class="profile-link">
-             <i class="fa-solid fa-user-gear"></i>
-        </a>
-    </nav>
-
-    <div class="main-game-area" style="max-width: 1200px; margin: 0 auto;">
-        
-        <h1 style="text-align: center;">Space Invaders (Emoji Edition)</h1>
-
-        <div class="game-container">
-            
-            <div>
-                <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <nav id="navbar">
+            <div class="nav-links">
+                <a href="/ArcadeMaster/"><i class="fa-solid fa-house"></i> Accueil</a>
+                <a href="jeux.html"><i class="fa-solid fa-gamepad"></i> Menu Jeux</a>
+                <a href="credits.html"><i class="fa-solid fa-book"></i> Crédits</a>
             </div>
+            
+            <a href="authentification.html" class="profile-link">
+                 <i class="fa-solid fa-user-gear"></i>
+            </a>
+        </nav>
 
-            <div id="score-board">
-                <h2><i class="fa-solid fa-trophy" style="color: #F39C12;"></i> High Scores</h2>
+        <div class="main-game-area" style="max-width: 1200px; margin: 0 auto;">
+            
+            <h1 style="text-align: center;">Space Invaders (Emoji Edition)</h1>
+
+            <div class="game-container">
                 
-                <div class="score-details">
-                    <p>Score Manche: <span id="currentScore">0</span></p>
-                    <p>Vies: <span id="livesCount">3</span></p>
-                    <p style="margin-top: 15px; border-top: 1px solid #555; padding-top: 10px;">Meilleur Score Personnel: <span id="personalHighScore">0</span></p>
+                <div>
+                    <canvas id="gameCanvas" width="800" height="600"></canvas>
+                </div>
+
+                <div id="score-board">
+                    <h2><i class="fa-solid fa-trophy" style="color: #F39C12;"></i> High Scores</h2>
+                    
+                    <div class="score-details">
+                        <p>Score Manche: <span id="currentScore">0</span></p>
+                        <p>Vies: <span id="livesCount">3</span></p>
+                        <p style="margin-top: 15px; border-top: 1px solid #555; padding-top: 10px;">Meilleur Score Personnel: <span id="personalHighScore">0</span></p>
+                    </div>
+                    
+                    <h3 style="color: #E0E0E0; margin-top: 20px;">Classement Top 10:</h3>
+                    <ol id="leaderboardList">
+                        <li>Connectez-vous pour voir les scores.</li>
+                    </ol>
                 </div>
                 
-                <h3 style="color: #E0E0E0; margin-top: 20px;">Classement Top 10:</h3>
-                <ol id="leaderboardList">
-                    <li>Connectez-vous pour voir les scores.</li>
-                </ol>
             </div>
-            
         </div>
     </div>
     
     <script src="auth.js"></script> 
     <script src="space_invaders.js"></script> 
-    
-    <script>
-        document.querySelector('.menu-toggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        });
-    </script>
 
 </body>
 </html>
