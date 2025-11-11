@@ -60,15 +60,53 @@
             box-shadow: 0 5px 15px var(--color-neon-green);
         }
 
-        .skin-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
+        /* CORRECTION : Style pour les images des packs de pièces */
+        .store-item .item-icon {
+            width: 60px; /* Taille désirée pour l'image */
+            height: 60px; 
+            margin: 0 auto 10px auto; /* Centrage et marge */
+            display: block; /* S'assurer que le bloc est géré correctement */
+            object-fit: contain; /* S'assurer que l'image ne déborde pas */
+            font-size: 3em; /* Pour les skins (emojis) */
+        }
+        
+        /* Cibler spécifiquement les images à l'intérieur de store-item */
+        .store-item img.item-icon {
+            border-radius: 0; /* Pas de bordure ronde pour les packs */
         }
     </style>
 </head>
 <body>
-    <div id="top-bar">...</div>
-    <div id="sidebar" class="sidenav">...</div>
+
+    <div id="top-bar">
+        <div id="menuToggle" class="menu-toggle" onclick="openNav()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-blue);">
+            BOUTIQUE
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button" onclick="window.location.href = 'boutique.html'">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte">
+                👤
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
+        <div id="nav-links">
+            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
+            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
+            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
+        </div>
+    </div>
 
     <div class="main-container" id="mainContent">
         <div style="padding-top: 50px;"></div> 
@@ -172,27 +210,21 @@
             const skin = SKINS_DATA[game][category].find(s => s.id === skinId);
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
 
-            if (user) {
-                 // Si on a un utilisateur, on simule la vérification du prix
+            if (user && user.id !== 0) { // Si un VRAI utilisateur est connecté
                  if (user.coins >= price) {
                       alert(`ACHAT RÉUSSI ! Le skin ${skin.name} est à vous !`);
                       // Logique réelle d'ajout du skin et de déduction des pièces...
-                      
-                      // Pour l'instant, on se contente de l'alerte
-                      
                  } else {
                       alert(`Achat impossible : Il vous manque ${price - user.coins} pièces !`);
                  }
             } else {
-                 alert(`Achat non disponible : Vous n'êtes pas connecté. Le prix de ${skin.name} est de ${price} pièces.`);
+                 alert(`Achat non disponible : Veuillez vous connecter pour effectuer des achats. Le prix de ${skin.name} est de ${price} pièces.`);
             }
         }
         
         // Simule l'équipement d'un skin
         function equipSkin(game, category, symbol) {
             alert(`Skin équipé : ${symbol}`);
-            // En mode local, cela devrait être géré par l'outil Admin/auth.js
-            
             // Met à jour la variable locale pour le top bar
             if (category === 'ship') {
                  activeSkins.ship = symbol;
@@ -278,6 +310,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // La fonction openNav()/closeNav() se trouve dans base.js
             if (typeof updateTopBar === 'function') {
                 updateTopBar();
             }
