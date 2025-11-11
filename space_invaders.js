@@ -271,7 +271,6 @@ function endGame(win) {
     clearInterval(gameLoopInterval);
     
     // Sauvegarde du high score (Fonction de auth.js)
-    // IMPORTANT : S'assurer que le fichier auth.js est chargé AVANT space_invaders.js
     if (typeof saveHighScore === 'function') {
         saveHighScore(GAME_NAME, score);
     }
@@ -325,9 +324,6 @@ function gameLoop(currentTime = 0) {
     
     // 4. Affichage
     draw();
-    
-    // Utilise requestAnimationFrame pour une boucle plus fluide, mais on conserve l'intervalle pour la gestion de la vitesse
-    // requestAnimationFrame(gameLoop); // Optionnel si on préfère requestAnimationFrame
 }
 
 // =========================================================
