@@ -107,15 +107,13 @@
             const itemsContainer = document.getElementById('itemsContainer');
             
             if (!currentUser) {
-                // Afficher le message de connexion
                 shopContent.style.display = 'block';
                 itemsContainer.style.display = 'none';
                 return;
             }
             
-            // Masquer le message de connexion
             shopContent.style.display = 'none';
-            itemsContainer.style.display = 'grid'; // Afficher la grille
+            itemsContainer.style.display = 'grid';
 
             let shopHTML = `
                 <p style="text-align: center; color: var(--color-text-light); margin-bottom: 30px;">
@@ -128,7 +126,6 @@
                         ${SHOP_ITEMS.filter(i => i.game === 'space_invaders').map(item => {
                             const isOwned = currentUser.skins && currentUser.skins.owned && currentUser.skins.owned.includes(item.id);
                             const isEquipped = currentUser.skins && currentUser.skins.active && currentUser.skins.active.ship === item.emoji;
-                            // ID 0 est toujours possédé
                             return createItemCard(item, isOwned || item.id === 0, isEquipped); 
                         }).join('')}
                     </div>
@@ -139,7 +136,6 @@
                     <p style="color: gray;">🐍 **COMMING SOON** - Les skins de Snake Infini seront bientôt disponibles à l'achat !</p>
                     <div class="shop-grid">
                         ${SHOP_ITEMS.filter(i => i.game === 'snake_infini').map(item => {
-                            // On peut montrer le skin de base, mais les autres sont juste des placeholders
                             const isOwned = currentUser.skins && currentUser.skins.owned && currentUser.skins.owned.includes(item.id);
                             const isEquipped = currentUser.skins && currentUser.skins.active && currentUser.skins.active.snake_head === item.emoji;
                             return createItemCard(item, isOwned || item.id === 4, isEquipped);
@@ -164,13 +160,13 @@
 
             if (currentUser.coins >= item.price) {
                 currentUser.coins -= item.price;
-                if (!currentUser.skins.owned) currentUser.skins.owned = [0, 4]; // Skins de base par défaut
+                if (!currentUser.skins.owned) currentUser.skins.owned = [0, 4];
                 if (!currentUser.skins.owned.includes(itemId)) currentUser.skins.owned.push(itemId);
                 
                 updateGlobalUser(currentUser); 
                 alert(`Achat réussi : ${item.name} pour ${item.price} pièces !`);
                 renderShop();
-                updateTopBar(); // Mise à jour des pièces dans la Top Bar
+                updateTopBar();
             } else {
                 alert(`Fonds insuffisants. Il vous manque ${item.price - currentUser.coins} pièces.`);
             }
@@ -195,7 +191,10 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', renderShop);
+        document.addEventListener('DOMContentLoaded', () => {
+             renderShop();
+             updateTopBar(); // Appel de la fonction de base pour synchroniser la barre
+        });
     </script>
 </body>
 </html>
