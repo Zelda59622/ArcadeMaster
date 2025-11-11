@@ -220,8 +220,10 @@
             }
         }
         
-        // Gère le clic du bouton Connexion
+        // Gère le clic du bouton Connexion (AVEC POP-UP DE TEST FORCÉ)
         window.handleLogin = function() {
+            alert("Pop-up de test : Le bouton CONNEXION a été cliqué."); // Pop-up de test
+
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
 
@@ -236,8 +238,10 @@
             }
         }
 
-        // Gère le clic du bouton Inscription
+        // Gère le clic du bouton Inscription (AVEC POP-UP DE TEST FORCÉ)
         window.handleRegister = function() {
+            alert("Pop-up de test : Le bouton INSCRIPTION a été cliqué."); // Pop-up de test
+            
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
 
