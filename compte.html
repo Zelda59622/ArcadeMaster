@@ -33,12 +33,12 @@
     <div id="sidebar" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
         <div id="nav-links">
-            <a href="index.html" data-emoji="🏠">Accueil</a>
-            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
-            <a href="compte.html" data-emoji="👤">Mon Compte</a>
-            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
-            <a href="classement.html" data-emoji="🏆">Classement</a>
-            <a href="credits.html" data-emoji="📜">Crédits</a>
+            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
+            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
+            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
         </div>
     </div>
 
@@ -185,8 +185,10 @@
             }
         }
 
-        // Exécute la vue appropriée au chargement
-        document.addEventListener('DOMContentLoaded', renderProfileView);
+        // Exécute la vue appropriée au chargement après un léger délai pour s'assurer que auth.js est chargé
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(renderProfileView, 10); 
+        });
 
     </script>
 </body>
