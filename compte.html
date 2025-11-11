@@ -201,6 +201,7 @@
             renderAccountPage();
             
             // --- LISTENERS DE CONNEXION/INSCRIPTION ---
+            // Le listener est bien attaché au formulaire entier.
             document.getElementById('loginSubmit').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const username = document.getElementById('loginUsername').value;
@@ -208,6 +209,10 @@
                 if (loginUser(username, password)) {
                     renderAccountPage();
                     updateTopBar();
+                } else {
+                    // Si loginUser renvoie false, il y a déjà une alerte dans auth.js
+                    // mais nous nous assurons que l'affichage est maintenu.
+                    renderAccountPage();
                 }
             });
 
