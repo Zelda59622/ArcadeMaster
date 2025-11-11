@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Outil Admin (Stockage Fictif)</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .data-generator-card {
+            background-color: var(--color-background-dark);
+            border: 2px solid var(--color-neon-orange);
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--color-neon-orange);
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            background-color: #0d1a26;
+            color: var(--color-neon-green);
+            border: 1px solid var(--color-neon-green);
+            padding: 10px;
+            font-family: monospace;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        .user-list {
+            margin-top: 15px;
+            color: var(--color-text-light);
+        }
+        .user-item {
+            border-bottom: 1px dashed var(--color-text-light);
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container" id="mainContent">
+        <h1 style="color: var(--color-neon-red); text-align: center; margin-bottom: 20px;">
+            ADMIN : GÉNÉRATEUR D'UTILISATEURS (Stockage Fictif)
+        </h1>
+        
+        <p style="color: var(--color-text-light); text-align: center;">
+            Cet outil vous permet de gérer les utilisateurs en mode local. Après avoir ajouté/modifié un compte, vous devez <strong>COPIER</strong> le code généré ci-dessous et le **COLLER** dans votre fichier **auth.js**.
+        </p>
+
+        <div class="data-generator-card">
+            <h2 style="color: var(--color-neon-green);">Ajouter un Nouvel Utilisateur</h2>
+            <form id="addUserForm">
+                <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required style="width: 48%; margin-right: 2%;">
+                <input type="password" id="newPassword" placeholder="Mot de passe" required style="width: 48%;">
+                <select id="newRole" style="width: 100%; margin-top: 10px;">
+                    <option value="user">Utilisateur standard</option>
+                    <option value="admin">Administrateur</option>
+                </select>
+                <button type="submit" class="btn-primary" style="background-color: var(--color-neon-blue); width: 100%; margin-top: 15px;">
+                    Générer le Code `auth.js`
+                </button>
+            </form>
+            
+            <h2 style="color: var(--color-neon-orange); margin-top: 20px;">Utilisateurs Actuels</h2>
+            <div id="currentUserList" class="user-list">
+                </div>
+            
+            <h2 style="color: var(--color-neon-green); margin-top: 20px;">Code `auth.js` à Copier :</h2>
+            <textarea id="outputCode" readonly></textarea>
+            <button onclick="copyCode()" class="btn-primary" style="background-color: var(--color-neon-green); width: 100%; margin-top: 10px;">
+                Copier le Code
+            </button>
+        </div>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="compte.html" style="color: var(--color-neon-blue);">Retour à la page de compte</a>
+        </p>
+    </div>
+
+    <script>
+        // --- LOGIQUE DE GÉNÉRATION DU FICHIER AUTH.JS ---
+        
+        // Utilisateurs par défaut (nous allons les charger depuis l'auth.js actuel)
+        let USERS_DATA = [];
+
+        // Fonction pour générer le bloc JavaScript complet
+        function generateAuthJsCode(users) {
+            const usersJson = JSON.stringify(users, null, 4)
+                .replace(/"id": (\d+)/g, 'id: $1')
+                .replace(/"username":/g, 'username:')
+                .replace(/"password":/g, 'password:')
+                .replace(/"role":/g, 'role:')
+                .replace(/"coins": (\d+)/g, 'coins: $1')
+                .replace(/"highScores":/g, 'highScores:')
+                .replace(/"skins":/g, 'skins:')
+                .replace(/"profilePictureUrl":/g, 'profilePictureUrl:')
+                .replace(/"active":/g, 'active:')
+                .replace(/"ship":/g, 'ship:')
+                .replace(/"snake_head":/g, 'snake_head:')
+                .replace(/"owned":/g, 'owned:');
+
+            return `
+// --- LOGIQUE D'AUTHENTIFICATION & UTILISATEURS (GÉNÉRÉE PAR ADMIN_DATA.HTML) ---
+
+const LOCAL_STORAGE_KEY = 'arcadeMasterUsers';
+const LOCAL_STORAGE_CURRENT_USER = 'arcadeMasterCurrentUser';
+
+// DONNÉES UTILISATEURS MISES À JOUR MANUELLEMENT (DEFAULT_USERS)
+const DEFAULT_USERS = ${usersJson};
+
+// Initialisation des utilisateurs
+function initUsers() {
+    // Si l'utilisateur n'a pas de données, on utilise les DEFAULT_USERS.
+    // NOTE : Ce système utilise le DEFAULT_USERS comme base. Le localStorage sera ignoré en cas de problème.
+    if (!localStorage.getItem(LOCAL_STORAGE_KEY) || JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)).length === 0) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+    }
+}
+
+function loadUsers() {
+    initUsers();
+    // Nous préférons charger depuis localStorage, mais si c'est vide, nous utilisons le DEFAULT_USERS
+    let storedUsers = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (storedUsers.length === 0) {
+        // Fallback: Si le stockage est vide (première exécution ou cache vidé), on utilise la base codée.
+        return DEFAULT_USERS;
+    }
+    return storedUsers;
+}
+
+function saveUsers(users) {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
+}
+
+// Fonction d'enregistrement
+function registerUser(username, password) {
+    let users = loadUsers();
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert("Nom d'utilisateur déjà pris.");
+        return false;
+    }
+
+    const newUser = {
+        id: users.length + 1,
+        username: username,
+        password: password, 
+        role: 'user',
+        coins: 0,
+        highScores: { space_invaders: 0, snake_infini: 0, clicker_arcade: 0 },
+        skins: { owned: [0, 4], active: { ship: '🚀', snake_head: '🐍' } },
+        profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+    localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(newUser));
+    alert("Compte créé avec succès ! Vous êtes maintenant connecté(e).");
+    return true;
+}
+
+// Fonction de connexion
+function loginUser(username, password) {
+    const users = loadUsers();
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(user));
+        alert("Connexion réussie ! Bienvenue " + user.username);
+        return true;
+    } else {
+        alert("Nom d'utilisateur ou mot de passe incorrect.");
+        return false;
+    }
+}
+
+// ... (Autres fonctions : logout, getCurrentUser, updateGlobalUser, updateProfile) ...
+// (Elles seront ajoutées après pour ne pas surcharger la réponse)
+
+// Pour simplifier, nous allons inclure ici uniquement les fonctions vitales pour le test immédiat
+// Les autres fonctions (logout, getCurrentUser, updateGlobalUser, updateProfile) doivent être 
+// copiées depuis la dernière version de auth.js fournie.
+
+`;
+        }
+        
+        // Fonction qui charge les utilisateurs depuis auth.js (si possible) ou utilise la base
+        function loadUsersFromAuthJs() {
+            // Dans le contexte de admin_data.html, nous ne pouvons pas simplement appeler DEFAULT_USERS de auth.js
+            // Pour ce contournement, nous allons initialiser une base d'utilisateurs ici
+            return [
+                {
+                    id: 1,
+                    username: 'Zelda5962',
+                    password: 'adminpass',
+                    role: 'admin',
+                    coins: 50000,
+                    highScores: { space_invaders: 0, snake_infini: 0, clicker_arcade: 0 },
+                    skins: { owned: [0, 1, 4], active: { ship: '🚀', snake_head: '🐍' } },
+                    profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
+                }
+            ];
+        }
+
+        function renderUsers() {
+            const list = document.getElementById('currentUserList');
+            list.innerHTML = '';
+            USERS_DATA.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.textContent = \`ID: \${user.id} | Pseudo: \${user.username} | Rôle: \${user.role}\`;
+                list.appendChild(div);
+            });
+        }
+        
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+            
+            // Éviter les doublons
+            if (USERS_DATA.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                 alert("Ce nom d'utilisateur existe déjà dans la liste.");
+                 return;
+            }
+
+            const newUser = {
+                id: USERS_DATA.length > 0 ? USERS_DATA[USERS_DATA.length - 1].id + 1 : 1,
+                username: username,
+                password: password, 
+                role: role,
+                coins: 0,
+                highScores: { space_invaders: 0, snake_infini: 0, clicker_arcade: 0 },
+                skins: { owned: [0, 4], active: { ship: '🚀', snake_head: '🐍' } },
+                profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
+            };
+            
+            USERS_DATA.push(newUser);
+            
+            // Mise à jour du code affiché
+            updateGeneratedCode();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            renderUsers();
+            alert("Nouvel utilisateur ajouté ! N'oubliez pas de copier et coller le code généré dans auth.js.");
+        });
+
+        function updateGeneratedCode() {
+            document.getElementById('outputCode').value = generateAuthJsCode(USERS_DATA);
+        }
+
+        function copyCode() {
+            const textarea = document.getElementById('outputCode');
+            textarea.select();
+            document.execCommand('copy');
+            alert("Code copié dans le presse-papiers ! Collez-le maintenant dans votre fichier auth.js.");
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+             // Charge la base de départ
+             USERS_DATA = loadUsersFromAuthJs();
+             renderUsers();
+             updateGeneratedCode();
+        });
+    </script>
+</body>
+</html>
