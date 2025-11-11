@@ -7,84 +7,6 @@
     
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        /* Styles spécifiques au classement */
-        .ranking-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: var(--color-card-dark);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-        }
-        .ranking-container h2 {
-            color: var(--color-neon-orange);
-            text-align: center;
-            border-bottom: 2px solid var(--color-neon-green);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-        .ranking-list {
-            list-style: none;
-            padding: 0;
-        }
-        .ranking-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 8px;
-            background-color: var(--color-background-dark);
-            border-radius: 5px;
-            font-size: 1.1em;
-            transition: background-color 0.3s;
-        }
-        .ranking-list li:nth-child(1) { 
-            background-color: #FFD70030; /* Or / Gold */
-            border: 2px solid #FFD700;
-        }
-        .ranking-list li:nth-child(2) { 
-            background-color: #C0C0C030; /* Argent / Silver */
-            border: 2px solid #C0C0C0;
-        }
-        .ranking-list li:nth-child(3) { 
-            background-color: #CD7F3230; /* Bronze */
-            border: 2px solid #CD7F32;
-        }
-
-        .rank-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .rank-number {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--color-neon-green);
-            width: 30px;
-            text-align: right;
-        }
-        .score-value {
-            font-weight: bold;
-            color: var(--color-neon-orange);
-        }
-        .username-value {
-            color: var(--color-text-light);
-        }
-        /* Style pour la sélection du jeu */
-        #gameSelector {
-            display: block;
-            margin: 0 auto 30px auto;
-            padding: 10px;
-            font-size: 1.2em;
-            background-color: var(--color-background);
-            color: var(--color-neon-green);
-            border: 2px solid var(--color-neon-green);
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
 
@@ -93,9 +15,16 @@
             <i class="fa-solid fa-bars"></i>
         </div>
         <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
-            CLASSEMENT ARCADE
+            CLASSEMENT
         </span>
-        <div id="right-container" style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
         </div>
     </div>
 
@@ -135,8 +64,6 @@
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // Logique spécifique au classement
-        
         function renderGlobalRanking() {
             if (typeof loadUsers !== 'function') {
                 document.getElementById('globalRankingList').innerHTML = '<li>Erreur: Fichier auth.js non chargé.</li>';
@@ -153,10 +80,8 @@
             
             const users = loadUsers();
             
-            // 1. Map, filtre et trie les utilisateurs pour le jeu sélectionné
             let rankingData = users.map(user => ({
                 username: user.username,
-                // Utilise la clé dynamique pour le score
                 score: user.highScores[gameId] || 0, 
                 role: user.role
             }))
@@ -168,7 +93,6 @@
                  return;
             }
 
-            // 4. Affiche le classement (Top 100)
             rankingData.slice(0, 100).forEach((item, index) => {
                 const li = document.createElement('li');
                 const rank = index + 1;
@@ -191,10 +115,8 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            // Affiche le classement Space Invaders par défaut au chargement
             renderGlobalRanking();
         });
-        
     </script>
 </body>
 </html>
