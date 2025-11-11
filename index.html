@@ -6,12 +6,14 @@
     <title>Arcade Master - Accueil</title>
     
     <link rel="stylesheet" href="styles.css">
-    </head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
 <body>
 
     <div id="top-bar">
         <div id="menuToggle" class="menu-toggle">
-            <i class="fa-solid fa-bars"></i> </div>
+            <i class="fa-solid fa-bars"></i>
+        </div>
         
         <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
             ARCADE MASTER
@@ -34,12 +36,12 @@
         <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
         
         <div id="nav-links">
-            <a href="index.html" data-emoji="🏠">Accueil</a>
-            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
-            <a href="compte.html" data-emoji="👤">Mon Compte</a>
-            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
-            <a href="classement.html" data-emoji="🏆">Classement</a>
-            <a href="credits.html" data-emoji="📜">Crédits</a>
+            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
+            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
+            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
             
             </div>
     </div>
@@ -79,10 +81,26 @@
                     <p style="font-size: 0.9em; color: #CCC;">Achetez des skins avec vos pièces.</p>
                 </div>
 
+                <div class="action-card" style="border-color: #00AAFF;" 
+                     onclick="window.location.href='classement.html'">
+                    <span class="card-icon">🏆</span>
+                    <h3 style="color: #00AAFF;">Classement</h3>
+                    <p style="font-size: 0.9em; color: #CCC;">Consultez les meilleurs joueurs et records.</p>
+                </div>
+
+                <div class="action-card" style="border-color: #FF00FF;" 
+                     onclick="window.location.href='credits.html'">
+                    <span class="card-icon">📜</span>
+                    <h3 style="color: #FF00FF;">Crédits</h3>
+                    <p style="font-size: 0.9em; color: #CCC;">Informations sur le projet et remerciements.</p>
+                </div>
+
             </div>
         </div>
     </div>
     
     <script src="base.js"></script>
-    </body>
+    <script src="auth.js"></script>
+
+</body>
 </html>
