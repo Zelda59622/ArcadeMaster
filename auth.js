@@ -1,9 +1,9 @@
-// --- LOGIQUE D'AUTHENTIFICATION & UTILISATEURS ---
+// --- LOGIQUE D'AUTHENTIFICATION & UTILISATEURS (GÉNÉRÉE PAR ADMIN_DATA.HTML) ---
 
 const LOCAL_STORAGE_KEY = 'arcadeMasterUsers';
 const LOCAL_STORAGE_CURRENT_USER = 'arcadeMasterCurrentUser';
 
-// Utilisateurs de base
+// DONNÉES UTILISATEURS MISES À JOUR MANUELLEMENT (DEFAULT_USERS)
 const DEFAULT_USERS = [
     {
         id: 1,
@@ -14,27 +14,26 @@ const DEFAULT_USERS = [
         highScores: { space_invaders: 0, snake_infini: 0, clicker_arcade: 0 },
         skins: { owned: [0, 1, 4], active: { ship: '🚀', snake_head: '🐍' } },
         profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
-    },
-    // Ajoutez d'autres utilisateurs par défaut ici si nécessaire
+    }
 ];
 
-// Initialisation des utilisateurs dans le stockage local
+// Initialisation des utilisateurs
 function initUsers() {
-    if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
+    // Si l'utilisateur n'a pas de données, on utilise les DEFAULT_USERS.
+    if (!localStorage.getItem(LOCAL_STORAGE_KEY) || JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)).length === 0) {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
-    } else {
-        // Logique pour s'assurer que l'admin est toujours là
-        let existingUsers = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-        if (!existingUsers.some(u => u.username === 'Zelda5962')) {
-            existingUsers.push(DEFAULT_USERS[0]);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingUsers));
-        }
     }
 }
 
 function loadUsers() {
     initUsers();
-    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    // Nous préférons charger depuis localStorage, mais si c'est vide, nous utilisons le DEFAULT_USERS
+    let storedUsers = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (storedUsers.length === 0) {
+        // Fallback: Si le stockage est vide (première exécution ou cache vidé), on utilise la base codée.
+        return DEFAULT_USERS;
+    }
+    return storedUsers;
 }
 
 function saveUsers(users) {
@@ -62,7 +61,7 @@ function registerUser(username, password) {
 
     users.push(newUser);
     saveUsers(users);
-    localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(newUser)); // Connexion automatique
+    localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(newUser));
     alert("Compte créé avec succès ! Vous êtes maintenant connecté(e).");
     return true;
 }
@@ -82,25 +81,24 @@ function loginUser(username, password) {
     }
 }
 
-// Fonction de déconnexion
+// Déconnexion
 function logout() {
     localStorage.removeItem(LOCAL_STORAGE_CURRENT_USER);
     alert("Déconnexion réussie.");
 }
 
-// Obtenir l'utilisateur actuel
+// Obtenir l'utilisateur actuellement connecté
 function getCurrentUser() {
     try {
         const userJson = localStorage.getItem(LOCAL_STORAGE_CURRENT_USER);
         return userJson ? JSON.parse(userJson) : null;
     } catch (e) {
-        // En cas de blocage du localStorage, on retourne null.
         console.error("Erreur de lecture du stockage local pour l'utilisateur actuel:", e);
         return null; 
     }
 }
 
-// Mise à jour de l'utilisateur (gardée pour les futures mises à jour de profil/score)
+// Mettre à jour l'utilisateur dans la liste globale
 function updateGlobalUser(updatedUser) {
     let users = loadUsers();
     const index = users.findIndex(u => u.id === updatedUser.id);
@@ -114,6 +112,7 @@ function updateGlobalUser(updatedUser) {
     return false;
 }
 
+// Mise à jour du profil
 function updateProfile(newPassword, newProfilePictureUrl) {
     const user = getCurrentUser();
     if (!user) return false;
@@ -130,5 +129,6 @@ function updateProfile(newPassword, newProfilePictureUrl) {
     return true;
 }
 
-// Initialisation au chargement
+
+// Assurez-vous que les utilisateurs de base sont initialisés au chargement
 document.addEventListener('DOMContentLoaded', initUsers);
