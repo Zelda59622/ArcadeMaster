@@ -109,10 +109,14 @@
         function showLogin() {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('registerForm').style.display = 'none';
+            // Cache le profil
+            document.getElementById('profileView').style.display = 'none';
         }
         function showRegister() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'block';
+            // Cache le profil
+            document.getElementById('profileView').style.display = 'none';
         }
 
         function renderAccountPage() {
@@ -126,7 +130,11 @@
                 document.getElementById('profileHighScore').textContent = user.highScores['space_invaders'] || 0;
                 document.getElementById('profileRole').textContent = user.role;
                 
-                document.getElementById('activeShip').textContent = user.skins.active.ship;
+                // Assurez-vous que l'élément activeShip est présent dans la page
+                const activeShipElement = document.getElementById('activeShip');
+                if(activeShipElement) {
+                     activeShipElement.textContent = user.skins.active.ship;
+                }
 
                 document.getElementById('profileView').style.display = 'block';
                 document.getElementById('loginForm').style.display = 'none';
@@ -138,6 +146,13 @@
             }
         }
         
+        // Fonction de déconnexion globale
+        window.logoutUser = function() {
+            logout();
+            renderAccountPage();
+            updateTopBar();
+        }
+
         // Initialisation des listeners et de l'affichage
         document.addEventListener('DOMContentLoaded', () => {
             renderAccountPage();
@@ -163,14 +178,10 @@
                     updateTopBar();
                 }
             });
-            updateTopBar(); // Appel de la fonction de base pour synchroniser la barre
-        });
-
-        window.logoutUser = function() {
-            logout();
-            renderAccountPage();
+            
+            // Initialiser la top bar
             updateTopBar();
-        }
+        });
     </script>
 </body>
 </html>
