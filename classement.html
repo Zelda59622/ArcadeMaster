@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Classement</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="menuToggle" class="menu-toggle">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
+            CLASSEMENT ARCADE
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
+        <div id="nav-links">
+            <a href="index.html" data-emoji="🏠">Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
+            <a href="classement.html" data-emoji="🏆">Classement</a>
+            <a href="credits.html" data-emoji="📜">Crédits</a>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        <div style="padding-top: 50px;"></div> 
+        
+        <h1 style="font-size: 2.5em; color: var(--color-neon-orange);">HALL OF FAME 🏆</h1>
+        
+        <div id="rankingContent" style="text-align: center;">
+            <p style="color: var(--color-neon-green); margin-bottom: 20px;">
+                Affichage des meilleurs scores pour Space Invaders 2.0.
+            </p>
+            
+            <div class="auth-card" style="max-width: 600px; margin: 0 auto;">
+                <h2 style="color: var(--color-neon-green);">Space Invaders 2.0 Records</h2>
+                <ol id="leaderboardList" style="list-style-position: inside; text-align: left; padding: 0 20px; font-size: 1.1em;">
+                    <li style="padding: 10px 0; border-bottom: 1px dashed #444;">Chargement des données...</li>
+                </ol>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <h2 style="color: #999;">Autres jeux : À venir</h2>
+                <p style="color: #666;">Les classements pour Snake Infini et Clicker apparaîtront ici bientôt.</p>
+            </div>
+
+        </div>
+    </div>
+    
+    <script src="base.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Scripts spécifiques à la page Classement
+
+        const GAME_NAME = 'space_invaders'; // Nom de jeu utilisé dans auth.js
+
+        /** Affiche le classement en récupérant les données via auth.js */
+        function displayLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            if (!list || typeof loadUsers !== 'function') {
+                list.innerHTML = '<li>Erreur: Scripts de données non chargés.</li>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            
+            const users = loadUsers();
+            
+            // Crée un tableau d'objets {username, score, role} et filtre les scores > 0
+            let leaderboard = users.map(user => ({
+                username: user.username,
+                score: user.highScores[GAME_NAME] || 0,
+                role: user.role
+            }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score); // Tri décroissant
+
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<li>Aucun score enregistré pour ce jeu. Soyez le premier !</li>';
+                return;
+            }
+            
+            leaderboard.forEach((item, index) => {
+                const li = document.createElement('li');
+                const rank = index + 1;
+                let emoji = '';
+                
+                // Attribution des émojis pour le Top 3
+                if (rank === 1) emoji = '🥇';
+                else if (rank === 2) emoji = '🥈';
+                else if (rank === 3) emoji = '🥉';
+                
+                const roleEmoji = item.role === 'admin' ? ' 👑' : ''; // Badge Admin
+                
+                li.innerHTML = `
+                    <span style="font-weight: bold; width: 30px; display: inline-block;">${rank}.</span>
+                    ${emoji} ${item.username}${roleEmoji} : 
+                    <span style="color: var(--color-neon-orange); float: right;">${item.score}</span>
+                `;
+                
+                // Style spécial pour le Top 3
+                if (rank <= 3) {
+                    li.style.backgroundColor = '#353535';
+                    li.style.padding = '5px 10px';
+                    li.style.borderRadius = '5px';
+                }
+                
+                list.appendChild(li);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // S'assure que auth.js a fini de charger les utilisateurs
+            setTimeout(displayLeaderboard, 100); 
+        });
+    </script>
+</body>
+</html>
