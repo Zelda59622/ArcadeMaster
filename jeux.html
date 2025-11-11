@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Sélection des Jeux</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="menuToggle" class="menu-toggle">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
+            ARCADE MASTER
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
+        <div id="nav-links">
+            <a href="index.html" data-emoji="🏠">Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
+            <a href="classement.html" data-emoji="🏆">Classement</a>
+            <a href="credits.html" data-emoji="📜">Crédits</a>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        
+        <div style="padding-top: 50px;"></div> 
+
+        <div style="text-align: center;">
+            
+            <h1 style="font-size: 2em;">SÉLECTION DES JEUX</h1>
+            
+            <p style="color: var(--color-neon-green); margin-bottom: 30px;">
+                Choisissez votre version 2.0 préférée !
+            </p>
+            
+            <div class="card-group">
+                
+                <div class="action-card" style="border-color: var(--color-neon-green);" 
+                     onclick="window.location.href='space_invaders.html'">
+                    <span class="card-icon">🚀</span>
+                    <h3 style="color: var(--color-neon-green);">Space Invaders 2.0</h3>
+                    <p style="font-size: 0.9em; color: #CCC;">Visée à la souris et bonus explosifs !</p>
+                </div>
+                
+                <div class="action-card coming-soon-card" style="border-color: #555; opacity: 0.5; cursor: not-allowed;">
+                    <span class="card-icon">🐍</span>
+                    <h3 style="color: #999;">Snake Infini</h3>
+                    <p style="font-size: 0.9em; color: #777;">COMING SOON</p>
+                </div>
+                
+                <div class="action-card coming-soon-card" style="border-color: #555; opacity: 0.5; cursor: not-allowed;">
+                    <span class="card-icon">🖱️</span>
+                    <h3 style="color: #999;">Clicker</h3>
+                    <p style="font-size: 0.9em; color: #777;">COMING SOON</p>
+                </div>
+
+                <div class="action-card coming-soon-card" style="border-color: #555; opacity: 0.5; cursor: not-allowed;">
+                    <span class="card-icon">👾</span>
+                    <h3 style="color: #999;">Jeu Mystère</h3>
+                    <p style="font-size: 0.9em; color: #777;">COMING SOON</p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <script src="base.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
