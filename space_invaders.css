@@ -1,167 +1,121 @@
-/* --- STYLE SPÉCIFIQUE À SPACE INVADERS --- */
+/* Styles pour la zone de jeu Space Invaders */
 
+/* Wrapper du jeu */
 .game-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 0;
+    max-width: 800px; 
+    margin: 20px auto;
 }
 
-/* Zone d'affichage des infos (Score/Vies) */
+/* Infos (Score/Vies) */
 #gameInfo {
     display: flex;
     justify-content: space-between;
-    width: 600px; /* Doit correspondre à la largeur du plateau */
+    width: 100%;
     margin-bottom: 10px;
+    padding: 5px 10px;
+    border: 1px solid var(--color-neon-blue);
+    border-radius: 5px;
+    color: var(--color-neon-blue);
 }
 
-.info-item {
-    color: var(--color-neon-orange);
-    font-size: 1.2em;
-    font-weight: bold;
-    text-shadow: 0 0 5px var(--color-neon-orange);
-}
-
-
-/* Plateau de Jeu (Conteneur principal) */
+/* Plateau de Jeu */
 #gameBoard {
-    width: 600px; /* Largeur fixe du jeu */
-    height: 400px; /* Hauteur fixe du jeu */
-    background-color: #000a12; /* Fond très sombre */
-    border: 5px solid var(--color-neon-blue);
-    box-shadow: 0 0 15px var(--color-neon-blue);
-    position: relative; /* Essentiel pour le positionnement absolu des entités */
-    overflow: hidden; /* Cache ce qui sort du plateau */
+    width: 800px; 
+    height: 600px;
+    background-color: var(--color-background-dark);
+    border: 3px solid var(--color-neon-green);
+    position: relative; /* ESSENTIEL pour que les overlays s'y ancrent */
+    overflow: hidden;
+    cursor: crosshair;
 }
 
-/* Overlay (Instructions et Game Over) */
+/* Règle pour centrer les écrans d'instructions et de game over DANS le plateau de jeu (Correction) */
 .overlay {
-    position: absolute;
+    position: absolute; /* Ancrage dans #gameBoard */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10;
+    
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
+    
+    color: var(--color-text-light);
     text-align: center;
-    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-#instructionsScreen p {
-    font-size: 1.1em;
-    margin: 10px 0;
-}
-
-
-/* --- ENTITÉS DU JEU --- */
-
-/* Style du Joueur pour la visée (Nouvelle logique de mouvement) */
+/* Éléments du Joueur */
 .player {
     position: absolute;
     width: 30px;
     height: 30px;
-    background-color: var(--color-neon-blue);
-    border-radius: 5px;
-    transition: transform 0.05s linear; /* Rotation fluide */
-    z-index: 8;
-    /* Pour simuler un vaisseau pointu */
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    background-color: transparent; /* Utilisé pour le conteneur, l'emoji est l'image */
+    transition: transform 0.1s;
+    z-index: 5;
+    
+    /* Style pour le bouclier (Shield) */
+    box-shadow: none;
+    border-radius: 50%;
 }
 
-/* Style du Bouclier */
 .player.shielded {
-    box-shadow: 0 0 15px 5px var(--color-neon-green);
-    border: 3px solid var(--color-neon-green);
+    box-shadow: 0 0 10px var(--color-neon-blue), 0 0 20px var(--color-neon-blue);
+    border: 2px solid var(--color-neon-blue);
 }
 
-/* Ennemis (Invaders) */
+/* Éléments Ennemis */
 .enemy {
     position: absolute;
     width: 20px;
     height: 20px;
-    background-color: var(--color-neon-red);
-    border-radius: 3px;
-    z-index: 7;
-    animation: enemy_pulse 1s infinite alternate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em; 
+    transition: transform 0.05s;
+    z-index: 4;
 }
 
-@keyframes enemy_pulse {
-    from { opacity: 0.8; }
-    to { opacity: 1; }
-}
-
-/* Tirs */
-.player-bullet, .enemy-bullet {
+/* Tirs du joueur */
+.player-bullet {
     position: absolute;
     width: 4px;
     height: 8px;
+    background-color: var(--color-neon-green);
     border-radius: 2px;
-    z-index: 9;
+    z-index: 6;
 }
 
-.player-bullet {
-    background-color: var(--color-neon-blue);
-    box-shadow: 0 0 5px var(--color-neon-blue);
-}
+/* Tirs ennemis (Si implémentés) */
 .enemy-bullet {
+    position: absolute;
+    width: 6px;
+    height: 6px;
     background-color: var(--color-neon-red);
-    box-shadow: 0 0 5px var(--color-neon-red);
+    border-radius: 50%;
+    z-index: 6;
 }
 
-
-/* --- BONUS (Powerups) --- */
-
+/* Powerups */
 .powerup {
     position: absolute;
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
     border-radius: 50%;
-    text-align: center;
-    line-height: 15px;
-    font-size: 10px;
-    font-weight: bold;
-    z-index: 5;
-    animation: float 1s infinite alternate;
-}
-
-.powerup-shield {
-    background-color: var(--color-neon-green);
-    box-shadow: 0 0 8px var(--color-neon-green);
-}
-
-.powerup-shotgun {
-    background-color: var(--color-neon-orange);
-    box-shadow: 0 0 8px var(--color-neon-orange);
-}
-
-.powerup-bomb {
-    background-color: var(--color-neon-red);
-    box-shadow: 0 0 8px var(--color-neon-red);
-}
-
-@keyframes float {
-    from { transform: translateY(0px); }
-    to { transform: translateY(-5px); }
-}
-
-
-/* --- ZONE D'AIDE ET INSTRUCTIONS --- */
-
-#helpZone {
-    width: 600px; /* Alignée avec le plateau de jeu */
-    text-align: left;
-}
-
-.controls-list {
-    list-style: none;
-    padding-left: 10px;
-    color: var(--color-text-light);
-}
-
-.controls-list li {
-    margin-bottom: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid white;
+    z-index: 7;
 }
