@@ -7,11 +7,11 @@ const livesDisplay = document.getElementById('livesDisplay');
 const instructionsScreen = document.getElementById('instructionsScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const restartButton = document.getElementById('restartButton');
-const startButton = document.getElementById('startButton'); // NOUVEAU: Bouton de lancement
+const startButton = document.getElementById('startButton'); 
 
 // Paramètres du jeu
-const BOARD_WIDTH = 600;
-const BOARD_HEIGHT = 400;
+const BOARD_WIDTH = 800; // Agrandissement
+const BOARD_HEIGHT = 600; // Agrandissement
 let isGameRunning = false;
 let isGameOver = false;
 let gameInterval;
@@ -30,7 +30,7 @@ let player = {
 
 // Vitesse de base du jeu
 let scoreSpeedFactor = 1;
-let gameLoopSpeed = 50; // Intervalle en ms (20 FPS)
+let gameLoopSpeed = 50; 
 
 // Entités (listes)
 let enemies = [];
@@ -85,7 +85,6 @@ function resetGame() {
     enemyBullets = [];
     powerups = [];
     
-    // Réinitialisation des bonus
     shieldActive = false;
     clearTimeout(shieldTimeout);
     shotgunCooldown = 0;
@@ -242,7 +241,7 @@ function checkCollisions() {
     powerups = powerups.filter(powerup => {
         if (
             powerup.x < player.x + player.width && powerup.x + powerup.width > player.x &&
-            powerup.y < player.y + player.height && powerup.y + powerup.height > player.y
+            powerup.y < player.y + player.height && powerup.y + player.height > player.y
         ) {
             activatePowerup(powerup.type);
             return false; 
@@ -319,7 +318,7 @@ function playerShoot(e) {
     if (isGameOver || !isGameRunning) return;
     if (e && e.button !== 0) return; 
 
-    // Prévenir la sélection de texte/emojis lors du spam click
+    // Empêche la sélection de texte/emojis lors du spam click (Correction)
     e.preventDefault(); 
     
     if (shotgunCooldown > 0) {
@@ -392,8 +391,33 @@ function drawEntities() {
         gameBoard.appendChild(enemyElement);
     });
 
-    // Dessin des Tirs et Bonus
-    // ... (Logique de dessin des tirs et powerups)
+    // Dessin des Tirs Joueur (Mise à jour de la position selon speedX/Y)
+    playerBullets.forEach(bullet => {
+        const bulletElement = document.createElement('div');
+        bulletElement.style.left = `${bullet.x}px`;
+        bulletElement.style.top = `${bullet.y}px`;
+        bulletElement.classList.add('player-bullet');
+        gameBoard.appendChild(bulletElement);
+    });
+    
+    // Dessin des Tirs Ennemis (si implémentés)
+    enemyBullets.forEach(bullet => {
+        const bulletElement = document.createElement('div');
+        bulletElement.style.left = `${bullet.x}px`;
+        bulletElement.style.top = `${bullet.y}px`;
+        bulletElement.classList.add('enemy-bullet');
+        gameBoard.appendChild(bulletElement);
+    });
+    
+    // Dessin des Bonus
+    powerups.forEach(p => {
+        const pElement = document.createElement('div');
+        pElement.style.left = `${p.x}px`;
+        pElement.style.top = `${p.y}px`;
+        pElement.classList.add('powerup', `powerup-${p.type}`);
+        pElement.textContent = p.type === 'shield' ? '🛡️' : (p.type === 'shotgun' ? '🔫' : '💣');
+        gameBoard.appendChild(pElement);
+    });
 }
 
 
@@ -457,40 +481,8 @@ function endGame() {
 }
 
 
-// --- 8. GESTION DES CHEATS ---
-
-const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight'];
-let konamiIndex = 0;
-
-function handleCheat(e) {
-    if (e.key === KONAMI_CODE[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === KONAMI_CODE.length) {
-            alert("CODE KONAMI ACTIVÉ ! 💰 +50,000 Pièces !");
-            
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            
-            if (user && user.id !== 0) {
-                 // Vrai utilisateur connecté
-                 user.coins = (user.coins || 0) + 50000;
-                 if (typeof updateGlobalUser === 'function') {
-                    updateGlobalUser(user);
-                 }
-            } else {
-                 // Utilisateur déconnecté/fantôme
-                 localStorage.setItem('tempCheatCoins', (parseInt(localStorage.getItem('tempCheatCoins') || '0') + 50000));
-            }
-
-            if (typeof updateTopBar === 'function') {
-                updateTopBar(); 
-            }
-
-            konamiIndex = 0; 
-        }
-    } else {
-        konamiIndex = 0; 
-    }
-}
+// --- 8. GESTION DES CHEATS (DEPLACÉ DANS BASE.JS) ---
+// La logique du code Konami est maintenant gérée globalement par base.js
 
 
 // --- 9. ÉVÉNEMENTS & INITIALISATION ---
@@ -498,15 +490,12 @@ function handleCheat(e) {
 document.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     
-    // 1. Gestion du Cheat Code (Flèches)
-    handleCheat(e); 
-    
-    // 2. Désactivation de la barre d'espace pour le lancement (seul le bouton fonctionne)
+    // Désactivation de la barre d'espace pour le lancement (seul le bouton fonctionne)
     if ((key === ' ' || key === 'spacebar') && isGameRunning) {
         e.preventDefault(); 
     }
     
-    // 3. Gestion des mouvements 
+    // Gestion des mouvements 
     if (isGameOver || !isGameRunning) return;
     
     if (key === 'a' || key === 'q' || key === 'd' || key === 'w' || key === 'z' || key === 's') {
@@ -526,14 +515,17 @@ gameBoard.addEventListener('mousemove', (e) => {
     mousePosition.y = e.clientY - rect.top;
 });
 
-gameBoard.addEventListener('mousedown', playerShoot); // Utilise mousedown ou click
-gameBoard.addEventListener('contextmenu', (e) => e.preventDefault()); // Empêche le menu contextuel au clic droit
-gameBoard.addEventListener('selectstart', (e) => e.preventDefault()); // Empêche la sélection
+// ÉVÉNEMENT DE TIR CORRIGÉ : utilise mousedown et empêche le menu contextuel et la sélection
+gameBoard.addEventListener('mousedown', playerShoot); 
+gameBoard.addEventListener('contextmenu', (e) => e.preventDefault()); 
+gameBoard.addEventListener('selectstart', (e) => e.preventDefault());
 
 // Bouton Recommencer
-restartButton.addEventListener('click', startGame);
+if (restartButton) {
+    restartButton.addEventListener('click', startGame);
+}
 
-// Bouton Démarrer (Nouveau)
+// Bouton Démarrer 
 if (startButton) {
     startButton.addEventListener('click', startGame);
 }
