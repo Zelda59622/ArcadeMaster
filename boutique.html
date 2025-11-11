@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Boutique</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="menuToggle" class="menu-toggle">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-orange);">
+            BOUTIQUE ARCADE
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
+        <div id="nav-links">
+            <a href="index.html" data-emoji="🏠">Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
+            <a href="classement.html" data-emoji="🏆">Classement</a>
+            <a href="credits.html" data-emoji="📜">Crédits</a>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        <div style="padding-top: 50px;"></div> 
+        
+        <h1 style="font-size: 2.5em; color: var(--color-neon-orange);">PERSONNALISEZ VOTRE PARTIE</h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <p class="currency-display" style="font-size: 1.5em; justify-content: center;">
+                Votre Solde : <span class="coin-count">0</span>
+                <button id="trollButtonBottom" type="button" style="margin-left: 10px;">Acheter plus de pièces +</button>
+            </p>
+            <p style="color: #999; font-style: italic;">
+                Les skins achetés sont actifs pour tous les jeux compatibles.
+            </p>
+        </div>
+
+        <div id="shopContent">
+            
+            <h2 style="text-align: left; color: var(--color-neon-green); border-bottom: 1px solid #444; padding-bottom: 10px;">🚀 Skins Space Invaders</h2>
+            
+            <div class="card-group" id="skinListContainer">
+                
+                </div>
+            
+        </div>
+        
+    </div>
+    
+    <script src="base.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // --- DONNÉES DES SKINS ---
+        // 'ship' est la catégorie, l'émoji est la valeur visuelle
+        const ALL_SKINS = [
+            { id: 1, name: "Vaisseau Retro", category: "ship", emoji: '🛸', price: 0, initial: true }, // Skin par défaut
+            { id: 2, name: "Chasseur Furtif", category: "ship", emoji: '🦅', price: 100, initial: false },
+            { id: 3, name: "Navette Pirate", category: "ship", emoji: '☠️', price: 250, initial: false },
+            { id: 4, name: "Goutte d'Alien", category: "ship", emoji: '💧', price: 500, initial: false },
+            
+            // Futurs skins pour d'autres jeux...
+        ];
+        
+        // --- FONCTIONS DE GESTION DE LA BOUTIQUE ---
+
+        /** * Ajoute les données de skins à l'utilisateur lors de l'inscription s'ils n'existent pas.
+         * Stocke les données de skins dans localStorage pour l'exemple.
+         */
+        function initializeSkinData(currentUser) {
+            if (!currentUser.skins) {
+                currentUser.skins = {
+                    owned: [1], // Possède toujours le skin par défaut (ID 1)
+                    active: { ship: '🛸' } // Skin actif par catégorie (ex: 'ship' pour Space Invaders)
+                };
+                updateGlobalUser(currentUser);
+            }
+            return currentUser;
+        }
+        
+        /** Affiche la liste des skins et gère les boutons Acheter/Activer */
+        function renderSkins() {
+            const container = document.getElementById('skinListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let currentUser = getCurrentUser(); 
+            if (!currentUser) {
+                container.innerHTML = '<p class="alert-message">Veuillez vous connecter pour accéder à la boutique.</p>';
+                return;
+            }
+            
+            // S'assure que les données de skins sont initialisées
+            currentUser = initializeSkinData(currentUser); 
+            
+            ALL_SKINS.forEach(skin => {
+                const isOwned = currentUser.skins.owned.includes(skin.id);
+                const isActive = currentUser.skins.active[skin.category] === skin.emoji;
+                
+                const card = document.createElement('div');
+                card.className = 'action-card skin-item';
+                card.style.borderColor = isActive ? 'var(--color-neon-green)' : (isOwned ? 'var(--color-neon-orange)' : '#555');
+                
+                let buttonHTML = '';
+                let statusText = '';
+
+                if (isActive) {
+                    statusText = `<p style="color: var(--color-neon-green); font-weight: bold;">✅ ACTIF</p>`;
+                    buttonHTML = `<button class="activate-btn" disabled style="background-color: #555; cursor: default;">Activé</button>`;
+                } else if (isOwned) {
+                    statusText = `<p style="color: var(--color-neon-orange);">Possédé</p>`;
+                    buttonHTML = `<button class="activate-btn" data-id="${skin.id}" style="background-color: var(--color-neon-green);">Activer</button>`;
+                } else {
+                    statusText = `<p style="color: var(--color-neon-red);">${skin.price} 💰</p>`;
+                    buttonHTML = `<button class="buy-btn" data-id="${skin.id}" data-price="${skin.price}" style="background-color: var(--color-neon-red);">Acheter</button>`;
+                }
+                
+                card.innerHTML = `
+                    <span class="card-icon">${skin.emoji}</span> 
+                    <h3>${skin.name}</h3>
+                    ${statusText}
+                    ${buttonHTML}
+                `;
+                container.appendChild(card);
+            });
+            
+            // --- Attache les écouteurs d'événements ---
+            attachSkinListeners();
+        }
+        
+        /** Attache les événements d'achat et d'activation aux boutons */
+        function attachSkinListeners() {
+            // Achat
+            document.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const skinId = parseInt(e.currentTarget.dataset.id);
+                    const price = parseInt(e.currentTarget.dataset.price);
+                    
+                    if (buySkin(skinId, price)) {
+                        alert(`Achat réussi ! ${price} pièces déduites.`);
+                        renderSkins(); // Rafraîchit l'affichage
+                    }
+                });
+            });
+
+            // Activation
+            document.querySelectorAll('.activate-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const skinId = parseInt(e.currentTarget.dataset.id);
+                    if (activateSkin(skinId)) {
+                        alert("Skin activé !");
+                        renderSkins(); // Rafraîchit l'affichage
+                    }
+                });
+            });
+            
+            // Troll Button
+            const trollBottomBtn = document.getElementById('trollButtonBottom');
+            if (trollBottomBtn) {
+                 // S'assure que la fonction initiateTroll de base.js est appelée
+                trollBottomBtn.addEventListener('click', initiateTroll); 
+            }
+        }
+        
+        /** Logique d'achat */
+        function buySkin(skinId, price) {
+            let currentUser = getCurrentUser();
+            if (!currentUser || currentUser.skins.owned.includes(skinId)) return false;
+            
+            // updateCoins est dans auth.js
+            if (updateCoins(-price)) { // Tente de retirer le montant
+                currentUser.skins.owned.push(skinId);
+                updateGlobalUser(currentUser);
+                return true;
+            }
+            return false;
+        }
+
+        /** Logique d'activation */
+        function activateSkin(skinId) {
+            let currentUser = getCurrentUser();
+            const skin = ALL_SKINS.find(s => s.id === skinId);
+            
+            if (!currentUser || !skin || !currentUser.skins.owned.includes(skinId)) return false;
+            
+            currentUser.skins.active[skin.category] = skin.emoji;
+            updateGlobalUser(currentUser);
+            
+            // Le jeu (space_invaders.js) devra lire ce paramètre pour l'affichage du joueur
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSkins();
+            // L'écouteur du trollButton (top bar) est déjà dans base.js
+        });
+    </script>
+</body>
+</html>
