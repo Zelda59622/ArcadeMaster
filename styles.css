@@ -1,284 +1,66 @@
-/* ========================================================= */
-/* 1. VARIABLES ET ÉMOJIS CLÉS */
-/* ========================================================= */
-
-:root {
-    /* Couleurs Néon */
-    --color-background-dark: #1F1F1F;
-    --color-card-dark: #2D2D2D;
-    --color-text-light: #E0E0E0;
-    --color-neon-green: #00FF00;
-    --color-neon-orange: #F39C12;
-    --color-neon-red: #E74C3C;
-    
-    /* Émojis pour les cartes/icônes principales */
-    --emoji-coin: '💰';
-}
-
-/* ========================================================= */
-/* 2. STYLES GÉNÉRAUX ET RESET */
-/* ========================================================= */
-
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: var(--color-background-dark);
-    color: var(--color-text-light);
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; 
-}
-
-a {
-    color: var(--color-text-light);
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-a:hover {
-    color: var(--color-neon-green);
-}
-
-h1 {
-    color: var(--color-neon-green);
-    border-bottom: 2px solid var(--color-neon-green);
-    padding-bottom: 5px;
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-h2 {
-    color: var(--color-neon-orange);
-    text-align: center;
-}
-
-.main-container {
-    max-width: 900px;
-    margin: 0 auto; 
-    padding: 20px;
-    transition: margin-left 0.3s; 
-}
-
-/* ========================================================= */
-/* 3. BARRE SUPÉRIEURE ET MENU HAMBURGER (Base du Layout) */
-/* ========================================================= */
+/* --- TOP BAR STYLES (IMPORTANT) --- */
 
 #top-bar {
-    background-color: #121212; 
-    color: var(--color-text-light);
-    padding: 10px 20px;
     position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.menu-toggle {
-    font-size: 1.5em;
-    cursor: pointer;
-    color: var(--color-neon-green);
-    transition: color 0.2s;
-}
-
-.menu-toggle:hover {
-    color: white;
-}
-
-/* Menu Latéral (Sidebar) */
-#sidebar {
-    height: 100%;
-    width: 0; 
-    position: fixed;
-    z-index: 999;
     top: 0;
     left: 0;
-    background-color: #222;
-    overflow-x: hidden;
-    padding-top: 60px; 
-    transition: 0.3s; 
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
-}
-
-#sidebar a {
-    padding: 15px 15px 15px 30px;
-    text-decoration: none;
-    font-size: 1.2em;
-    color: var(--color-text-light);
-    display: block;
-    transition: 0.2s;
-}
-
-#sidebar a:hover {
-    background-color: #333;
-    color: var(--color-neon-green);
-}
-
-/* Style spécifique pour le lien Admin */
-.admin-link {
-    background-color: #404040;
-    color: var(--color-neon-green) !important;
-    border-top: 1px solid #555;
-    margin-top: 10px;
-}
-
-.admin-link:hover {
-    background-color: #505050 !important;
-}
-
-/* ========================================================= */
-/* 4. CARTES ET BOUTONS */
-/* ========================================================= */
-
-.auth-card, .game-selection-card {
-    background-color: var(--color-card-dark); 
-    padding: 30px;
-    border-radius: 10px;
-    max-width: 400px; 
-    margin: 40px auto; 
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-    border: 1px solid #555; 
-}
-
-.card-group {
+    width: 100%;
+    height: 50px; 
+    background-color: var(--color-background);
+    color: white;
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 40px;
-    flex-wrap: wrap; 
-}
-
-.action-card {
-    flex: 1 1 200px; 
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #353535;
-    cursor: pointer;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid var(--color-neon-green); 
-    
-    display: flex; 
-    flex-direction: column;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: margin-left 0.3s;
 }
 
-.action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0, 255, 0, 0.4);
+/* AJUSTEMENT : Réduit l'espace sur la droite en utilisant une taille fixe pour le conteneur droit */
+#right-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+    padding-right: 5px; /* Petit padding pour éviter qu'il soit collé au bord */
 }
-
-/* Éléments de la carte pour afficher l'émoji */
-.card-icon {
-    font-size: 2.5em; 
-    margin-bottom: 10px;
-}
-
-/* --- Styles des formulaires --- */
-label {
-    display: block;
-    margin-top: 15px;
-    color: var(--color-neon-orange);
-    font-weight: bold;
-}
-
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #777;
-    border-radius: 5px;
-    background-color: #121212; 
-    color: var(--color-text-light);
-    box-sizing: border-box; 
-    font-size: 1em;
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 30px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.1em;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-    color: #121212;
-    background-color: var(--color-neon-green); 
-}
-
-/* ========================================================= */
-/* 5. ÉLÉMENTS SPÉCIFIQUES (Pièces et Troll) */
-/* ========================================================= */
 
 .currency-display {
     display: flex;
     align-items: center;
-    font-size: 1.2em;
-    color: var(--color-neon-orange);
-    cursor: pointer;
-}
-
-/* L'émoji de la pièce est défini dans la variable CSS (via le HTML) */
-.currency-display span:before {
-    content: var(--emoji-coin);
-    margin-right: 5px;
-    font-size: 1.2em;
-}
-
-/* Bouton Troll (+) */
-#trollButton, #trollButtonBottom {
-    /* Style du bouton + pour le Rickroll */
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    margin: 0 0 0 10px;
-    background-color: var(--color-neon-red);
+    background-color: var(--color-card-dark);
+    border: 2px solid var(--color-neon-orange);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-weight: bold;
     color: white;
-    font-size: 1.5em;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.currency-display:hover {
+    background-color: var(--color-background-dark);
+}
+
+.coin-count {
+    color: var(--color-neon-orange);
+    margin-right: 5px;
+}
+
+/* Style du bouton "Troll" (+) */
+#trollButton {
+    background-color: var(--color-neon-green);
+    color: #121212;
+    border: none;
     border-radius: 50%;
+    width: 20px;
+    height: 20px;
     line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 5px;
+    padding: 0;
 }
 
-#trollButton:hover, #trollButtonBottom:hover {
-    background-color: #C0392B;
-}
-
-/* ========================================================= */
-/* 6. STYLE DE JEU (Space Invaders) */
-/* ========================================================= */
-
-.game-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-#gameCanvas {
-    background-color: #000000;
-    border: 3px solid var(--color-neon-green);
-    box-shadow: 0 0 20px var(--color-neon-green);
-    flex-shrink: 0; /* Empêche le canvas de rétrécir */
-}
-
-#score-board {
-    background-color: #252525;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #444;
-    flex-grow: 1; 
-    min-width: 250px;
-    max-width: 350px;
-    text-align: center;
-}
+/* ... (Le reste de votre CSS) ... */
