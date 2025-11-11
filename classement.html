@@ -9,34 +9,69 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        /* Styles spécifiques au classement */
+        .ranking-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
             background-color: var(--color-card-dark);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #3A3A3A;
-        }
-        .leaderboard-table th {
-            background-color: #353535;
+        .ranking-container h2 {
             color: var(--color-neon-orange);
+            text-align: center;
+            border-bottom: 2px solid var(--color-neon-green);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+        .ranking-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 8px;
+            background-color: var(--color-background-dark);
+            border-radius: 5px;
             font-size: 1.1em;
-            text-transform: uppercase;
+            transition: background-color 0.3s;
         }
-        .leaderboard-table tr:hover {
-            background-color: #3A3A3A;
+        .ranking-list li:nth-child(1) { 
+            background-color: #FFD70030; /* Or / Gold */
+            border: 2px solid #FFD700;
         }
-        .rank-icon {
-            font-size: 1.2em;
-            margin-right: 5px;
+        .ranking-list li:nth-child(2) { 
+            background-color: #C0C0C030; /* Argent / Silver */
+            border: 2px solid #C0C0C0;
         }
-        .rank-1 { color: gold; }
-        .rank-2 { color: silver; }
-        .rank-3 { color: #CD7F32; /* Bronze */ }
+        .ranking-list li:nth-child(3) { 
+            background-color: #CD7F3230; /* Bronze */
+            border: 2px solid #CD7F32;
+        }
+
+        .rank-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .rank-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--color-neon-green);
+            width: 30px;
+            text-align: right;
+        }
+        .score-value {
+            font-weight: bold;
+            color: var(--color-neon-orange);
+        }
+        .username-value {
+            color: var(--color-text-light);
+        }
     </style>
 </head>
 <body>
@@ -46,16 +81,9 @@
             <i class="fa-solid fa-bars"></i>
         </div>
         <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
-            ARCADE MASTER
+            CLASSEMENT ARCADE
         </span>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <a href="boutique.html" class="currency-display" title="Boutique">
-                <span class="coin-count">0</span>
-                <button id="trollButton" type="button">+</button>
-            </a>
-            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
-                👤
-            </a>
+        <div id="right-container" style="display: flex; align-items: center; gap: 15px;">
         </div>
     </div>
 
@@ -74,99 +102,75 @@
     <div class="main-container" id="mainContent">
         <div style="padding-top: 50px;"></div> 
         
-        <h1 style="font-size: 2em; color: #00AAFF;">CLASSEMENTS GLOBAUX</h1>
-
-        <div style="text-align: center; margin-bottom: 30px;">
-            <label for="gameSelector" style="color: var(--color-neon-green); font-size: 1.1em;">Sélectionnez un jeu :</label>
-            <select id="gameSelector" style="padding: 8px; border-radius: 5px; background-color: #2D2D2D; color: var(--color-text-light); border: 1px solid var(--color-neon-green);">
-                <option value="space_invaders">Space Invaders 2.0</option>
-                <option value="snake" disabled>Snake Infini (Bientôt)</option>
-            </select>
+        <h1 style="font-size: 2.5em; color: var(--color-neon-green);">CLASSEMENT MONDIAL - SPACE INVADERS</h1>
+        
+        <div class="ranking-container">
+            <h2>MEILLEURS JOUEURS</h2>
+            <ul id="globalRankingList" class="ranking-list">
+                <li>Chargement du classement...</li>
+            </ul>
+            <p style="text-align: center; margin-top: 20px; color: var(--color-neon-orange);">
+                *Ce classement est basé sur le meilleur score à Space Invaders.
+            </p>
         </div>
-
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Joueur</th>
-                    <th>Score</th>
-                    <th>Rôle</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboardBody">
-                <tr><td colspan="4" style="text-align: center;">Chargement du classement...</td></tr>
-            </tbody>
-        </table>
         
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
+        // Logique spécifique au classement
         
-        const RANK_ICONS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
-
-        function displayLeaderboard(gameName) {
-            const body = document.getElementById('leaderboardBody');
-            body.innerHTML = '';
-            
+        function renderGlobalRanking() {
             if (typeof loadUsers !== 'function') {
-                 body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-neon-red);">Erreur: Système d\'authentification non chargé.</td></tr>';
+                document.getElementById('globalRankingList').innerHTML = '<li>Erreur: Fichier auth.js non chargé.</li>';
+                return;
+            }
+            
+            const rankingList = document.getElementById('globalRankingList');
+            rankingList.innerHTML = '';
+            
+            const users = loadUsers();
+            
+            // 1. Map les utilisateurs pour obtenir les scores de Space Invaders
+            let rankingData = users.map(user => ({
+                username: user.username,
+                score: user.highScores['space_invaders'] || 0,
+                role: user.role
+            }))
+            // 2. Filtre les utilisateurs sans score pour le jeu
+            .filter(item => item.score > 0)
+            // 3. Trie par score décroissant
+            .sort((a, b) => b.score - a.score);
+
+            if (rankingData.length === 0) {
+                 rankingList.innerHTML = '<li>Aucun score enregistré. Jouez à Space Invaders pour entrer dans le classement !</li>';
                  return;
             }
 
-            const users = loadUsers();
-            
-            // 1. Filtrer, mapper et trier les scores pour le jeu sélectionné
-            let leaderboard = users.map(user => ({
-                username: user.username,
-                score: user.highScores[gameName] || 0,
-                role: user.role,
-            }))
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 10); // Top 10 seulement
-
-            if (leaderboard.length === 0) {
-                body.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-neon-orange);">Aucun score enregistré pour ce jeu.</td></tr>';
-                return;
-            }
-
-            // 2. Afficher les résultats
-            leaderboard.forEach((item, index) => {
+            // 4. Affiche le classement (Top 100)
+            rankingData.slice(0, 100).forEach((item, index) => {
+                const li = document.createElement('li');
                 const rank = index + 1;
-                const tr = document.createElement('tr');
                 
-                let rankDisplay = rank;
-                if (rank <= RANK_ICONS.length) {
-                    rankDisplay = `<span class="rank-icon rank-${rank}">${RANK_ICONS[index]}</span>`;
-                }
+                let rankEmoji = '';
+                if (rank === 1) rankEmoji = '🥇';
+                else if (rank === 2) rankEmoji = '🥈';
+                else if (rank === 3) rankEmoji = '🥉';
                 
-                const roleDisplay = item.role === 'admin' ? 
-                    `<span style="color: #FFD700;">👑 Admin</span>` : 
-                    `User`;
-                    
-                tr.innerHTML = `
-                    <td>${rankDisplay}</td>
-                    <td>${item.username}</td>
-                    <td><b style="color: var(--color-neon-green);">${item.score}</b></td>
-                    <td>${roleDisplay}</td>
+                li.innerHTML = `
+                    <div class="rank-info">
+                        <span class="rank-number">${rank}</span>
+                        <span>${rankEmoji} ${item.username} ${item.role === 'admin' ? '👑' : ''}</span>
+                    </div>
+                    <span class="score-value">${item.score} PTS</span>
                 `;
-                body.appendChild(tr);
+                
+                rankingList.appendChild(li);
             });
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const gameSelector = document.getElementById('gameSelector');
-            
-            // Charge le classement au démarrage (par défaut: Space Invaders)
-            displayLeaderboard(gameSelector.value); 
-            
-            // Ajoute l'écouteur pour le changement de jeu
-            gameSelector.addEventListener('change', (e) => {
-                displayLeaderboard(e.target.value);
-            });
-        });
+        
+        document.addEventListener('DOMContentLoaded', renderGlobalRanking);
         
     </script>
 </body>
