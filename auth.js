@@ -1,205 +1,174 @@
-/**
- * Fichier : auth.js
- * Description : Fonctions de gestion de l'authentification (Connexion, Inscription, Déconnexion)
- * et de gestion du profil utilisateur (scores, pièces) via localStorage (simulant une BDD).
- */
+// --- GESTION DE L'AUTHENTIFICATION ET DES DONNÉES UTILISATEUR ---
 
-const USER_STORAGE_KEY = 'arcadeMasterUsers';
-const CURRENT_USER_KEY = 'arcadeMasterCurrentUser';
+const LOCAL_STORAGE_KEY = 'arcadeMasterUsers';
+const LOCAL_STORAGE_CURRENT_USER = 'arcadeMasterCurrentUser';
 
-// --- FONCTIONS DE BASE DU STOCKAGE ---
-
-/** Charge la liste des utilisateurs depuis le localStorage */
-function loadUsers() {
-    const usersJson = localStorage.getItem(USER_STORAGE_KEY);
-    const users = usersJson ? JSON.parse(usersJson) : [];
-    
-    // Ajout de l'utilisateur Admin par défaut s'il n'existe pas
-    if (!users.some(u => u.username === 'Zelda5962')) {
-        users.push({
-            username: 'Zelda5962',
-            password: 'mdp', 
-            role: 'admin',
-            coins: 9999,
-            highScores: {
-                space_invaders: 1500,
-            },
-            skins: {
-                active: { ship: '🚀' },
+// Utilisateurs de base pour le test
+const DEFAULT_USERS = [
+    {
+        id: 1,
+        username: 'admin',
+        password: 'password', // Ceci est juste pour le test, ne pas faire en prod !
+        role: 'admin',
+        coins: 15000,
+        highScores: {
+            space_invaders: 12000,
+            snake_infini: 0,
+            clicker_arcade: 0
+        },
+        skins: {
+            owned: [0, 1, 4], // 0: base invader, 1: éclair, 4: base snake
+            active: {
+                ship: '🛸', // Vaisseau Éclair
+                snake_head: '🐍'
             }
-        });
-    }
-    
-    return users;
-}
-
-/** Sauvegarde la liste des utilisateurs dans le localStorage */
-function saveUsers(users) {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(users));
-}
-
-/** Récupère l'utilisateur actuellement connecté */
-function getCurrentUser() {
-    const userJson = localStorage.getItem(CURRENT_USER_KEY);
-    if (userJson) {
-        const tempUser = JSON.parse(userJson);
-        const globalUsers = loadUsers();
-        // Recherche la version complète et la plus récente de l'utilisateur
-        const fullUser = globalUsers.find(u => u.username === tempUser.username);
-        return fullUser || null;
-    }
-    return null;
-}
-
-/** Définit l'utilisateur actuellement connecté (et met à jour la Top Bar) */
-function setCurrentUser(user) {
-    if (user) {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify({
-            username: user.username,
-            role: user.role,
-        }));
-    } else {
-        localStorage.removeItem(CURRENT_USER_KEY);
-    }
-    // Met à jour la Top Bar (fonction dans base.js)
-    if (typeof updateTopBar === 'function') {
-        updateTopBar();
-    }
-}
-
-/** Met à jour les données d'un utilisateur dans la base globale */
-function updateGlobalUser(userToUpdate) {
-    if (!userToUpdate) return;
-    
-    let users = loadUsers();
-    const index = users.findIndex(u => u.username === userToUpdate.username);
-    
-    if (index !== -1) {
-        users[index] = userToUpdate;
-    } else {
-        users.push(userToUpdate);
-    }
-    
-    saveUsers(users);
-    
-    // Si c'est l'utilisateur actuel, met à jour la session et la Top Bar
-    const currentUser = getCurrentUser();
-    if (currentUser && currentUser.username === userToUpdate.username) {
-        setCurrentUser(userToUpdate);
-    }
-}
-
-// --- FONCTIONS D'AUTHENTIFICATION AVEC POPUPS ---
-
-/** Tente de connecter un utilisateur */
-function login(username, password) {
-    const users = loadUsers();
-    const user = users.find(u => u.username === username);
-
-    if (!user) {
-        // Popup 1 : Nom d'utilisateur introuvable
-        alert('❌ Erreur de Connexion : Nom d\'utilisateur introuvable.');
-        return false;
-    }
-
-    if (user.password !== password) {
-        // Popup 2 : Mauvais mot de passe
-        alert('❌ Erreur de Connexion : Mot de passe incorrect.');
-        return false;
-    }
-
-    setCurrentUser(user);
-    alert(`✅ Connexion réussie ! Bienvenue, ${user.username}.`);
-    
-    // Redirige ou rafraîchit la page de compte
-    if (window.location.pathname.endsWith('compte.html')) {
-        // Utilise la fonction de compte.html pour switcher la vue
-        if (typeof renderProfileView === 'function') {
-            renderProfileView(); 
-        } else {
-            window.location.reload(); 
         }
-    } else {
-        window.location.href = 'index.html';
+    },
+    {
+        id: 2,
+        username: 'joueur',
+        password: 'pass',
+        role: 'user',
+        coins: 250,
+        highScores: {
+            space_invaders: 450,
+            snake_infini: 0,
+            clicker_arcade: 0
+        },
+        skins: {
+            owned: [0, 4],
+            active: {
+                ship: '🚀',
+                snake_head: '🐍'
+            }
+        }
     }
-    
-    return true;
+];
+
+// Initialisation des utilisateurs
+function initUsers() {
+    if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+    }
 }
 
-/** Tente d'inscrire un nouvel utilisateur */
-function register(username, password) {
-    const users = loadUsers();
-    
-    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        // Popup 3 : Compte existe déjà
-        alert('⚠️ Erreur d\'Inscription : Ce nom d\'utilisateur existe déjà. Veuillez vous connecter.');
-        return false;
-    }
+// Charger tous les utilisateurs
+function loadUsers() {
+    initUsers();
+    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+}
 
-    if (username.length < 3 || password.length < 4) {
-        // Popup 4 : Règle de validation
-        alert('⚠️ Erreur d\'Inscription : Le nom doit avoir 3+ caractères, le mot de passe 4+.');
+// Sauvegarder tous les utilisateurs
+function saveUsers(users) {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
+}
+
+// Enregistrement
+function registerUser(username, password) {
+    let users = loadUsers();
+
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert("Nom d'utilisateur déjà pris.");
         return false;
     }
 
     const newUser = {
+        id: users.length + 1,
         username: username,
-        password: password,
+        password: password, // Encore une fois, non sécurisé, pour le test uniquement
         role: 'user',
-        coins: 100, // Pièces de départ
-        highScores: {},
+        coins: 0,
+        highScores: {
+            space_invaders: 0,
+            snake_infini: 0,
+            clicker_arcade: 0
+        },
         skins: {
-            active: { ship: '🚀' }, // Skin par défaut
+            owned: [0, 4], // Skins de base par défaut
+            active: {
+                ship: '🚀',
+                snake_head: '🐍'
+            }
         }
     };
 
     users.push(newUser);
     saveUsers(users);
-    setCurrentUser(newUser);
-
-    alert(`🎉 Inscription réussie ! Bienvenue, ${newUser.username}. Vous gagnez 100 pièces de départ.`);
-    
-    // Redirige ou rafraîchit
-    if (window.location.pathname.endsWith('compte.html')) {
-        if (typeof renderProfileView === 'function') {
-            renderProfileView(); 
-        } else {
-            window.location.reload(); 
-        }
-    } else {
-        window.location.href = 'index.html';
-    }
-    
+    loginUser(username, password); // Connexion automatique après inscription
+    alert("Compte créé et connecté !");
     return true;
 }
 
-/** Déconnecte l'utilisateur actuel */
-function logout() {
-    setCurrentUser(null);
-    alert('👋 Déconnexion réussie. À bientôt !');
-    // Redirige vers la page d'accueil ou de compte
-    if (window.location.pathname.endsWith('compte.html')) {
-        window.location.reload(); 
+// Connexion
+function loginUser(username, password) {
+    const users = loadUsers();
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(user));
+        alert("Connexion réussie ! Bienvenue " + user.username);
+        return true;
     } else {
-        window.location.href = 'index.html';
+        alert("Nom d'utilisateur ou mot de passe incorrect.");
+        return false;
     }
 }
 
-// --- FONCTIONS UTILITAIRES DE JEU ---
+// Déconnexion
+function logout() {
+    localStorage.removeItem(LOCAL_STORAGE_CURRENT_USER);
+    alert("Déconnexion réussie.");
+}
 
-/** Ajoute ou retire des pièces à l'utilisateur actuel */
-function updateCoins(amount) {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        currentUser.coins += amount;
-        if (currentUser.coins < 0) {
-            currentUser.coins = 0; // Sécurité minimale
-        }
-        updateGlobalUser(currentUser);
+// Obtenir l'utilisateur actuellement connecté
+function getCurrentUser() {
+    const userJson = localStorage.getItem(LOCAL_STORAGE_CURRENT_USER);
+    return userJson ? JSON.parse(userJson) : null;
+}
+
+// Mettre à jour l'utilisateur dans la liste globale (appelé après score, achat, etc.)
+function updateGlobalUser(updatedUser) {
+    let users = loadUsers();
+    const index = users.findIndex(u => u.id === updatedUser.id);
+    
+    if (index !== -1) {
+        // Mettre à jour dans la base de données (localStorage)
+        users[index] = updatedUser;
+        saveUsers(users);
         
-        // Mettre à jour l'affichage de la top bar immédiatement
-        if (typeof updateTopBar === 'function') {
-            updateTopBar();
-        }
+        // Mettre à jour l'utilisateur dans la session courante (localStorage)
+        localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(updatedUser));
+        return true;
     }
+    return false;
 }
+
+// Mise à jour du meilleur score
+function updateHighScore(gameId, newScore) {
+    const user = getCurrentUser();
+    if (!user) return false;
+
+    if (!user.highScores) {
+        user.highScores = { space_invaders: 0, snake_infini: 0, clicker_arcade: 0 };
+    }
+
+    if (newScore > (user.highScores[gameId] || 0)) {
+        user.highScores[gameId] = newScore;
+        updateGlobalUser(user);
+        return true; // Nouveau record
+    }
+    return false; // Pas de nouveau record
+}
+
+// Mise à jour des pièces
+function updateCoins(amount) {
+    const user = getCurrentUser();
+    if (!user) return false;
+
+    user.coins += amount;
+    updateGlobalUser(user);
+    return user.coins;
+}
+
+// Assurez-vous que les utilisateurs de base sont initialisés au chargement
+document.addEventListener('DOMContentLoaded', initUsers);
