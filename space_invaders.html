@@ -5,15 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcade Master - Space Invaders</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="space_invaders.css"> </head>
+    <link rel="stylesheet" href="space_invaders.css"> 
+    <style>
+        /* CSS spécifique pour la taille du plateau si space_invaders.css n'est pas utilisé ou mis à jour */
+        .game-wrapper {
+            width: 800px; /* Doit correspondre à BOARD_WIDTH */
+            margin: 20px auto;
+        }
+        #gameBoard {
+            width: 800px; /* Doit correspondre à BOARD_WIDTH */
+            height: 600px; /* Doit correspondre à BOARD_HEIGHT */
+        }
+    </style>
+</head>
 <body>
 
-    <div id="top-bar">...</div>
-    <div id="sidebar" class="sidenav">...</div>
+    <div id="top-bar"></div>
+    <div id="sidebar" class="sidenav"></div>
 
     <div class="main-container">
         
-        <h1 style="color: var(--color-neon-orange);">Space Invaders : Assaut Cosmique</h1>
+        <h1 style="color: var(--color-neon-orange); padding-top: 20px;">Space Invaders : Assaut Cosmique</h1>
 
         <div class="game-wrapper">
             <div id="gameInfo">
@@ -30,16 +42,24 @@
             <p style="font-size: 1.1em; margin: 10px 0;">
                 Détruisez les envahisseurs qui convergent vers vous. Attention, ils deviennent plus rapides avec le temps !
             </p>
-            <div style="text-align: left; margin: 20px 0; border: 1px solid var(--color-neon-blue); padding: 15px; border-radius: 5px;">
-                <h3 style="color: var(--color-neon-blue);">Contrôles :</h3>
-                <ul style="list-style: none; padding-left: 0;">
-                    <li>**Déplacement :** ZQSD / WASD</li>
-                    <li>**Visée & Tir :** Souris (Clic Gauche)</li>
-                </ul>
-                <p style="font-size: 0.9em; color: var(--color-text-light);">
+            
+            <div style="margin: 20px 0; border: 1px solid var(--color-neon-blue); padding: 15px; border-radius: 5px; width: 80%;">
+                <h3 style="color: var(--color-neon-blue); text-align: center; margin-bottom: 10px; border-bottom: 1px dashed var(--color-neon-blue); padding-bottom: 5px;">Contrôles :</h3>
+                
+                <div style="display: flex; justify-content: space-around; gap: 20px; text-align: center;">
+                    <div style="flex-grow: 1;">
+                        <p>**Déplacement :** ZQSD / WASD</p>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <p>**Visée & Tir :** Souris (Clic Gauche)</p>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.9em; color: var(--color-text-light); text-align: center; margin-top: 15px;">
                     *Les bonus apparaissent aléatoirement après la destruction des ennemis.*
                 </p>
             </div>
+            
             <button id="startButton" class="btn-primary" style="background-color: var(--color-neon-green); font-size: 1.2em;">
                 LANCER LE JEU
             </button>
@@ -54,9 +74,6 @@
                 Recommencer
             </button>
         </div>
-
-        <div id="helpZone">
-            </div>
 
     </div>
     
