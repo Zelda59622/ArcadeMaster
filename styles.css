@@ -1,15 +1,30 @@
 /* ========================================================= */
-/* 1. STYLES GÉNÉRAUX ET RESET */
+/* 1. VARIABLES ET ÉMOJIS CLÉS */
 /* ========================================================= */
 
 :root {
+    /* Couleurs Néon */
     --color-background-dark: #1F1F1F;
     --color-card-dark: #2D2D2D;
     --color-text-light: #E0E0E0;
     --color-neon-green: #00FF00;
     --color-neon-orange: #F39C12;
     --color-neon-red: #E74C3C;
+    
+    /* Émojis pour les cartes/icônes principales */
+    --emoji-home: '🏠';
+    --emoji-play: '🎮';
+    --emoji-account: '👤';
+    --emoji-shop: '🛍️';
+    --emoji-ranking: '🏆';
+    --emoji-credits: '📜';
+    --emoji-admin: '👑';
+    --emoji-coin: '💰';
 }
+
+/* ========================================================= */
+/* 2. STYLES GÉNÉRAUX ET RESET */
+/* ========================================================= */
 
 body {
     font-family: 'Arial', sans-serif;
@@ -17,7 +32,6 @@ body {
     color: var(--color-text-light);
     margin: 0;
     padding: 0;
-    /* Cache l'overflow horizontal pour éviter les problèmes avec le menu latéral */
     overflow-x: hidden; 
 }
 
@@ -49,14 +63,13 @@ h2 {
     max-width: 900px;
     margin: 0 auto; 
     padding: 20px;
-    transition: margin-left 0.3s; /* Gère le décalage lors de l'ouverture du menu */
+    transition: margin-left 0.3s; 
 }
 
 /* ========================================================= */
-/* 2. BARRE SUPÉRIEURE ET MENU HAMBURGER */
+/* 3. BARRE SUPÉRIEURE ET MENU HAMBURGER (Base du Layout) */
 /* ========================================================= */
 
-/* Barre de navigation fixe en haut */
 #top-bar {
     background-color: #121212; 
     color: var(--color-text-light);
@@ -71,7 +84,6 @@ h2 {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Icône du Hamburger */
 .menu-toggle {
     font-size: 1.5em;
     cursor: pointer;
@@ -83,18 +95,18 @@ h2 {
     color: white;
 }
 
-/* Menu Latéral (Hamburger) */
+/* Menu Latéral (Sidebar) */
 #sidebar {
     height: 100%;
-    width: 0; /* Caché par défaut */
+    width: 0; 
     position: fixed;
     z-index: 999;
     top: 0;
     left: 0;
     background-color: #222;
     overflow-x: hidden;
-    padding-top: 60px; /* Espace pour la barre du haut */
-    transition: 0.3s; /* Transition fluide */
+    padding-top: 60px; 
+    transition: 0.3s; 
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -107,10 +119,7 @@ h2 {
     transition: 0.2s;
 }
 
-#sidebar a i {
-    margin-right: 10px;
-    color: var(--color-neon-orange);
-}
+/* RETRAIT DU BLOC : #sidebar a:before pour insérer l'émoji directement dans le HTML */
 
 #sidebar a:hover {
     background-color: #333;
@@ -130,7 +139,7 @@ h2 {
 }
 
 /* ========================================================= */
-/* 3. CARTES ET FORMULAIRES */
+/* 4. CARTES ET BOUTONS */
 /* ========================================================= */
 
 .auth-card, .game-selection-card {
@@ -159,7 +168,7 @@ h2 {
     cursor: pointer;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid var(--color-neon-green); /* Bordure par défaut */
+    border: 1px solid var(--color-neon-green); 
     
     display: flex; 
     flex-direction: column;
@@ -172,7 +181,8 @@ h2 {
     box-shadow: 0 5px 20px rgba(0, 255, 0, 0.4);
 }
 
-.action-card i {
+/* Éléments de la carte pour afficher l'émoji */
+.card-icon {
     font-size: 2.5em; 
     margin-bottom: 10px;
 }
@@ -211,71 +221,28 @@ button {
     background-color: var(--color-neon-green); 
 }
 
-button:hover {
-    background-color: #00CC00;
-}
-
-
 /* ========================================================= */
-/* 4. STYLES DU JEU ET SCORE */
-/* ========================================================= */
-
-.game-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-#gameCanvas {
-    border: 3px solid var(--color-neon-green); 
-    background-color: #000000; 
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
-}
-
-#score-board {
-    width: 300px;
-    background-color: var(--color-card-dark); 
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--color-neon-orange); 
-}
-
-#score-board h2 {
-    color: var(--color-neon-orange); 
-    border-bottom: 1px solid var(--color-neon-orange);
-}
-
-/* Style de la liste du classement */
-#leaderboardList {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-}
-
-#leaderboardList li {
-    padding: 5px 0;
-    border-bottom: 1px dashed #444;
-}
-
-/* ========================================================= */
-/* 5. ÉLÉMENTS SPÉCIFIQUES (Pièces, Messages) */
+/* 5. ÉLÉMENTS SPÉCIFIQUES (Pièces et Troll) */
 /* ========================================================= */
 
 .currency-display {
     display: flex;
     align-items: center;
     font-size: 1.2em;
-    color: gold;
+    color: var(--color-neon-orange);
     cursor: pointer;
 }
 
-.currency-display i {
+/* L'émoji de la pièce est défini dans la variable CSS (via le HTML) */
+.currency-display span:before {
+    content: var(--emoji-coin);
     margin-right: 5px;
+    font-size: 1.2em;
 }
 
-.currency-display button {
+/* Bouton Troll (+) */
+#trollButton {
+    /* Style du bouton + pour le Rickroll */
     width: 30px;
     height: 30px;
     padding: 0;
@@ -288,19 +255,9 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.2s;
 }
 
-.currency-display button:hover {
+#trollButton:hover {
     background-color: #C0392B;
-}
-
-/* Message d'erreur/alerte */
-.alert-message {
-    background-color: var(--color-neon-red);
-    color: white;
-    padding: 15px;
-    border-radius: 5px;
-    margin: 20px 0;
-    text-align: center;
-    font-weight: bold;
 }
