@@ -17,9 +17,9 @@ const DEFAULT_USERS = [
             clicker_arcade: 0
         },
         skins: {
-            owned: [0, 1, 4], // 0: base invader, 1: éclair, 4: base snake
+            owned: [0, 1, 4], 
             active: {
-                ship: '🛸', // Vaisseau Éclair
+                ship: '🛸', 
                 snake_head: '🐍'
             }
         },
@@ -45,7 +45,6 @@ const DEFAULT_USERS = [
         },
         profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
     },
-    // NOUVEL UTILISATEUR ADMIN DEMANDÉ
     {
         id: 3,
         username: 'Zelda5962',
@@ -70,13 +69,9 @@ const DEFAULT_USERS = [
 
 // Initialisation des utilisateurs
 function initUsers() {
-    // Si la clé existe, on ne la remplace pas pour garder les utilisateurs créés.
-    // Cependant, si on veut garantir que Zelda5962 est là, il faut une logique plus fine.
-    // Pour simplifier, si c'est la première exécution, on initialise.
     if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
     } else {
-        // Logique pour s'assurer que Zelda5962 existe même si d'autres utilisateurs sont déjà là
         let existingUsers = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
         const zeldaExists = existingUsers.some(u => u.username === 'Zelda5962');
         
@@ -98,12 +93,12 @@ function saveUsers(users) {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
 }
 
-// Enregistrement (MISES À JOUR : Alerte et Champ photo)
+// Enregistrement (Amélioré: Alerte déplacée pour garantie)
 function registerUser(username, password) {
     let users = loadUsers();
 
     if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-        alert("Nom d'utilisateur déjà pris.");
+        alert("Nom d'utilisateur déjà pris."); // Affichage garanti en cas d'échec
         return false;
     }
 
@@ -128,24 +123,38 @@ function registerUser(username, password) {
         profilePictureUrl: 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png'
     };
 
-    users.push(newUser);
-    saveUsers(users);
-    loginUser(username, password); // Connexion automatique
-    alert("Compte créé avec succès ! Vous êtes maintenant connecté(e)."); 
-    return true;
+    try {
+        users.push(newUser);
+        saveUsers(users);
+        loginUser(username, password, true); // Connexion automatique, sans pop-up de connexion
+        alert("Compte créé avec succès ! Vous êtes maintenant connecté(e)."); // Affichage garanti en cas de succès
+        return true;
+    } catch (e) {
+        alert("Erreur critique lors de la création du compte. Vérifiez le stockage.");
+        console.error("Erreur d'inscription:", e);
+        return false;
+    }
 }
 
-// Connexion (MISES À JOUR : Alerte)
-function loginUser(username, password) {
+// Connexion (Amélioré: Alerte déplacée pour garantie)
+function loginUser(username, password, suppressAlert = false) {
     const users = loadUsers();
     const user = users.find(u => u.username === username && u.password === password);
 
     if (user) {
-        localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(user));
-        alert("Connexion réussie ! Bienvenue " + user.username); 
-        return true;
+        try {
+            localStorage.setItem(LOCAL_STORAGE_CURRENT_USER, JSON.stringify(user));
+            if (!suppressAlert) {
+                alert("Connexion réussie ! Bienvenue " + user.username); // Affichage garanti
+            }
+            return true;
+        } catch (e) {
+            alert("Erreur critique lors de la connexion. Impossible de stocker l'utilisateur.");
+            console.error("Erreur de connexion:", e);
+            return false;
+        }
     } else {
-        alert("Nom d'utilisateur ou mot de passe incorrect."); 
+        alert("Nom d'utilisateur ou mot de passe incorrect."); // Affichage garanti en cas d'échec
         return false;
     }
 }
@@ -162,7 +171,7 @@ function getCurrentUser() {
     return userJson ? JSON.parse(userJson) : null;
 }
 
-// Mettre à jour l'utilisateur dans la liste globale (appelé après score, achat, etc.)
+// Mettre à jour l'utilisateur dans la liste globale
 function updateGlobalUser(updatedUser) {
     let users = loadUsers();
     const index = users.findIndex(u => u.id === updatedUser.id);
@@ -220,7 +229,6 @@ function updateProfile(newPassword, newProfilePictureUrl) {
     alert("Votre profil a été mis à jour avec succès.");
     return true;
 }
-
 
 // Assurez-vous que les utilisateurs de base sont initialisés au chargement
 document.addEventListener('DOMContentLoaded', initUsers);
