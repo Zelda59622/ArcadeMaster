@@ -1,151 +1,284 @@
-// --- FONCTIONS DE BASE DE L'AUTHENTIFICATION ---
+/**
+ * Fichier : auth.js
+ * Description : Gère l'authentification (connexion/inscription),
+ * la persistance des données (scores, utilisateurs) via localStorage,
+ * et les fonctions d'aide pour l'état du jeu et le rôle Admin.
+ */
 
-// Initialisation des utilisateurs mock si aucune donnée n'existe
-const mockUsers = {
-    'admin': { 
-        password: 'password', 
-        pdp: 'https://i.imgur.com/39hN7hG.png', 
-        role: 'admin', 
-        games: { 
-            space_invaders: { highScore: 8000 } 
-        } 
-    },
-    'joueur': { 
-        password: 'pass', 
-        pdp: '', 
-        role: 'user', 
-        games: { 
-            space_invaders: { highScore: 2500 } 
-        } 
-    }
-};
+// =========================================================
+// 1. GESTION DU LOCAL STORAGE ET DONNÉES DE BASE
+// =========================================================
 
+/**
+ * Charge les données utilisateur depuis localStorage.
+ * Initialise un compte 'admin' si ce n'est pas déjà fait.
+ * @returns {Array} Liste des utilisateurs.
+ */
 function loadUsers() {
-    const usersData = localStorage.getItem('arcadeMasterUsers');
-    if (!usersData) {
-        // Initialiser avec les données mock si localStorage est vide
-        localStorage.setItem('arcadeMasterUsers', JSON.stringify(mockUsers));
-        return mockUsers;
+    const users = JSON.parse(localStorage.getItem('arcadeMasterUsers')) || [];
+    
+    // Assure l'existence d'un compte Admin par défaut
+    const adminExists = users.some(user => user.username === 'admin');
+    if (!adminExists) {
+        users.push({
+            username: 'admin',
+            password: 'admin', // Mot de passe par défaut
+            role: 'admin',
+            highScores: {} // {gameName: score}
+        });
+        saveUsers(users);
+        console.log("Compte 'admin' créé avec succès.");
     }
-    return JSON.parse(usersData);
+    
+    return users;
 }
 
+/**
+ * Sauvegarde la liste des utilisateurs dans localStorage.
+ * @param {Array} users - Liste des utilisateurs.
+ */
 function saveUsers(users) {
     localStorage.setItem('arcadeMasterUsers', JSON.stringify(users));
 }
 
+/**
+ * Récupère l'utilisateur actuellement connecté depuis sessionStorage.
+ * @returns {Object|null} L'objet utilisateur ou null s'il n'y a personne de connecté.
+ */
 function getCurrentUser() {
-    return localStorage.getItem('currentUser');
+    // On utilise sessionStorage pour ne pas se connecter automatiquement après la fermeture du navigateur
+    const user = sessionStorage.getItem('currentUser');
+    return user ? JSON.parse(user) : null;
+}
+
+/**
+ * Sauvegarde l'utilisateur actuellement connecté dans sessionStorage.
+ * @param {Object} user - L'objet utilisateur à connecter.
+ */
+function setCurrentUser(user) {
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
+    // Mise à jour immédiate des liens dans la barre de nav
+    updateNavigationLinks(); 
+}
+
+/**
+ * Déconnecte l'utilisateur.
+ */
+function logout() {
+    sessionStorage.removeItem('currentUser');
+    alert('Déconnexion réussie.');
+    updateNavigationLinks();
+    
+    // Redirige si l'utilisateur quitte la page admin ou profile
+    const path = window.location.pathname;
+    if (path.includes('admin.html') || path.includes('authentification.html')) {
+        window.location.href = 'index.html';
+    } else {
+        window.location.reload();
+    }
+}
+
+// =========================================================
+// 2. AUTHENTIFICATION (CONNEXION & INSCRIPTION)
+// =========================================================
+
+function register(username, password) {
+    const users = loadUsers();
+    
+    if (users.some(user => user.username === username)) {
+        alert('Erreur : Ce nom d\'utilisateur existe déjà.');
+        return false;
+    }
+
+    const newUser = {
+        username: username,
+        password: password, 
+        role: 'user', // Tous les nouveaux utilisateurs sont 'user' par défaut
+        highScores: {}
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+    
+    setCurrentUser(newUser); 
+    alert('Inscription réussie ! Vous êtes maintenant connecté.');
+    
+    // Redirige vers l'accueil après l'inscription
+    window.location.href = 'index.html'; 
+
+    return true;
 }
 
 function login(username, password) {
     const users = loadUsers();
-    if (users[username] && users[username].password === password) {
-        localStorage.setItem('currentUser', username);
-        return true;
-    }
-    return false;
-}
-
-function logout() {
-    localStorage.removeItem('currentUser');
-    window.location.href = 'index.html'; // Redirige vers l'accueil
-}
-
-function registerUser(username, password, pdpUrl) {
-    const users = loadUsers();
-    if (users[username]) {
-        return false; // Utilisateur déjà existant
-    }
     
-    const finalPdp = pdpUrl && pdpUrl.startsWith('http') ? pdpUrl : 'https://i.imgur.com/39hN7hG.png';
+    const user = users.find(u => u.username === username && u.password === password);
 
-    users[username] = {
-        password: password,
-        pdp: finalPdp,
-        role: 'user',
-        games: { space_invaders: { highScore: 0 } } // Initialisation du score
-    };
-    saveUsers(users);
-    return true;
-}
-
-function getUserData(username) {
-    const users = loadUsers();
-    return users[username] || null;
-}
-
-// --- FONCTION DE MISE À JOUR DU PROFIL (Utilisée dans authentification.html) ---
-function updateUserData(username, newPassword, newPdp) {
-    const users = loadUsers();
-    const userData = users[username];
-    let changed = false;
-
-    if (!userData) return false;
-
-    if (newPassword) {
-        userData.password = newPassword;
-        changed = true;
-    }
-    
-    // Mettre à jour l'image de profil si l'URL est fournie ou vidée
-    if (newPdp !== undefined) {
-        const finalPdp = newPdp.trim().startsWith('http') ? newPdp.trim() : 'https://i.imgur.com/39hN7hG.png';
-        if (userData.pdp !== finalPdp) {
-             userData.pdp = finalPdp;
-             changed = true;
-        }
-    }
-
-    if (changed) {
-        saveUsers(users);
-        if (newPassword) {
-            // Déconnexion forcée après changement de mot de passe
-            localStorage.removeItem('currentUser'); 
-        }
-        return true;
-    }
-    return false;
-}
-
-// --- RENDU DE LA NAVBAR (Affichage de Connexion/Compte) ---
-
-function renderAuthControls() {
-    const authControls = document.getElementById('auth-controls');
-    const sidebar = document.getElementById('sidebar');
-    const user = getCurrentUser();
-    
-    if (authControls) {
-        if (user) {
-            const userData = getUserData(user);
-            const pdpUrl = userData && userData.pdp ? userData.pdp : 'https://i.imgur.com/39hN7hG.png';
-
-            authControls.innerHTML = `
-                <a href="authentification.html" class="user-link">
-                    <img src="${pdpUrl}" alt="PDP" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
-                    <span>${user}</span>
-                </a>
-                <button onclick="logout()">Déconnexion</button>
-            `;
-            
-            // Ajout du lien Admin dans la sidebar si l'utilisateur est admin
-            if (sidebar && userData && userData.role === 'admin' && !document.getElementById('admin-link')) {
-                 const adminLink = document.createElement('a');
-                 adminLink.href = 'admin.html'; // Assurez-vous d'avoir une page admin.html
-                 adminLink.textContent = '⚙️ Admin';
-                 adminLink.id = 'admin-link';
-                 sidebar.appendChild(adminLink);
-            }
-
+    if (user) {
+        setCurrentUser(user);
+        alert(`Connexion réussie ! Bienvenue, ${user.username}.`);
+        
+        // Redirection après connexion
+        if (user.role === 'admin') {
+             window.location.href = 'admin.html';
         } else {
-            authControls.innerHTML = `
-                <a href="authentification.html">Connexion / Inscription</a>
-            `;
-            // Suppression du lien Admin si l'utilisateur n'est pas connecté ou est déconnecté
-            const adminLink = document.getElementById('admin-link');
-            if (adminLink) {
-                 sidebar.removeChild(adminLink);
-            }
+             window.location.href = 'index.html'; 
+        }
+        return true;
+    } else {
+        alert('Erreur : Nom d\'utilisateur ou mot de passe incorrect.');
+        return false;
+    }
+}
+
+// =========================================================
+// 3. GESTION DU SCORE
+// =========================================================
+
+/**
+ * Sauvegarde un nouveau score si l'utilisateur est connecté et si c'est un high score.
+ */
+function saveHighScore(gameName, newScore) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        console.log("Score non sauvegardé : utilisateur non connecté.");
+        return false;
+    }
+
+    const users = loadUsers();
+    const userIndex = users.findIndex(u => u.username === currentUser.username);
+
+    if (userIndex !== -1) {
+        const user = users[userIndex];
+        const currentHighScore = user.highScores[gameName] || 0;
+        
+        if (newScore > currentHighScore) {
+            user.highScores[gameName] = newScore;
+            users[userIndex] = user; 
+            saveUsers(users);
+            
+            // Met à jour l'objet dans sessionStorage aussi
+            setCurrentUser(user);
+            console.log(`Nouveau High Score sauvegardé pour ${user.username} : ${newScore}`);
+            return true;
+        } else {
+            console.log("Score non sauvegardé : score inférieur ou égal au record personnel.");
+        }
+    }
+    return false;
+}
+
+/**
+ * Récupère le High Score personnel de l'utilisateur connecté pour un jeu.
+ */
+function getPersonalHighScore(gameName) {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+        return currentUser.highScores[gameName] || 0;
+    }
+    return 0;
+}
+
+/**
+ * Récupère les top scores globaux pour un jeu (pour le leaderboard).
+ */
+function getLeaderboard(gameName) {
+    const users = loadUsers();
+    
+    const scores = users
+        .filter(user => user.highScores[gameName] > 0)
+        .map(user => ({
+            username: user.username,
+            score: user.highScores[gameName],
+            role: user.role
+        }))
+        .sort((a, b) => b.score - a.score) // Tri descendant
+        .slice(0, 10); // Top 10
+        
+    return scores;
+}
+
+
+// =========================================================
+// 4. MISE À JOUR DE L'INTERFACE UTILISATEUR (Liens dynamiques)
+// =========================================================
+
+/**
+ * Met à jour les liens de navigation (Connexion -> Déconnexion, Ajout du lien Admin).
+ */
+function updateNavigationLinks() {
+    const currentUser = getCurrentUser();
+    const navbar = document.getElementById('navbar');
+    
+    if (!navbar) return;
+    const navLinksContainer = navbar.querySelector('.nav-links');
+    
+    // --- Gestion du lien de Profil (Connexion/Déconnexion) ---
+    let profileLink = navbar.querySelector('.profile-link');
+    if (profileLink) {
+        profileLink.removeEventListener('click', logout); 
+        
+        if (currentUser) {
+            // Utilisateur connecté : Afficher Déconnexion
+            profileLink.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ${currentUser.username}`;
+            profileLink.href = '#'; 
+            profileLink.addEventListener('click', logout);
+        } else {
+            // Utilisateur déconnecté : Afficher Connexion
+            profileLink.innerHTML = `<i class="fa-solid fa-user-gear"></i>`;
+            profileLink.href = 'authentification.html';
+        }
+    }
+
+    // --- Gestion du lien Admin ---
+    const adminLinkHref = 'admin.html';
+    let adminLink = navLinksContainer.querySelector(`a[href="${adminLinkHref}"]`);
+
+    if (currentUser && currentUser.role === 'admin') {
+        if (!adminLink) {
+            const adminAnchor = document.createElement('a');
+            adminAnchor.href = adminLinkHref;
+            // Style de l'icône admin en jaune doré
+            adminAnchor.innerHTML = '<i class="fa-solid fa-shield-halved" style="color: #FFD700;"></i> Admin';
+            
+            // Insère le lien Admin avant le lien Crédits
+            const creditsLink = navLinksContainer.querySelector('a[href="credits.html"]');
+            navLinksContainer.insertBefore(adminAnchor, creditsLink);
+        }
+    } else {
+        if (adminLink) {
+            adminLink.remove();
         }
     }
 }
+
+
+// =========================================================
+// 5. INITIALISATION
+// =========================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Gère les soumissions de formulaire sur la page d'authentification
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            login(username, password);
+        });
+    }
+
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            register(username, password);
+        });
+    }
+
+    // 2. Met à jour la navigation au chargement de chaque page
+    updateNavigationLinks(); 
+});
