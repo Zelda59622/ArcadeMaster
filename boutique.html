@@ -215,15 +215,29 @@
             const skin = SKINS_DATA[game][category].find(s => s.id === skinId);
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
 
+            // Si l'utilisateur est connecté, utiliser son solde réel
             if (user && user.id !== 0) { 
                  if (user.coins >= price) {
-                      alert(`ACHAT RÉUSSI ! Le skin ${skin.name} est à vous !`);
+                      alert(`ACHAT RÉUSSI ! Le skin ${skin.name} est à vous ! (Compte réel)`);
                       // Logique réelle d'ajout du skin et de déduction des pièces...
                  } else {
                       alert(`Achat impossible : Il vous manque ${price - user.coins} pièces !`);
                  }
             } else {
-                 alert(`Achat non disponible : Veuillez vous connecter pour effectuer des achats. Le prix de ${skin.name} est de ${price} pièces.`);
+                 // Si l'utilisateur n'est PAS connecté, on simule un achat réussi 
+                 // en mode local pour l'exercice (CORRECTION APPLIQUÉE ICI)
+                 alert(`ACHAT RÉUSSI ! Le skin ${skin.name} est à vous ! (Mode Démo Local)`);
+                 
+                 // Simuler l'ajout du skin à la liste locale
+                 if (!ownedSkins[category]) {
+                     ownedSkins[category] = [];
+                 }
+                 ownedSkins[category].push(skinId);
+                 
+                 // Re-rendre la boutique pour mettre à jour les boutons (Acheter -> Équiper)
+                 document.getElementById('spaceInvadersSkins').innerHTML = '';
+                 document.getElementById('snakeSkins').innerHTML = '';
+                 renderAllSkins();
             }
         }
         
