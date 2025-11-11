@@ -216,42 +216,38 @@
             updateTopBar();
         }
 
-        // FONCTION DE VALIDATION CONNEXION (TEST DE CLIC IMMÉDIAT)
+        // FONCTION DE VALIDATION CONNEXION (VERSION FINALE SANS TEST D'ALERTE)
         window.validateLogin = function() {
-            // Pop-up immédiat pour vérifier le fonctionnement du clic
-            alert("Le bouton CONNEXION fonctionne !"); 
-            
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
 
-            // Validation manuelle
+            // 1. Validation des champs
             if (!username || !password) {
-                // alert("Veuillez remplir tous les champs."); // On garde le test de fonctionnement en premier pour ce tour.
+                alert("Veuillez remplir tous les champs."); 
                 return; 
             }
             
+            // 2. Connexion complète (si successful, auth.js gère la pop-up de succès)
             if (loginUser(username, password)) {
-                renderAccountPage();
+                renderAccountPage(); // Met à jour la page pour afficher le profil
                 updateTopBar();
             }
         }
 
-        // FONCTION DE VALIDATION INSCRIPTION (TEST DE CLIC IMMÉDIAT)
+        // FONCTION DE VALIDATION INSCRIPTION (VERSION FINALE SANS TEST D'ALERTE)
         window.validateRegister = function() {
-            // Pop-up immédiat pour vérifier le fonctionnement du clic
-            alert("Le bouton INSCRIPTION fonctionne !");
-            
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
 
-            // Validation manuelle
+            // 1. Validation des champs
             if (!username || !password) {
-                // alert("Veuillez remplir tous les champs.");
+                alert("Veuillez remplir tous les champs.");
                 return;
             }
             
+            // 2. Inscription complète (si successful, auth.js gère la pop-up de succès)
             if (registerUser(username, password)) {
-                renderAccountPage();
+                renderAccountPage(); // Met à jour la page pour afficher le profil
                 updateTopBar();
             }
         }
