@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Administration</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="menuToggle" class="menu-toggle">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
+            MENU ADMIN
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
+                👤
+            </a>
+        </div>
+    </div>
+
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
+        <div id="nav-links">
+            <a href="index.html" data-emoji="🏠">Accueil</a>
+            <a href="jeux.html" data-emoji="🎮">Menu Jeux</a>
+            <a href="compte.html" data-emoji="👤">Mon Compte</a>
+            <a href="boutique.html" data-emoji="🛍️">Boutique</a>
+            <a href="classement.html" data-emoji="🏆">Classement</a>
+            <a href="credits.html" data-emoji="📜">Crédits</a>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        <div style="padding-top: 50px;"></div> 
+        
+        <h1 style="font-size: 2.5em; color: var(--color-neon-red);">TABLEAU DE BORD ADMINISTRATEUR 👑</h1>
+        
+        <div id="adminContent">
+            
+            <div class="auth-card" style="max-width: 600px;">
+                <h2 style="color: var(--color-neon-red);">Suppression de Compte (Danger Zone)</h2>
+                
+                <form id="deleteAccountForm">
+                    <label for="targetUsername">Nom d'utilisateur à supprimer</label>
+                    <input type="text" id="targetUsername" required placeholder="Ex: JeanScoreur">
+                    
+                    <label for="deletionReason">Raison de la suppression (Obligatoire)</label>
+                    <input type="text" id="deletionReason" required placeholder="Ex: Triche répétée, Inactivité prolongée, etc.">
+                    
+                    <button type="submit" style="background-color: var(--color-neon-red);">
+                        <i class="fa-solid fa-trash-can"></i> Supprimer le Compte
+                    </button>
+                    <p style="font-size: 0.8em; color: #aaa; margin-top: 10px; text-align: center;">
+                        **ATTENTION :** Cette action est irréversible et supprime tous les scores et pièces.
+                    </p>
+                </form>
+            </div>
+
+            <div class="auth-card" style="max-width: 600px; margin-top: 40px;">
+                <h2 style="color: var(--color-neon-green);">Liste des Utilisateurs Actuels</h2>
+                <ul id="userList" style="list-style: none; padding: 0; text-align: left;">
+                    <li style="padding: 5px 0; border-bottom: 1px dashed #444;">Chargement...</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+    
+    <script src="base.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Scripts spécifiques à la page Admin
+
+        /** Vérifie si l'utilisateur est Admin. Sinon, redirige. */
+        function checkAdminAccess() {
+            const currentUser = getCurrentUser(); // de auth.js
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert("Accès refusé. Vous devez être administrateur pour voir cette page.");
+                window.location.href = 'index.html';
+            }
+        }
+
+        /** Affiche la liste des utilisateurs */
+        function displayUserList() {
+            const users = loadUsers(); // de auth.js
+            const list = document.getElementById('userList');
+            list.innerHTML = '';
+            
+            users.filter(u => !u.isDeleted) // N'affiche que les comptes actifs
+                 .sort((a, b) => a.username.localeCompare(b.username))
+                 .forEach(user => {
+                    const li = document.createElement('li');
+                    const roleColor = user.role === 'admin' ? '#FFD700' : 'var(--color-neon-green)';
+                    
+                    li.innerHTML = `
+                        <span style="color: ${roleColor}; font-weight: bold;">[${user.role.toUpperCase()}]</span> 
+                        ${user.username} 
+                        (Pièces: ${user.coins}💰)
+                    `;
+                    list.appendChild(li);
+            });
+        }
+        
+        /** Gère la soumission du formulaire de suppression */
+        function handleDeleteAccount(event) {
+            event.preventDefault();
+            
+            const targetUsername = document.getElementById('targetUsername').value.trim();
+            const deletionReason = document.getElementById('deletionReason').value.trim();
+
+            if (!targetUsername || !deletionReason) {
+                alert("Veuillez remplir le nom d'utilisateur cible et la raison de la suppression.");
+                return;
+            }
+
+            if (targetUsername === getCurrentUser().username) {
+                alert("Erreur: Vous ne pouvez pas supprimer votre propre compte Admin depuis ici.");
+                return;
+            }
+            
+            if (!confirm(`Êtes-vous SÛR de vouloir supprimer le compte "${targetUsername}" pour la raison : "${deletionReason}"?`)) {
+                return;
+            }
+
+            let users = loadUsers();
+            const userIndex = users.findIndex(u => u.username === targetUsername);
+
+            if (userIndex !== -1) {
+                users[userIndex].isDeleted = true;
+                users[userIndex].deletionReason = deletionReason;
+                
+                // Efface les données sensibles (scores/pièces)
+                users[userIndex].coins = 0;
+                users[userIndex].highScores = {};
+                
+                saveUsers(users);
+                alert(`Le compte ${targetUsername} a été marqué comme supprimé. L'utilisateur verra le message de raison à la prochaine connexion.`);
+                displayUserList(); // Rafraîchit la liste
+                
+                // Réinitialise le formulaire
+                document.getElementById('deleteAccountForm').reset();
+            } else {
+                alert(`Erreur: Le compte "${targetUsername}" n'existe pas ou est déjà supprimé.`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAccess();
+            displayUserList();
+            
+            const deleteForm = document.getElementById('deleteAccountForm');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', handleDeleteAccount);
+            }
+        });
+    </script>
+</body>
+</html>
