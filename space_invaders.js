@@ -20,8 +20,8 @@ let level = 1;
 
 // Vaisseau du joueur
 let player = {
-    x: BOARD_WIDTH / 2 - 15, // Centré
-    y: BOARD_HEIGHT / 2 - 15, // Milieu de la carte
+    x: BOARD_WIDTH / 2 - 15, 
+    y: BOARD_HEIGHT / 2 - 15, 
     width: 30,
     height: 30,
     rotation: 0 
@@ -39,6 +39,7 @@ let powerups = [];
 
 // État des Bonus
 let shieldActive = false;
+let shieldTimeout;
 let shotgunCooldown = 0;
 
 // Input
@@ -50,18 +51,16 @@ let activeShipSkin = '🚀';
 let activeEnemySkin = '👾';
 
 
-// --- 0. FONCTIONS DE GESTION DES SKINS (Nouveau) ---
+// --- 0. FONCTIONS DE GESTION DES SKINS ---
 
-// Fonction simplifiée pour charger le skin actif (sans dépendre de auth.js/localStorage)
 function loadActiveSkins() {
-    // Dans un environnement fonctionnel, on lirait le profil de l'utilisateur.
-    // Ici, nous utilisons des valeurs par défaut pour que le jeu fonctionne.
-    // Les changements se feraient dans le fichier auth.js via l'outil Admin.
-    
+    // Si la fonction de l'utilisateur existe (depuis auth.js)
     const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    
+    // Si l'utilisateur est un vrai utilisateur ou le fantôme (id=0), on tente de charger les skins
     if (user && user.skins) {
         activeShipSkin = user.skins.active.ship || '🚀';
-        activeEnemySkin = user.skins.active.invader || '👾'; // Utilise 'invader' comme clé
+        activeEnemySkin = user.skins.active.invader || '👾';
     } else {
          activeShipSkin = '🚀'; 
          activeEnemySkin = '👾';
@@ -87,14 +86,16 @@ function resetGame() {
     enemyBullets = [];
     powerups = [];
     
+    // Réinitialisation des bonus
     shieldActive = false;
+    clearTimeout(shieldTimeout);
     shotgunCooldown = 0;
 
     player.x = BOARD_WIDTH / 2 - 15;
-    player.y = BOARD_HEIGHT / 2 - 15; // Position centrale
+    player.y = BOARD_HEIGHT / 2 - 15; 
     player.rotation = 0;
     
-    loadActiveSkins(); // Charger les skins au démarrage
+    loadActiveSkins(); 
 
     updateDisplay();
     gameBoard.innerHTML = '';
@@ -109,12 +110,11 @@ function updateDisplay() {
 }
 
 
-// --- 2. GESTION DES ENTITÉS : ENVAHISSEURS (Mis à jour) ---
+// --- 2. GESTION DES ENTITÉS : ENVAHISSEURS ---
 
 function spawnEnemyFromEdge() {
     if (!isGameRunning) return;
     
-    // Déterminer la position de spawn (un bord aléatoire)
     let edge = Math.floor(Math.random() * 4); // 0=Top, 1=Right, 2=Bottom, 3=Left
     let x, y;
 
@@ -145,8 +145,8 @@ function spawnEnemyFromEdge() {
         hp: 1
     });
 
-    // Le spawn continue plus vite avec le score
-    const spawnRate = Math.max(500, 2000 - score * 5); // Max 2000ms, Min 500ms
+    // La vitesse de spawn augmente lentement avec le score
+    const spawnRate = Math.max(500, 2000 - score * 5); 
     setTimeout(spawnEnemyFromEdge, spawnRate);
 }
 
@@ -167,55 +167,114 @@ function moveEnemies() {
     });
 }
 
-// ... (enemyShoot, spawnPowerup, activatePowerup, handleBomb restent les mêmes) ...
-// NOTE: Pour la concision, je n'ai pas inclus les fonctions non modifiées ici.
-// Assurez-vous qu'elles sont bien présentes dans le fichier complet.
-
-// Fonction simplifiée (même si je n'ai pas inclus les fonctions non modifiées ci-dessus)
 function enemyShoot() {
-    if (enemies.length === 0 || Math.random() > 0.95) return;
-    // ... (Logique de tir) ...
+    // Les ennemis qui vont vers le joueur ne tirent pas de projectiles, 
+    // ils représentent eux-mêmes la menace à éviter.
+    // L'implémentation de tir ennemi est conservée ici au cas où l'on voudrait la réactiver :
+    // if (enemies.length === 0 || Math.random() > 0.99) return; 
+    // const shooter = enemies[Math.floor(Math.random() * enemies.length)];
+    // ...
 }
+
+
+// --- 3. GESTION DES BONUS (Powerups) ---
+
 function spawnPowerup(x, y) {
-    if (Math.random() > 0.95) {
+    if (Math.random() > 0.95) { // 5% de chance d'apparition (rare)
         const types = ['shield', 'shotgun', 'bomb'];
         const type = types[Math.floor(Math.random() * types.length)];
-        // ... (Ajout du powerup à la liste) ...
+        
+        powerups.push({
+            x: x,
+            y: y,
+            width: 15,
+            height: 15,
+            type: type,
+            speedY: 1
+        });
     }
 }
+
+function activatePowerup(type) {
+    switch (type) {
+        case 'shield':
+            clearTimeout(shieldTimeout);
+            shieldActive = true;
+            shieldTimeout = setTimeout(() => {
+                shieldActive = false;
+            }, 10000); // 10 secondes
+            break;
+        case 'shotgun':
+            shotgunCooldown = 50; // 50 tirs lents (Shotgun)
+            break;
+        case 'bomb':
+            handleBomb();
+            break;
+    }
+}
+
 function handleBomb() {
-    score += enemies.length * 10;
+    // Donne autant de points que d'ennemis
+    score += enemies.length * 10; 
+    
+    // Effacer tous les ennemis
     enemies = [];
+    
     updateDisplay();
+    // Le spawn reprendra automatiquement via le setTimeout de spawnEnemyFromEdge
 }
 
 
-// --- 3. GESTION DES COLLISIONS (Mis à jour) ---
+// --- 4. GESTION DES COLLISIONS ---
 
 function checkCollisions() {
-    // ... (Le corps de cette fonction est le même, sauf la partie Ennemis vs Joueur) ...
     
-    // Joueur vs Tirs ennemis
+    // Joueur vs Tirs ennemis (Conservé pour le cas où enemyShoot serait réactivé)
     enemyBullets = enemyBullets.filter(bullet => {
-        // ... (Vérification et suppression des tirs ennemis) ...
+        if (
+            bullet.x < player.x + player.width && bullet.x + bullet.width > player.x &&
+            bullet.y < player.y + player.height && bullet.y + bullet.height > player.y
+        ) {
+            if (shieldActive) return false; 
+            
+            lives--;
+            updateDisplay();
+            if (lives <= 0) endGame();
+            return false; 
+        }
         return bullet.y < BOARD_HEIGHT && bullet.y > 0 && bullet.x < BOARD_WIDTH && bullet.x > 0;
     });
     
     // Joueur vs Powerups
     powerups = powerups.filter(powerup => {
-        // ... (Vérification de la collision avec les powerups) ...
-        return true;
+        if (
+            powerup.x < player.x + player.width && powerup.x + powerup.width > player.x &&
+            powerup.y < player.y + player.height && powerup.y + powerup.height > player.y
+        ) {
+            activatePowerup(powerup.type);
+            return false; 
+        }
+        // Supprimer si le bonus sort de l'écran (seulement en bas)
+        return powerup.y < BOARD_HEIGHT;
     });
 
     // Tirs joueur vs Ennemis
     playerBullets = playerBullets.filter(bullet => {
         let hit = false;
         enemies = enemies.filter(enemy => {
-            // ... (Vérification de la collision et mise à jour du score) ...
-            if (hit) {
-                score += 10;
-                // ... (spawnPowerup) ...
-                return false;
+            if (
+                bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
+                bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y
+            ) {
+                // Touche l'ennemi
+                enemy.hp--;
+                hit = true;
+                if (enemy.hp <= 0) {
+                    score += 10; // 1 ennemi = 10 points
+                    spawnPowerup(enemy.x, enemy.y); 
+                    return false; // Supprimer l'ennemi
+                }
+                return true; 
             }
             return true;
         });
@@ -226,27 +285,22 @@ function checkCollisions() {
     // Ennemis vs Joueur (Collision avec les ennemis)
     enemies = enemies.filter(enemy => {
         if (
-            enemy.x < player.x + player.width &&
-            enemy.x + enemy.width > player.x &&
-            enemy.y < player.y + player.height &&
-            enemy.y + enemy.height > player.y
+            enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
+            enemy.y < player.y + player.height && enemy.y + enemy.height > player.y
         ) {
             if (shieldActive) {
-                return false; // Ennemi tué par le bouclier
+                return false; // Ennemi tué par le bouclier (pas de points)
             }
+            // Collision mortelle sans bouclier
             endGame();
             return false;
         }
         return true;
     });
-
-    if (enemies.length === 0 && isGameRunning) {
-        // Dans ce mode, on ne passe pas de niveau, on continue le spawn
-    }
 }
 
 
-// --- 4. MOUVEMENTS DU JOUEUR (Mis à jour pour le mouvement libre) ---
+// --- 5. MOUVEMENTS ET TIR DU JOUEUR ---
 
 function movePlayer() {
     const moveSpeed = 4;
@@ -268,13 +322,59 @@ function movePlayer() {
     player.rotation = angleRad * (180 / Math.PI) + 90; 
 }
 
+function playerShoot(e) {
+    if (isGameOver || !isGameRunning) return;
+    if (e && e.button !== 0) return; // Uniquement le clic gauche
 
-// --- 5. RENDU GRAPHIQUE (Dessin) ---
+    // Logique du Fusil à Pompe (Shotgun)
+    if (shotgunCooldown > 0) {
+        shotgunCooldown--;
+        const baseAngle = Math.atan2(mousePosition.y - (player.y + player.height / 2), mousePosition.x - (player.x + player.width / 2));
+        
+        // Tirs multiples (5 directions)
+        for (let i = -2; i <= 2; i++) {
+            const angle = baseAngle + (i * 0.1); 
+            const speedX = Math.cos(angle) * 8;
+            const speedY = Math.sin(angle) * 8;
+
+            playerBullets.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y + player.height / 2 - 2,
+                width: 4,
+                height: 8,
+                speedX: speedX,
+                speedY: speedY
+            });
+        }
+        return;
+    }
+    
+    // Tir standard (visée à la souris)
+    const centerX = player.x + player.width / 2;
+    const centerY = player.y + player.height / 2;
+
+    const angle = Math.atan2(mousePosition.y - centerY, mousePosition.x - centerX);
+    
+    const speedX = Math.cos(angle) * 10;
+    const speedY = Math.sin(angle) * 10;
+    
+    playerBullets.push({
+        x: centerX - 2,
+        y: centerY - 2,
+        width: 4,
+        height: 8,
+        speedX: speedX,
+        speedY: speedY
+    });
+}
+
+
+// --- 6. RENDU GRAPHIQUE (Dessin) ---
 
 function drawEntities() {
     gameBoard.innerHTML = '';
 
-    // Dessin du Joueur
+    // Dessin du Joueur (Avec skin)
     const playerElement = document.createElement('div');
     playerElement.style.left = `${player.x}px`;
     playerElement.style.top = `${player.y}px`;
@@ -299,62 +399,181 @@ function drawEntities() {
         gameBoard.appendChild(enemyElement);
     });
 
-    // ... (Dessin des tirs et powerups comme avant) ...
+    // Dessin des Tirs Joueur (Mise à jour de la position selon speedX/Y)
+    playerBullets.forEach(bullet => {
+        const bulletElement = document.createElement('div');
+        bulletElement.style.left = `${bullet.x}px`;
+        bulletElement.style.top = `${bullet.y}px`;
+        bulletElement.classList.add('player-bullet');
+        gameBoard.appendChild(bulletElement);
+    });
+    
+    // Dessin des Tirs Ennemis
+    enemyBullets.forEach(bullet => {
+        const bulletElement = document.createElement('div');
+        bulletElement.style.left = `${bullet.x}px`;
+        bulletElement.style.top = `${bullet.y}px`;
+        bulletElement.classList.add('enemy-bullet');
+        gameBoard.appendChild(bulletElement);
+    });
+    
+    // Dessin des Bonus
+    powerups.forEach(p => {
+        const pElement = document.createElement('div');
+        pElement.style.left = `${p.x}px`;
+        pElement.style.top = `${p.y}px`;
+        pElement.classList.add('powerup', `powerup-${p.type}`);
+        pElement.textContent = p.type === 'shield' ? '🛡️' : (p.type === 'shotgun' ? '🔫' : '💣');
+        gameBoard.appendChild(pElement);
+    });
 }
 
 
-// --- 6. GESTION DES CHEATS (Nouveau) ---
+// --- 7. BOUCLE DE JEU ET ÉTATS ---
+
+function gameLoop() {
+    if (isGameOver) return;
+
+    // 1. Mouvements
+    movePlayer();
+    moveEnemies();
+    
+    // Mouvement des tirs joueur 
+    playerBullets.forEach(b => {
+        b.x += b.speedX;
+        b.y += b.speedY;
+    });
+    
+    // Mouvement des tirs ennemis
+    enemyBullets.forEach(b => {
+        b.y += b.speedY;
+    });
+    
+    // Mouvement des powerups
+    powerups.forEach(p => {
+        p.y += p.speedY;
+    });
+
+    // 2. Tirs ennemis (Conservé mais non actif)
+    enemyShoot();
+    
+    // 3. Collisions
+    checkCollisions();
+
+    // 4. Rendu
+    drawEntities();
+    updateDisplay();
+}
+
+function startGame() {
+    if (isGameRunning) return;
+    
+    isGameRunning = true;
+    isGameOver = false; // Important pour redémarrer
+    instructionsScreen.style.display = 'none';
+    gameOverScreen.style.display = 'none';
+
+    resetGame();
+    // Lance la boucle de jeu
+    gameInterval = setInterval(gameLoop, gameLoopSpeed);
+}
+
+function endGame() {
+    if (isGameOver) return;
+    isGameOver = true;
+    isGameRunning = false;
+    clearInterval(gameInterval);
+    
+    // Tente de mettre à jour le score dans auth.js (si la fonction est chargée)
+    if (typeof updateGlobalUserScore === 'function') {
+        updateGlobalUserScore('space_invaders', score);
+    }
+    
+    document.getElementById('finalScore').textContent = `Score final : ${score}`;
+    gameOverScreen.style.display = 'flex';
+}
+
+
+// --- 8. GESTION DES CHEATS ---
 
 const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight'];
 let konamiIndex = 0;
 
 function handleCheat(e) {
-    // Vérifie si la touche pressée correspond à l'étape actuelle du code
     if (e.key === KONAMI_CODE[konamiIndex]) {
         konamiIndex++;
         if (konamiIndex === KONAMI_CODE.length) {
-            // Code Konami complété !
             alert("CODE KONAMI ACTIVÉ ! 💰 +50,000 Pièces !");
             
-            // NOTE: Ceci est la seule façon de "stocker" les pièces sans connexion.
-            // La vraie logique se ferait dans updateGlobalUser, qui ne fonctionne pas en local.
-            
-            // Nous allons simuler la mise à jour des pièces dans l'objet global du joueur
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            if (user) {
+            if (user && user.id !== 0) {
                  user.coins = (user.coins || 0) + 50000;
                  if (typeof updateGlobalUser === 'function') {
                     updateGlobalUser(user);
                  }
             } else {
-                 // Si pas de connexion, on le met dans un stockage temporaire
                  localStorage.setItem('tempCheatCoins', (parseInt(localStorage.getItem('tempCheatCoins') || '0') + 50000));
             }
 
             if (typeof updateTopBar === 'function') {
-                updateTopBar(); // Rafraîchir l'affichage des pièces
+                updateTopBar(); 
             }
 
-            konamiIndex = 0; // Réinitialiser le code après succès
+            konamiIndex = 0; 
         }
     } else {
-        konamiIndex = 0; // Réinitialiser le code si une mauvaise touche est pressée
+        konamiIndex = 0; 
     }
 }
 
 
-// --- 7. ÉVÉNEMENTS & INITIALISATION (Mis à jour pour le cheat) ---
+// --- 9. ÉVÉNEMENTS & INITIALISATION ---
 
 document.addEventListener('keydown', (e) => {
-    // Gestion du Cheat Code avant le jeu
+    const key = e.key.toLowerCase();
+    
+    // 1. Gestion du Cheat Code
     handleCheat(e); 
     
-    // ... (Le reste de la gestion des touches pour le jeu) ...
+    // 2. Lancement du jeu (Correction du bug de démarrage par Espace)
+    if ((key === ' ' || key === 'spacebar') && !isGameRunning && !isGameOver) {
+        e.preventDefault(); 
+        startGame();
+        return;
+    }
+    
+    // 3. Gestion des mouvements (uniquement si le jeu est en cours)
+    if (isGameOver || !isGameRunning) return;
+    
+    // Mouvement ZQSD / WASD
+    if (key === 'a' || key === 'q' || key === 'd' || key === 'w' || key === 'z' || key === 's') {
+        keysPressed[key] = true;
+    }
 });
 
+document.addEventListener('keyup', (e) => {
+    const key = e.key.toLowerCase();
+    delete keysPressed[key];
+});
+
+// Gestion de la Souris (Visée et Tir)
+gameBoard.addEventListener('mousemove', (e) => {
+    const rect = gameBoard.getBoundingClientRect();
+    mousePosition.x = e.clientX - rect.left;
+    mousePosition.y = e.clientY - rect.top;
+});
+
+gameBoard.addEventListener('click', playerShoot);
+
+// Bouton Recommencer
+restartButton.addEventListener('click', startGame);
+
+
+// Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     setupBoard();
-    loadActiveSkins(); // Assurez-vous que les skins sont chargés
+    loadActiveSkins(); 
+    // Affiche l'écran d'instructions au départ
     instructionsScreen.style.display = 'flex';
     gameOverScreen.style.display = 'none';
 });
