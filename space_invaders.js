@@ -1,543 +1,391 @@
-// --- VARIABLES GLOBALES DU JEU ---
+/**
+ * Fichier : space_invaders.js
+ * Description : Logique du jeu Space Invaders (version Emoji).
+ * Interagit avec auth.js pour les scores.
+ */
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('scoreValue');
-const livesElement = document.getElementById('livesValue');
-const personalHighScoreElement = document.getElementById('personalHighScore');
-const leaderboardList = document.getElementById('leaderboardList');
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
+// --- CONSTANTES DE JEU ---
+const GAME_NAME = 'space_invaders';
+const GRID_SIZE = 40;
+const PLAYER_SIZE = GRID_SIZE;
+const ALIEN_SIZE = GRID_SIZE;
+const BULLET_SIZE = 5;
 
-canvas.width = GAME_WIDTH;
-canvas.height = GAME_HEIGHT;
-
-let gameLoopInterval;
+// --- ÉTAT DU JEU ---
 let score = 0;
 let lives = 3;
+let gameLoopInterval;
 let gameOver = false;
-let gameStarted = false;
-let mousePos = { x: 0, y: 0 }; 
+let wave = 1;
 
-// --- VARIABLES POUR LES BONUS ---
-let powerUps = [];
-let isShieldActive = false;
-let shieldTimer = 0;
-let isShotgunActive = false; 
-let shotgunTimer = 0;
+// --- OBJETS DU JEU ---
+let player;
+let aliens = [];
+let bullets = []; // Tirs du joueur
+let alienBullets = []; // Tirs des aliens
+let keys = {};
 
-// --- DÉFINITION DES ÉMOJIS ---
-const EMOJIS = {
-    player: '🚀', 
-    invader: '👾',
-    bullet: '⚡',  
-    // Émojis pour les bonus
-    shield_pu: '🛡️',
-    bomb_pu: '💣',
-    shotgun_pu: '🔫' 
+// --- VITESSE ---
+const ALIEN_MOVE_INTERVAL = 1000; // Mouvement initial des aliens (ms)
+let alienMoveSpeed = 10; // Pixels par mouvement
+let alienMoveTimer;
+
+// --- EMOJIS (Textures) ---
+const EMOJI = {
+    PLAYER: '🚀', // Fusée
+    ALIEN: '👾', // Alien
+    BULLET: '⚡', // Foudre
+    ALIEN_BULLET: '🔴' // Cercle rouge
 };
 
-// --- PARAMÈTRES D'AFFICHAGE ET JEU ---
-const EMOJI_FONT_SIZE = 30;
-const PLAYER_SIZE = 30;
-const INVADER_SIZE = 30;
-const POWERUP_SIZE = 30;
-const INVADER_SPAWN_RATE = 120; // Nouvel ennemi toutes les 2 secondes
-const POWERUP_SPAWN_CHANCE = 0.002; // ~1 chance sur 500 par frame
-
-
-// --- FONCTION UTILITAIRE DE COLLISION (AABB) ---
-function checkCollision(objA, objB) {
-    return objA.x < objB.x + objB.width &&
-           objA.x + objA.width > objB.x &&
-           objA.y < objB.y + objB.height &&
-           objA.y + objB.height > objB.y; // Correction dans le check de hauteur
-}
-
-// --- LOGIQUE DE SAUVEGARDE ET CLASSEMENT ---
-function getHighScores() {
-    const users = typeof loadUsers === 'function' ? loadUsers() : {};
-    let highScores = [];
-    for (const username in users) {
-        const userData = users[username];
-        const highScore = userData.games && userData.games.space_invaders ? userData.games.space_invaders.highScore : 0;
-        if (highScore > 0) {
-            highScores.push({ username, score: highScore });
-        }
-    }
-    if (highScores.length === 0 && typeof loadUsers !== 'function') {
-        highScores = [
-            { username: 'Arcade_King', score: 5000 },
-            { username: 'Zelda5962', score: 2500 }, 
-            { username: 'RetroPlayer', score: 1800 },
-        ];
-    }
-    highScores.sort((a, b) => b.score - a.score);
-    return highScores;
-}
-function updatePersonalHighScore(newScore) {
-    const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    if (!currentUser || typeof loadUsers !== 'function') return false;
-    const users = loadUsers();
-    const userData = users[currentUser];
-    if (!userData.games) userData.games = {};
-    if (!userData.games.space_invaders) userData.games.space_invaders = { highScore: 0 };
-    if (newScore > userData.games.space_invaders.highScore) {
-        userData.games.space_invaders.highScore = newScore;
-        saveUsers(users); 
-        return true;
-    }
-    return false;
-}
-function renderScoreBoard() {
-    const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    const highScores = getHighScores();
-    let html = '';
-    let foundPersonalScore = false;
-    highScores.slice(0, 10).forEach((item, index) => {
-        const isCurrentUser = item.username === currentUser;
-        const style = isCurrentUser ? 'style="color: #00ff00; font-weight: bold;"' : '';
-        html += `<li ${style}><span>${index + 1}. ${item.username}</span> <span>${item.score}</span></li>`;
-        if (isCurrentUser) foundPersonalScore = true;
-    });
-    leaderboardList.innerHTML = html;
-    const personalScore = highScores.find(item => item.username === currentUser);
-    const personalHighScoreValue = personalScore ? personalScore.score : 0;
-    personalHighScoreElement.textContent = personalHighScoreValue;
-    if (currentUser && !foundPersonalScore && personalScore) {
-        const userRank = highScores.findIndex(item => item.username === currentUser) + 1;
-        if (userRank > 10) {
-             leaderboardList.innerHTML += `<li style="margin-top: 10px; color: #f39c12; font-weight: bold;"><span>...</span> <span>...</span></li>`;
-             leaderboardList.innerHTML += `<li style="color: #00ff00; font-weight: bold;"><span>${userRank}. ${currentUser}</span> <span>${personalHighScoreValue}</span></li>`;
-        }
-    }
-}
-
-
-// --- CLASSES DES ENTITÉS ---
+// =========================================================
+// 1. CLASSES ET CONSTRUCTEURS
+// =========================================================
 
 class Entity {
-    constructor(x, y, width, height, emojiKey) {
+    constructor(x, y, size, emoji, dx = 0, dy = 0) {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
-        this.emoji = EMOJIS[emojiKey];
-        this.dead = false;
+        this.size = size;
+        this.emoji = emoji;
+        this.dx = dx;
+        this.dy = dy;
     }
-    
-    draw(ctx) {
-        ctx.font = `${EMOJI_FONT_SIZE}px sans-serif`;
+
+    draw() {
+        ctx.font = `${this.size}px Arial`;
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(this.emoji, this.x + this.width / 2, this.y + this.height / 2);
+        ctx.fillText(this.emoji, this.x + this.size / 2, this.y + this.size * 0.85);
     }
 }
 
-class Player extends Entity {
-    constructor() {
-        super(GAME_WIDTH / 2 - (PLAYER_SIZE / 2), GAME_HEIGHT / 2 - (PLAYER_SIZE / 2), PLAYER_SIZE, PLAYER_SIZE, 'player');
-        this.speed = 4;
-        this.bullets = [];
-        this.canShoot = true;
-        this.angle = 0;
-        this.fireRateDelay = 200; // Délai de base (200ms)
-    }
+// =========================================================
+// 2. FONCTIONS DE JEU
+// =========================================================
 
-    update(keys) {
-        let dx = 0;
-        let dy = 0;
-        
-        // Mouvement ZQSD
-        if (keys['z']) dy = -this.speed;
-        if (keys['s']) dy = this.speed;
-        if (keys['q']) dx = -this.speed;
-        if (keys['d']) dx = this.speed;
-
-        this.x = Math.max(0, Math.min(GAME_WIDTH - this.width, this.x + dx));
-        this.y = Math.max(0, Math.min(GAME_HEIGHT - this.height, this.y + dy));
-        
-        const centerX = this.x + this.width / 2;
-        const centerY = this.y + this.height / 2;
-        this.angle = Math.atan2(mousePos.y - centerY, mousePos.x - centerX);
-    }
+/** Initialise ou réinitialise le jeu */
+function initGame() {
+    score = 0;
+    lives = 3;
+    wave = 1;
+    gameOver = false;
+    bullets = [];
+    alienBullets = [];
     
-    shoot() {
-        if (this.canShoot) {
-            const centerX = this.x + this.width / 2;
-            const centerY = this.y + this.height / 2;
-            
-            if (isShotgunActive) {
-                // LOGIQUE FUSIL À POMPE (5 tirs en éventail)
-                const spreadAngle = Math.PI / 18; // Angle d'écart (10 degrés)
-                for (let i = -2; i <= 2; i++) {
-                    const angleOffset = i * spreadAngle;
-                    this.bullets.push(new Bullet(centerX, centerY, this.angle + angleOffset));
-                }
-            } else {
-                // LOGIQUE TIR NORMAL (1 tir droit)
-                this.bullets.push(new Bullet(centerX, centerY, this.angle));
+    // Vitesse de base des aliens
+    alienMoveTimer = ALIEN_MOVE_INTERVAL;
+    alienMoveSpeed = 10; 
+    
+    // Initialisation du joueur
+    player = new Entity(
+        canvas.width / 2 - PLAYER_SIZE / 2,
+        canvas.height - PLAYER_SIZE - 20,
+        PLAYER_SIZE,
+        EMOJI.PLAYER
+    );
+
+    createAliens();
+    updateScoreBoard();
+    
+    // Démarrage de la boucle de jeu
+    if (gameLoopInterval) clearInterval(gameLoopInterval);
+    gameLoopInterval = setInterval(gameLoop, 1000 / 60); // 60 FPS
+}
+
+/** Crée une nouvelle vague d'aliens */
+function createAliens() {
+    aliens = [];
+    const rows = 4 + Math.min(wave, 2); // 4 ou 5 rangées
+    const cols = 8;
+    const paddingX = (canvas.width - cols * ALIEN_SIZE * 1.5) / 2;
+    const paddingY = 50;
+    
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            aliens.push(new Entity(
+                paddingX + c * (ALIEN_SIZE * 1.5),
+                paddingY + r * (ALIEN_SIZE * 1.5),
+                ALIEN_SIZE,
+                EMOJI.ALIEN,
+                alienMoveSpeed, // Vitesse de déplacement horizontale
+                0
+            ));
+        }
+    }
+}
+
+// --- Mouvements ---
+
+let alienDirection = 1; // 1 = droite, -1 = gauche
+let lastAlienMoveTime = 0;
+
+function moveAliens(deltaTime) {
+    lastAlienMoveTime += deltaTime;
+
+    if (lastAlienMoveTime >= alienMoveTimer) {
+        let shouldDrop = false;
+
+        // Vérifie si un alien touche le bord
+        for (const alien of aliens) {
+            if (alien.x + ALIEN_SIZE + alien.dx * (alienMoveTimer / 1000) > canvas.width || alien.x + alien.dx * (alienMoveTimer / 1000) < 0) {
+                alienDirection *= -1;
+                shouldDrop = true;
+                break;
             }
+        }
+
+        // Déplace et fait descendre si nécessaire
+        for (const alien of aliens) {
+            if (shouldDrop) {
+                alien.y += 20; // Descend
+            }
+            // Déplace latéralement
+            alien.x += alienDirection * alienMoveSpeed;
             
-            this.canShoot = false;
-            
-            setTimeout(() => this.canShoot = true, this.fireRateDelay); 
-        }
-    }
-    
-    draw(ctx) {
-        ctx.save();
-        
-        const centerX = this.x + this.width / 2;
-        const centerY = this.y + this.height / 2;
-
-        ctx.translate(centerX, centerY);
-        ctx.rotate(this.angle + Math.PI / 2);
-        
-        ctx.font = `${EMOJI_FONT_SIZE}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(this.emoji, 0, 0); 
-        
-        ctx.restore();
-        
-        // Dessin du bouclier si actif
-        if (isShieldActive) {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, PLAYER_SIZE * 1.5, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(0, 200, 255, 0.5)';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            // Affiche le temps restant 
-            ctx.fillStyle = 'white';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(Math.ceil(shieldTimer / 60) + 's', centerX, centerY + PLAYER_SIZE * 1.5 + 10);
+            // Vérifie la défaite
+            if (alien.y + ALIEN_SIZE > player.y) {
+                endGame(false);
+                return;
+            }
         }
         
-        this.bullets.forEach(b => b.draw(ctx));
+        // Accélération de la vitesse et de la fréquence de tir
+        alienMoveTimer = Math.max(200, ALIEN_MOVE_INTERVAL - aliens.length * 50);
+
+        lastAlienMoveTime = 0;
     }
 }
 
-class Invader extends Entity {
-    constructor(x, y) {
-        super(x, y, INVADER_SIZE, INVADER_SIZE, 'invader');
-        this.speed = 1.5;
-        this.points = 10;
+function movePlayer() {
+    if (keys['ArrowLeft'] || keys['KeyA']) {
+        player.x = Math.max(0, player.x - 5);
     }
-
-    update(player) {
-        const targetX = player.x + player.width / 2;
-        const targetY = player.y + player.height / 2;
-        const centerX = this.x + this.width / 2;
-        const centerY = this.y + this.height / 2;
-
-        const angle = Math.atan2(targetY - centerY, targetX - centerX);
-        
-        this.x += Math.cos(angle) * this.speed;
-        this.y += Math.sin(angle) * this.speed;
+    if (keys['ArrowRight'] || keys['KeyD']) {
+        player.x = Math.min(canvas.width - PLAYER_SIZE, player.x + 5);
     }
 }
 
-class PowerUp extends Entity {
-    constructor(x, y, type) {
-        const emojiKey = `${type}_pu`;
-        super(x, y, POWERUP_SIZE, POWERUP_SIZE, emojiKey);
-        this.type = type;
-        this.dy = 1; // Le bonus descend lentement
-    }
-    
-    update() {
-        this.y += this.dy;
-        // Si le bonus sort de l'écran, le marquer comme mort
-        if (this.y > GAME_HEIGHT) {
-            this.dead = true;
-        }
+function moveBullets() {
+    // Balles du joueur
+    bullets = bullets.filter(bullet => {
+        bullet.y -= 7;
+        return bullet.y > 0;
+    });
+
+    // Balles des aliens
+    alienBullets = alienBullets.filter(bullet => {
+        bullet.y += 3;
+        return bullet.y < canvas.height;
+    });
+}
+
+// --- Tirs ---
+let lastShotTime = 0;
+const shotDelay = 300; // délai minimum entre les tirs (ms)
+
+function fireBullet() {
+    const currentTime = Date.now();
+    if (currentTime - lastShotTime > shotDelay) {
+        bullets.push(new Entity(
+            player.x + PLAYER_SIZE / 2 - BULLET_SIZE / 2,
+            player.y,
+            20,
+            EMOJI.BULLET
+        ));
+        lastShotTime = currentTime;
     }
 }
 
-
-class Bullet extends Entity {
-    constructor(x, y, angle) {
-        super(x - 3, y - 3, 6, 6, 'bullet'); 
-        this.angle = angle;
-        this.speed = 10;
-        this.lifeTime = 120; // 2 secondes
-    }
-
-    update() {
-        this.x += Math.cos(this.angle) * this.speed;
-        this.y += Math.sin(this.angle) * this.speed;
-        this.lifeTime--;
-        if (this.lifeTime <= 0) this.dead = true;
-    }
-
-    draw(ctx) {
-        ctx.fillStyle = 'yellow';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+function alienFire() {
+    if (aliens.length > 0 && Math.random() < 0.02) { // 2% de chance par boucle de jeu
+        const shooter = aliens[Math.floor(Math.random() * aliens.length)];
+        alienBullets.push(new Entity(
+            shooter.x + ALIEN_SIZE / 2 - BULLET_SIZE / 2,
+            shooter.y + ALIEN_SIZE,
+            20,
+            EMOJI.ALIEN_BULLET
+        ));
     }
 }
 
+// --- Collision ---
 
-// --- GESTION DES BONUS ---
-
-function activatePowerUp(type) {
-    if (type === 'shield') {
-        isShieldActive = true;
-        shieldTimer = 10 * 60; // 10 secondes
-    } else if (type === 'bomb') {
-        // Applique la bombe
-        const enemiesKilled = invaders.length;
-        updateScore(enemiesKilled * 10); 
-        invaders = []; // Tue tous les ennemis
-    } else if (type === 'shotgun') {
-        // LOGIQUE FUSIL À POMPE
-        isShotgunActive = true;
-        shotgunTimer = 20 * 60; // 20 secondes
-        player.fireRateDelay = 150; // Délai plus lent (150ms)
-    }
+function checkCollision(obj1, obj2) {
+    return obj1.x < obj2.x + obj2.size &&
+           obj1.x + obj1.size > obj2.x &&
+           obj1.y < obj2.y + obj2.size &&
+           obj1.y + obj1.size > obj2.y;
 }
 
-function updatePowerUpTimers() {
-    if (isShieldActive) {
-        shieldTimer--;
-        if (shieldTimer <= 0) {
-            isShieldActive = false;
-        }
-    }
-    
-    if (isShotgunActive) {
-        shotgunTimer--;
-        if (shotgunTimer <= 0) {
-            isShotgunActive = false;
-            player.fireRateDelay = 200; // Rétablit le délai normal
-        }
-    }
-}
-
-function spawnPowerUp() {
-    if (Math.random() < POWERUP_SPAWN_CHANCE) {
-        const types = ['shield', 'bomb', 'shotgun'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        
-        const x = Math.random() * (GAME_WIDTH - POWERUP_SIZE);
-        const y = -POWERUP_SIZE;
-        
-        powerUps.push(new PowerUp(x, y, type));
-    }
-}
-
-
-// --- GESTION DU JEU PRINCIPALE ---
-
-let player;
-let invaders = [];
-let keys = {};
-let invaderSpawnCounter = 0;
-
-
-function updateScore(points) {
-    score += points;
-    scoreElement.textContent = score;
-}
-
-function updateLives(amount) {
-    lives += amount;
-    livesElement.textContent = lives;
-    if (lives <= 0) {
-        gameOver = true;
-    }
-}
-
-function spawnInvader() {
-    let x, y;
-    const padding = 10;
-    const side = Math.floor(Math.random() * 4); 
-
-    if (side === 0) { x = Math.random() * GAME_WIDTH; y = -padding; } 
-    else if (side === 1) { x = GAME_WIDTH + padding; y = Math.random() * GAME_HEIGHT; } 
-    else if (side === 2) { x = Math.random() * GAME_WIDTH; y = GAME_HEIGHT + padding; } 
-    else { x = -padding; y = Math.random() * GAME_HEIGHT; }
-
-    invaders.push(new Invader(x, y));
-}
-
-function handleCollisions() {
-    
-    // 1. Collisions Tirs Joueur vs Envahisseurs
-    player.bullets = player.bullets.filter(bullet => {
-        invaders.forEach((invader) => {
-            if (checkCollision(bullet, invader)) {
-                invader.dead = true;
-                bullet.dead = true;
-                updateScore(invader.points);
+function checkCollisions() {
+    // 1. Tirs du joueur vs Aliens
+    bullets.forEach((bullet, bIndex) => {
+        aliens.forEach((alien, aIndex) => {
+            if (checkCollision(bullet, alien)) {
+                // Collision : retire le tir et l'alien
+                bullets.splice(bIndex, 1);
+                aliens.splice(aIndex, 1);
+                score += 10;
+                updateScoreBoard();
             }
         });
-        return !bullet.dead;
     });
 
-    // 2. Collisions Envahisseurs vs Joueur
-    invaders = invaders.filter(invader => {
-        if (checkCollision(invader, player)) {
-            if (isShieldActive) {
-                 invader.dead = true; // Détruit l'ennemi sans perte de vie
-            } else {
-                 invader.dead = true; 
-                 updateLives(-1); // Perte de vie
+    // 2. Tirs des Aliens vs Joueur
+    alienBullets.forEach((bullet, bIndex) => {
+        if (checkCollision(bullet, player)) {
+            alienBullets.splice(bIndex, 1);
+            lives--;
+            updateScoreBoard();
+            
+            if (lives <= 0) {
+                endGame(false);
             }
         }
-        return !invader.dead;
     });
-    
-    // 3. Collisions Joueur vs PowerUps
-    powerUps = powerUps.filter(pu => {
-        if (checkCollision(pu, player)) {
-            activatePowerUp(pu.type);
-            return false; // Supprimer le bonus
-        }
-        return !pu.dead; // Conserver s'il n'est pas mort (ou n'est pas sorti de l'écran)
-    });
-    
-    // 4. Nettoyage
-    player.bullets = player.bullets.filter(b => !b.dead);
-}
 
-
-function updateGame() {
-    if (gameOver || !gameStarted) return;
-
-    // 1. Mise à jour des Timers des bonus
-    updatePowerUpTimers();
-
-    // 2. Mise à jour du joueur (mouvement et angle)
-    player.update(keys);
-    
-    // 3. Gestion des ennemis (spawn et mouvement)
-    invaderSpawnCounter++;
-    if (invaderSpawnCounter >= INVADER_SPAWN_RATE) {
-        spawnInvader();
-        invaderSpawnCounter = 0;
+    // Vérifie si la vague est terminée
+    if (aliens.length === 0) {
+        nextWave();
     }
-    invaders.forEach(i => i.update(player));
-    
-    // 4. Spawn et mouvement des PowerUps
-    spawnPowerUp();
-    powerUps.forEach(pu => pu.update());
-    
-    // 5. Mise à jour des tirs
-    player.bullets.forEach(b => b.update());
-
-    // 6. Gestion des Collisions
-    handleCollisions();
 }
 
-function drawGame() {
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+// --- Vagues et Fin de Jeu ---
 
-    if (!gameStarted) {
-        ctx.fillStyle = '#00ff00';
-        ctx.font = '30px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('ZQSD pour bouger, Souris pour viser et cliquer pour tirer', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30);
-        ctx.fillText('Appuyez sur ESPACE pour commencer', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
+function nextWave() {
+    wave++;
+    bullets = [];
+    alienBullets = [];
+    alert(`Vague ${wave} ! Préparez-vous.`);
+    createAliens();
+    // Accélération des aliens
+    alienMoveSpeed += 5; 
+}
+
+function endGame(win) {
+    if (gameOver) return;
+    gameOver = true;
+    clearInterval(gameLoopInterval);
+    
+    // Sauvegarde du high score (Fonction de auth.js)
+    saveHighScore(GAME_NAME, score);
+    
+    const message = win ? 
+        `VICTOIRE ! Score final : ${score}` :
+        `GAME OVER ! Votre score : ${score}. High Score Personnel : ${getPersonalHighScore(GAME_NAME)}`;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#E0E0E0';
+    ctx.font = '40px Arial';
+    ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+    
+    // Mise à jour finale du leaderboard après la sauvegarde
+    updateLeaderboard();
+}
+
+// =========================================================
+// 3. AFFICHAGE ET BOUCLE DE JEU
+// =========================================================
+
+function draw() {
+    ctx.fillStyle = '#121212';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    player.draw();
+    aliens.forEach(alien => alien.draw());
+    bullets.forEach(bullet => bullet.draw());
+    alienBullets.forEach(bullet => bullet.draw());
+}
+
+let lastTime = 0;
+
+function gameLoop(currentTime = 0) {
+    if (gameOver) return;
+    
+    const deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    
+    // 1. Mise à jour des positions
+    movePlayer();
+    moveAliens(deltaTime);
+    moveBullets();
+    
+    // 2. Tirs des aliens
+    alienFire();
+    
+    // 3. Détection des collisions
+    checkCollisions();
+    
+    // 4. Affichage
+    draw();
+}
+
+// =========================================================
+// 4. GESTION DES SCORES ET UI
+// =========================================================
+
+function updateScoreBoard() {
+    document.getElementById('currentScore').textContent = score;
+    document.getElementById('livesCount').textContent = lives;
+    
+    // Récupère le high score personnel depuis auth.js
+    const personal = getPersonalHighScore(GAME_NAME);
+    document.getElementById('personalHighScore').textContent = personal;
+    
+    updateLeaderboard();
+}
+
+function updateLeaderboard() {
+    const leaderboardList = document.getElementById('leaderboardList');
+    leaderboardList.innerHTML = '';
+    
+    // Récupère les top scores depuis auth.js
+    const leaderboard = getLeaderboard(GAME_NAME);
+    
+    if (leaderboard.length === 0) {
+        leaderboardList.innerHTML = '<li>Aucun score enregistré. Soyez le premier!</li>';
         return;
     }
-
-    // Dessiner les entités
-    powerUps.forEach(pu => pu.draw(ctx)); 
-    invaders.forEach(i => i.draw(ctx));
-    player.draw(ctx);
     
-    if (gameOver) {
-         if (score > 0) {
-             updatePersonalHighScore(score);
-             renderScoreBoard(); 
-         }
-         
-         ctx.fillStyle = 'red';
-         ctx.font = '35px Arial'; 
-         ctx.textAlign = 'center';
-         
-         const message = lives <= 0 ? 'GAME OVER - Les envahisseurs vous ont eu !' : 'VICTOIRE TECHNIQUE !';
-         ctx.fillText(message, GAME_WIDTH / 2, GAME_HEIGHT / 2);
-         
-         ctx.font = '20px Arial';
-         ctx.fillText(`Score final: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40);
-         ctx.fillText(`Appuyez sur Entrée pour rejouer`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
-    }
+    leaderboard.forEach((item, index) => {
+        const li = document.createElement('li');
+        let roleIcon = '';
+        if (item.role === 'admin') {
+            roleIcon = '<i class="fa-solid fa-shield-halved" style="color: #FFD700; margin-right: 5px;"></i>';
+        }
+        li.innerHTML = `${index + 1}. ${roleIcon}${item.username} : **${item.score}**`;
+        leaderboardList.appendChild(li);
+    });
 }
 
-function gameLoop() {
-    updateGame();
-    drawGame();
-}
-
-// --- GESTION DES ÉVÉNEMENTS ---
-
-document.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mousePos.x = e.clientX - rect.left;
-    mousePos.y = e.clientY - rect.top;
-});
-
-document.addEventListener('mousedown', (e) => {
-    if (gameStarted && !gameOver && e.button === 0) { 
-        player.shoot();
-    }
-});
+// =========================================================
+// 5. GESTION DES ENTRÉES
+// =========================================================
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'z' || e.key === 'Z') keys['z'] = true;
-    if (e.key === 's' || e.key === 'S') keys['s'] = true;
-    if (e.key === 'q' || e.key === 'Q') keys['q'] = true;
-    if (e.key === 'd' || e.key === 'D') keys['d'] = true;
-    
-    if (e.code === 'Space' && !gameOver && !gameStarted) {
-        startGame();
-        e.preventDefault(); 
-    }
-    if (gameOver && e.code === 'Enter') {
-        startGame();
+    keys[e.code] = true;
+    if (e.code === 'Space') {
+        fireBullet();
     }
 });
 
 document.addEventListener('keyup', (e) => {
-    if (e.key === 'z' || e.key === 'Z') keys['z'] = false;
-    if (e.key === 's' || e.key === 'S') keys['s'] = false;
-    if (e.key === 'q' || e.key === 'Q') keys['q'] = false;
-    if (e.key === 'd' || e.key === 'D') keys['d'] = false;
+    keys[e.code] = false;
 });
 
 
-// --- INITIALISATION DU JEU ---
-
-function startGame() {
-    if (gameLoopInterval) clearInterval(gameLoopInterval); 
-    
-    score = 0;
-    lives = 3;
-    gameOver = false;
-    gameStarted = true;
-    keys = {};
-    invaders = []; 
-    powerUps = []; 
-    
-    // Réinitialisation des états des bonus
-    isShieldActive = false;
-    shieldTimer = 0;
-    isShotgunActive = false;
-    shotgunTimer = 0;
-    
-    player = new Player(); 
-    
-    scoreElement.textContent = score;
-    livesElement.textContent = lives;
-
-    gameLoopInterval = setInterval(gameLoop, 1000 / 60); 
-}
+// =========================================================
+// 6. DÉMARRAGE
+// =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderScoreBoard(); 
-    drawGame(); 
+    // Assurez-vous que l'initialisation ne se lance qu'après le chargement de auth.js
+    // Comme auth.js est chargé en premier dans space_invaders.html, on peut l'appeler ici.
+    initGame();
 });
+
+// Lance la boucle de jeu.
+// Remarque: La boucle réelle (gameLoopInterval) est démarrée dans initGame().
