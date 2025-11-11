@@ -3,81 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Master - Space Invaders 2.0</title>
+    <title>Arcade Master - Space Invaders</title>
     
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="space_invaders.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <style>
-        /* Styles spécifiques au jeu */
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        #gameCanvas {
-            border: 3px solid var(--color-neon-orange);
-            background-color: #121212;
-            box-shadow: 0 0 20px rgba(255, 165, 0, 0.5); 
-        }
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            width: 800px; /* Doit correspondre à la largeur du canvas */
-            margin-bottom: 15px;
-            color: var(--color-text-light);
-            font-size: 1.1em;
-        }
-        .game-info span {
-            padding: 5px 10px;
-            background-color: var(--color-card-dark);
-            border-radius: 5px;
-        }
-        .game-info b {
-            color: var(--color-neon-green);
-        }
-        .game-controls {
-            margin-top: 20px;
-        }
-        .game-controls button {
-            padding: 10px 30px;
-            font-size: 1.2em;
-            background-color: var(--color-neon-green);
-        }
-        /* Style pour le classement sur la page de jeu */
-        #leaderboard {
-            width: 800px;
-            margin-top: 30px;
-            padding: 20px;
-            background-color: var(--color-card-dark);
-            border-radius: 10px;
-        }
-        #leaderboard h3 {
-            color: var(--color-neon-orange);
-            border-bottom: 2px solid var(--color-neon-green);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        #leaderboardList {
-            list-style: none;
-            padding: 0;
-        }
-        #leaderboardList li {
-            padding: 8px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-            color: var(--color-text-light);
-            display: flex;
-            justify-content: space-between;
-        }
-        #leaderboardList li:last-child {
-            border-bottom: none;
-        }
-        #leaderboardList b {
-            color: var(--color-neon-green);
-        }
-    </style>
 </head>
 <body>
 
@@ -85,10 +15,17 @@
         <div id="menuToggle" class="menu-toggle">
             <i class="fa-solid fa-bars"></i>
         </div>
-        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-orange);">
             SPACE INVADERS
         </span>
-        <div id="right-container" style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">0</span>
+                <button id="trollButton" type="button">+</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte">
+                👤
+            </a>
         </div>
     </div>
 
@@ -106,39 +43,59 @@
 
     <div class="main-container" id="mainContent">
         <div style="padding-top: 50px;"></div> 
-        
-        <h1 style="font-size: 2.5em; color: var(--color-neon-orange);">SPACE INVADERS 2.0</h1>
-        
-        <div class="game-container">
+
+        <div class="game-wrapper">
+            <div id="gameInfo">
+                <div id="scoreDisplay" class="info-item">Score: 0</div>
+                <div id="livesDisplay" class="info-item">Vies: 3</div>
+            </div>
             
-            <div class="game-info">
-                <span>Score: <b id="currentScore">0</b></span>
-                <span>Meilleur Score Personnel: <b id="personalHighScore">0</b></span>
-                <span>Vies: <b id="livesCount">3</b> ❤️</span>
-                <span>Pièces gagnées: <b id="coinsGained">0</b> 💰</span>
+            <div id="gameBoard">
+                <div id="instructionsScreen" class="overlay">
+                    <h2 style="color: var(--color-neon-green);">SPACE INVADERS</h2>
+                    <p style="color: var(--color-text-light);">Appuyez sur <b style="color: var(--color-neon-orange);">ESPACE</b> pour lancer le jeu.</p>
+                </div>
+
+                <div id="gameOverScreen" class="overlay" style="display: none;">
+                    <h2 style="color: var(--color-neon-red);">GAME OVER</h2>
+                    <p id="finalScore">Score final : 0</p>
+                    <button id="restartButton" class="btn-primary" style="background-color: var(--color-neon-green);">Recommencer</button>
+                </div>
+
             </div>
 
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
-            
-            <div class="game-controls">
-                <button onclick="initGame()">
-                    <i class="fa-solid fa-play"></i> Nouvelle Partie
-                </button>
-            </div>
+            <div id="helpZone" class="auth-card" style="margin-top: 20px;">
+                <h3 style="color: var(--color-neon-orange);">🚀 Comment Jouer</h3>
+                <p>Déplacez votre vaisseau et détruisez tous les envahisseurs pour passer au niveau suivant.</p>
+                
+                <h3 style="color: var(--color-neon-green); margin-top: 15px;">🕹️ Contrôles</h3>
+                <ul class="controls-list">
+                    <li><b style="color: var(--color-neon-blue);">← / A</b> : Déplacer à gauche</li>
+                    <li><b style="color: var(--color-neon-blue);">→ / D</b> : Déplacer à droite</li>
+                    <li><b style="color: var(--color-neon-blue);">ESPACE</b> : Tirer / Lancer le jeu</li>
+                </ul>
 
-             <div id="leaderboard">
-                <h3>🏆 Meilleurs Scores Locaux - Space Invaders</h3>
-                <ul id="leaderboardList">
-                    <li>Chargement du classement...</li>
+                <h3 style="color: var(--color-neon-red); margin-top: 15px;">✨ Bonus</h3>
+                <ul class="controls-list">
+                    <li><b style="color: var(--color-neon-red);">❤️ Vie Supplémentaire</b> : Restaure une vie.</li>
+                    <li><b style="color: var(--color-neon-blue);">⚡ Vitesse de Tir</b> : Augmente la cadence de tir temporairement.</li>
+                    <li><b style="color: var(--color-neon-green);">🛡️ Bouclier</b> : Vous rend invulnérable pendant quelques secondes.</li>
                 </ul>
             </div>
-
+            
         </div>
-        
     </div>
-    
-    <script src="base.js"></script>
-    <script src="auth.js"></script>
+
+    <script src="base.js"></script> 
+    <script src="auth.js"></script> 
     <script src="space_invaders.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof updateTopBar === 'function') {
+                updateTopBar();
+            }
+        });
+    </script>
 </body>
 </html>
