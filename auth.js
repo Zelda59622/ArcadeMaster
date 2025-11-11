@@ -90,8 +90,14 @@ function logout() {
 
 // Obtenir l'utilisateur actuel
 function getCurrentUser() {
-    const userJson = localStorage.getItem(LOCAL_STORAGE_CURRENT_USER);
-    return userJson ? JSON.parse(userJson) : null;
+    try {
+        const userJson = localStorage.getItem(LOCAL_STORAGE_CURRENT_USER);
+        return userJson ? JSON.parse(userJson) : null;
+    } catch (e) {
+        // En cas de blocage du localStorage, on retourne null.
+        console.error("Erreur de lecture du stockage local pour l'utilisateur actuel:", e);
+        return null; 
+    }
 }
 
 // Mise à jour de l'utilisateur (gardée pour les futures mises à jour de profil/score)
