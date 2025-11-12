@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Style spécifique pour la grille de la boutique */
+        /* Styles spécifiques de la boutique (inclus ici pour la portabilité) */
         .shop-list {
             display: flex;
             flex-wrap: wrap;
@@ -16,7 +16,6 @@
             margin-top: 20px;
         }
         .shop-card {
-            /* Similaire à game-card mais peut être un peu plus petit */
             flex: 0 1 250px; 
             padding: 20px;
             background-color: var(--color-background-dark);
@@ -134,7 +133,7 @@
                     
                     <div class="shop-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);">
                         <span class="item-icon" style="color: var(--color-neon-orange);">💎</span>
-                        <h3 style="color: var(--color-neon-orange);">50 000 Pièces</h3>
+                        <h3 style="color: var(--color-neon-orange);">1 000 Pièces</h3>
                         <p class="price" style="color: var(--color-neon-red);">4.99 €</p>
                         <a href="rickroll.html" class="btn-primary" style="background-color: var(--color-neon-red);">
                             Acheter
@@ -143,23 +142,23 @@
                     
                     <div class="shop-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);">
                         <span class="item-icon" style="color: var(--color-neon-orange);">👑</span>
-                        <h3 style="color: var(--color-neon-orange);">150 000 Pièces</h3>
-                        <p class="price" style="color: var(--color-neon-red);">9.99 €</p>
+                        <h3 style="color: var(--color-neon-orange);">2 500 Pièces</h3>
+                        <p class="price" style="color: var(--color-neon-red);">10.00 €</p>
                         <a href="rickroll.html" class="btn-primary" style="background-color: var(--color-neon-red);">
                             Acheter
                         </a>
                     </div>
                 </div>
             </section>
-
-        </div>
+            </div>
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // Logique pour afficher/masquer le contenu si l'utilisateur est connecté (Rappel de la logique précédente)
+        // Logique pour afficher/masquer le contenu si l'utilisateur est connecté
         document.addEventListener('DOMContentLoaded', () => {
+            // Assure que getCurrentUser est chargé via base.js
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0 };
             const notConnected = document.getElementById('notConnectedMessage');
             const content = document.getElementById('boutiqueContent');
@@ -171,6 +170,51 @@
                 notConnected.style.display = 'block';
                 content.style.display = 'none';
             }
+            
+            // --- LOGIQUE SIMULÉE DES BOUTONS DE SKINS ---
+            
+            // Simule l'action d'acheter ou d'équiper un skin
+            document.querySelectorAll('.btn-buy, .btn-equip').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const card = e.target.closest('.shop-card');
+                    const itemId = card.dataset.itemId;
+                    
+                    if (e.target.classList.contains('btn-buy')) {
+                        // Logique d'achat simulée (doit vérifier les pièces dans le vrai code)
+                        alert(`Achat simulé de l'objet : ${itemId}. Félicitations !`);
+                        
+                        // Simulation de la mise à jour après l'achat
+                        card.dataset.owned = 'true';
+                        e.target.classList.remove('btn-buy');
+                        e.target.classList.add('btn-equip');
+                        e.target.textContent = 'Équiper';
+                        e.target.style.backgroundColor = 'var(--color-neon-orange)';
+                        card.querySelector('.price').textContent = 'Possédé';
+                        card.querySelector('.price').style.color = 'var(--color-text-light)';
+
+                    } else if (e.target.classList.contains('btn-equip')) {
+                        // Logique d'équipement simulée
+                        
+                        // Déséquiper l'ancien (logique très simplifiée)
+                        document.querySelectorAll('.shop-card[data-equipped="true"]').forEach(equippedCard => {
+                            if (equippedCard !== card) {
+                                equippedCard.dataset.equipped = 'false';
+                                const eqBtn = equippedCard.querySelector('.btn-equip');
+                                if(eqBtn) {
+                                    eqBtn.textContent = 'Équiper';
+                                    eqBtn.disabled = false;
+                                }
+                            }
+                        });
+
+                        // Équiper le nouveau
+                        alert(`Équipement simulé de l'objet : ${itemId}.`);
+                        card.dataset.equipped = 'true';
+                        e.target.textContent = 'Équipé';
+                        e.target.disabled = true;
+                    }
+                });
+            });
         });
     </script>
 </body>
