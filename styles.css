@@ -49,7 +49,7 @@ hr {
     margin: 20px 0;
 }
 
-/* Correction de la zone principale pour les menus fixes */
+/* CORRECTION CRITIQUE : Assure que le contenu principal démarre sous la top-bar fixe */
 .main-container {
     padding: 20px;
     padding-top: 70px; /* 50px de top-bar + 20px de marge */
@@ -187,15 +187,18 @@ hr {
 
 
 /* ==================================== */
-/* 6. CARTES DE JEU (JEUX.HTML) - Style standard */
+/* 6. CARTES DE JEU (JEUX.HTML) - Style standard (NON RGB) */
 /* ==================================== */
 
-/* Retour à une disposition flexible standard (ou laissez la disposition par défaut) */
+/* Retour à une disposition flexible standard */
 .game-list {
-    display: flex; /* Utilisation de flexbox pour l'ancienne disposition */
+    display: flex; 
     flex-wrap: wrap; 
     gap: 20px;
     margin-top: 20px;
+    /* Ajustement pour que l'ancienne carte de Space Invaders prenne toute la largeur 
+       si elle est la seule dans la section 'Actuels' */
+    justify-content: flex-start; 
 }
 
 /* Style de la carte de jeu SANS animation RGB */
@@ -206,11 +209,11 @@ hr {
     text-align: center;
     transition: transform 0.3s, box-shadow 0.3s;
     
-    /* Style de bordure simple */
+    /* Style de bordure simple non RGB */
     border: 3px solid var(--color-neon-blue); 
     box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
     
-    /* Permet aux cartes de prendre de la place, mais de s'adapter */
+    /* Permet aux cartes de s'étirer (1 1 300px = s'adapte, mais minimum 300px) */
     flex: 1 1 300px; 
 }
 
@@ -246,7 +249,7 @@ hr {
 /* 7. ADAPTATIONS RESPONSIVES */
 /* ==================================== */
 @media screen and (max-width: 768px) {
-    /* Sur les petits écrans, les cartes s'empilent naturellement avec flex-wrap */
+    /* Sur les petits écrans, les cartes s'empilent */
     .game-list {
         flex-direction: column; 
     }
@@ -259,6 +262,6 @@ hr {
     }
     .main-container {
         padding: 10px;
-        padding-top: 60px;
+        padding-top: 60px; /* Ajustement pour la top-bar sur mobile */
     }
 }
