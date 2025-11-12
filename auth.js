@@ -1,4 +1,4 @@
-// Dépendance : ce script nécessite la fonction updateGlobalUser() de base.js
+// Dépendance : ce script nécessite la fonction updateGlobalUser() de base.js (pour mettre à jour la session)
 
 // --- 1. FONCTIONS UTILITAIRES ---
 
@@ -11,10 +11,13 @@ function saveUsers(users) {
     localStorage.setItem('users', JSON.stringify(users));
 }
 
+
 // --- 2. GESTION DE L'ADMIN ET DES DONNÉES INITIALES ---
 
 function loadInitialData() {
     let users = getUsers();
+
+    // 1. Définir le compte Admin si non existant
     const adminUsername = 'Zelda5962';
     const adminPassword = '?Moi123!';
     let adminExists = users.some(user => user.username === adminUsername);
@@ -23,17 +26,18 @@ function loadInitialData() {
         console.log(`Création du compte Administrateur : ${adminUsername}`);
         const adminUser = {
             id: 1, 
-            username: Zelda5962,
-            password: Moi123!, 
+            username: adminUsername,
+            password: adminPassword, 
             coins: 0, 
             scores: { space_invaders: 0 }, 
             skins: { active: {}, owned: {} },
-            isAdmin: true 
+            isAdmin: true // Marqué comme administrateur
         };
         users.push(adminUser); 
         saveUsers(users);
     }
     
+    // 2. Gère le prochain ID utilisateur pour les inscriptions
     if (users.length > 0) {
         const maxId = users.reduce((max, user) => (user.id > max ? user.id : max), 0);
         localStorage.setItem('nextUserId', maxId + 1);
@@ -59,7 +63,7 @@ function loginUser(username, password) {
 function registerUser(username, password) {
     const users = getUsers();
     if (users.some(u => u.username === username)) {
-        return false;
+        return false; // Nom d'utilisateur déjà pris
     }
 
     const nextId = parseInt(localStorage.getItem('nextUserId') || '2');
@@ -67,7 +71,7 @@ function registerUser(username, password) {
         id: nextId,
         username: username,
         password: password,
-        coins: 1000, 
+        coins: 1000, // Bonus de départ
         scores: { space_invaders: 0 },
         skins: { active: {}, owned: {} },
         isAdmin: false
@@ -93,8 +97,6 @@ function logoutUser() {
 
 /**
  * Met à jour le mot de passe dans le localStorage.
- * @param {string} username - Nom d'utilisateur.
- * @param {string} newPassword - Le nouveau mot de passe.
  */
 function updatePassword(username, newPassword) {
     let users = getUsers();
@@ -103,28 +105,56 @@ function updatePassword(username, newPassword) {
     if (userIndex !== -1) {
         users[userIndex].password = newPassword;
         saveUsers(users);
-        
-        // Met à jour l'utilisateur dans la session courante
         updateGlobalUser(users[userIndex]); 
         return true;
     }
     return false;
 }
 
-// Fonction pour modifier les pièces (Logique Admin, laissée ici pour référence)
+
+// --- 4. FONCTIONNALITÉ ADMIN (Modification des Pièces) ---
+
+/**
+ * Fonction réservée aux administrateurs pour modifier le solde d'un utilisateur.
+ */
 function modifyUserCoins(targetUsername, newCoinsAmount, adminUser) {
     if (!adminUser || !adminUser.isAdmin) {
         console.error("Accès refusé. Seul un administrateur peut modifier les pièces.");
         return false;
     }
-    // ... (Reste de la logique de modification)
+
+    let users = getUsers();
+    const targetUserIndex = users.findIndex(u => u.username === targetUsername);
+
+    if (targetUserIndex !== -1) {
+        const oldCoins = users[targetUserIndex].coins;
+        users[targetUserIndex].coins = newCoinsAmount;
+        saveUsers(users);
+        console.log(`Pièces de l'utilisateur ${targetUsername} modifiées : ${oldCoins} -> ${newCoinsAmount}.`);
+        
+        if (targetUsername === adminUser.username) {
+            // Mettre à jour l'affichage de l'admin s'il modifie son propre compte
+            updateGlobalUser(users[targetUserIndex]);
+            // Recharger la barre supérieure si possible
+            if (typeof updateTopBar === 'function') {
+                 updateTopBar();
+            }
+        }
+        
+        return true;
+    } else {
+        console.error(`Utilisateur cible "${targetUsername}" non trouvé.`);
+        return false;
+    }
 }
 
 
-// --- 4. EXÉCUTION INITIALE ET GESTION DES FORMULAIRES ---
+// --- 5. EXÉCUTION INITIALE ET GESTION DES FORMULAIRES ---
 
 document.addEventListener('DOMContentLoaded', () => {
     loadInitialData(); 
+    
+    // GESTION DES FORMULAIRES DE CONNEXION/INSCRIPTION/MDP (Doivent exister sur compte.html)
     
     // CONNEXION
     const loginForm = document.getElementById('loginForm');
@@ -136,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (loginUser(username, password)) {
                 alert(`Connexion réussie ! Bienvenue, ${username}.`);
-                window.location.reload(); // Recharger pour afficher le menu de profil
+                window.location.reload(); 
             } else {
                 alert("Échec : Nom d'utilisateur ou mot de passe incorrect.");
             }
@@ -160,14 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // CHANGEMENT DE MOT DE PASSE
+    // CHANGEMENT DE MOT DE PASSE (sur compte.html)
     const passwordForm = document.getElementById('passwordForm');
     if (passwordForm) {
         passwordForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const newPassword = document.getElementById('newPassword').value;
             const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-            const currentUser = getCurrentUser(); // Assume que getCurrentUser est dispo via base.js
+            const currentUser = getCurrentUser(); 
 
             if (newPassword !== confirmNewPassword) {
                 alert("Les mots de passe ne correspondent pas.");
@@ -176,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (updatePassword(currentUser.username, newPassword)) {
                 alert("Mot de passe mis à jour avec succès !");
-                // Optionnel: Réinitialiser les champs
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmNewPassword').value = '';
             } else {
@@ -184,24 +213,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // DÉCONNEXION
+    
+    // DÉCONNEXION (sur compte.html)
     const logoutButton = document.getElementById('logoutButton');
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
             logoutUser();
             alert("Vous avez été déconnecté.");
-            window.location.reload(); // Recharger pour afficher les formulaires de connexion
-        });
-    }
-
-    // GESTION DE LA PDP (Simulée - le vrai upload nécessite un serveur)
-    const pdpForm = document.getElementById('pdpForm');
-    if (pdpForm) {
-        pdpForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            // Ici, vous auriez besoin d'un serveur pour sauvegarder l'image.
-            alert("Fonctionnalité PDP : L'image serait envoyée au serveur ici. (Simulation réussie)");
+            window.location.reload(); 
         });
     }
 });
+
+
+// --- 6. EXPOSITION DES FONCTIONS POUR admin.html ---
+// Permet d'appeler ces fonctions depuis le panneau d'administration
+
+window.getUsersData = getUsers; 
+window.reinitializeData = loadInitialData;
+window.modifyUserCoins = modifyUserCoins;
