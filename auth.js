@@ -29,18 +29,17 @@ function loadInitialData() {
         const adminUser = {
             id: 1, // ID arbitraire pour l'admin
             username: adminUsername,
-            password: adminPassword, // Non hashé pour simplicité du local storage
-            coins: 0, // Argent à 0 comme demandé
-            scores: { space_invaders: 0 }, // Scores à 0 comme demandé
+            password: adminPassword,
+            coins: 0, 
+            scores: { space_invaders: 0 }, 
             skins: { active: { /* default skins */ }, owned: { /* default skins */ } },
-            isAdmin: true // Marqué comme administrateur
+            isAdmin: true 
         };
         users.push(adminUser);
         saveUsers(users);
     }
     
     // 2. S'assurer que le user ID est bien géré
-    // Ceci est essentiel si on veut créer de nouveaux utilisateurs par la suite
     if (users.length > 0) {
         const maxId = users.reduce((max, user) => (user.id > max ? user.id : max), 0);
         localStorage.setItem('nextUserId', maxId + 1);
@@ -48,11 +47,7 @@ function loadInitialData() {
         localStorage.setItem('nextUserId', 2);
     }
 
-    // Initialisation du statut de l'utilisateur actuel si nécessaire
-    if (!localStorage.getItem('currentUser')) {
-         // Laisse le compte invité par défaut (géré par base.js)
-         // Le vrai login se fera via le formulaire
-    }
+    // Pas besoin d'initialiser currentUser ici, base.js le fait au besoin.
 }
 
 
@@ -63,7 +58,6 @@ function loginUser(username, password) {
     const user = users.find(u => u.username === username && u.password === password);
 
     if (user) {
-        // Enregistre l'utilisateur dans currentUser (connecté)
         updateGlobalUser(user); 
         console.log(`Utilisateur connecté: ${user.username}`);
         return true;
@@ -87,7 +81,7 @@ function registerUser(username, password) {
         id: nextId,
         username: username,
         password: password,
-        coins: 1000, // Petit bonus de départ
+        coins: 1000, 
         scores: { space_invaders: 0 },
         skins: { active: { /* default skins */ }, owned: { /* default skins */ } },
         isAdmin: false
@@ -97,13 +91,11 @@ function registerUser(username, password) {
     saveUsers(users);
     localStorage.setItem('nextUserId', nextId + 1);
 
-    // Connecte le nouvel utilisateur automatiquement après inscription
     updateGlobalUser(newUser); 
     console.log(`Nouvel utilisateur enregistré et connecté: ${username}`);
     return true;
 }
 
-// Déconnecte l'utilisateur
 function logoutUser() {
     // Définit l'utilisateur courant sur le profil "Déconnecté" (ID 0)
     updateGlobalUser({ 
@@ -132,13 +124,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('loginPassword').value;
 
             if (loginUser(username, password)) {
-                alert(`Bienvenue, ${username} !`);
-                window.location.href = 'index.html'; // Redirige vers l'accueil
+                // **AJOUT du message de confirmation**
+                alert(`Connexion réussie ! Bienvenue, ${username}.`);
+                // Redirige après la confirmation, sans vider les champs du formulaire.
+                window.location.href = 'index.html'; 
             } else {
-                alert("Nom d'utilisateur ou mot de passe incorrect.");
+                alert("Échec : Nom d'utilisateur ou mot de passe incorrect.");
             }
         });
     }
     
-    // Ajoutez ici la gestion du formulaire d'inscription (registerForm) si elle existe.
+    // Si vous aviez un formulaire d'inscription, le même principe s'appliquerait ici
+    // Exemple hypothétique:
+    /*
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+         registerForm.addEventListener('submit', (event) => {
+             event.preventDefault();
+             // ... Récupération des valeurs ...
+             if (registerUser(username, password)) {
+                 alert(`Inscription réussie ! Bienvenue, ${username}.`);
+                 window.location.href = 'index.html';
+             } else {
+                 alert("Échec : Ce nom d'utilisateur est déjà pris.");
+             }
+         });
+    }
+    */
 });
