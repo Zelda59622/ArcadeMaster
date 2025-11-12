@@ -6,11 +6,41 @@
     <title>Arcade Master - Boutique</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Style spécifique pour la grille de la boutique */
+        .shop-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .shop-card {
+            /* Similaire à game-card mais peut être un peu plus petit */
+            flex: 0 1 250px; 
+            padding: 20px;
+            background-color: var(--color-background-dark);
+            border-radius: 10px;
+            border: 2px solid var(--color-neon-blue);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+            text-align: center;
+        }
+        .shop-card .item-icon {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .shop-card .price {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: var(--color-neon-green);
+        }
+    </style>
 </head>
 <body>
     
     <div id="top-bar"></div>
-    
     <div id="sidebar" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
         <div id="nav-links"></div>
@@ -21,7 +51,7 @@
         <h1 style="color: var(--color-neon-orange); text-align: center;">BOUTIQUE ARCADE</h1>
         <hr>
         
-        <div class="centered-container" id="notConnectedMessage">
+        <div class="centered-container" id="notConnectedMessage" style="display: none;">
             <p style="color: var(--color-text-medium); margin-bottom: 30px; font-size: 1.1em;">
                 Vous devez être <strong style="color: var(--color-neon-green);">connecté</strong> pour accéder à la boutique et acheter/équiper des skins.
             </p>
@@ -35,70 +65,109 @@
             <section class="items-section">
                 <h2 style="color: var(--color-neon-blue); margin-bottom: 20px;">SKINS DE VAISSEAU</h2>
                 
-                <div class="game-list">
+                <div class="shop-list">
                     
-                    <div class="game-card" id="skin-base">
-                        <span class="game-icon" style="color: var(--color-neon-green);">🚀</span>
+                    <div class="shop-card" data-item-id="vessel_base" data-owned="true" data-equipped="true">
+                        <span class="item-icon" style="color: var(--color-neon-green);">🚀</span>
                         <h3 style="color: var(--color-neon-green);">Vaisseau Standard</h3>
-                        
-                        <button class="btn-primary" style="background-color: var(--color-neon-blue);" disabled>
+                        <p class="price" style="color: var(--color-text-light);">Gratuit</p>
+                        <button class="btn-primary btn-equip" style="background-color: var(--color-neon-blue);" disabled>
                             Équipé
                         </button>
                     </div>
 
-                    <div class="game-card" id="skin-ninja">
-                        <span class="game-icon" style="color: var(--color-text-medium);">🌑</span>
+                    <div class="shop-card" data-item-id="vessel_ninja" data-owned="false">
+                        <span class="item-icon" style="color: var(--color-text-medium);">🌑</span>
                         <h3 style="color: var(--color-text-light);">Skin Ninja</h3>
-                        
-                        <button class="btn-primary" style="background-color: var(--color-neon-orange);">
-                            Équiper
-                        </button>
-                    </div>
-                    
-                    <div class="game-card" id="skin-gold">
-                        <span class="game-icon" style="color: gold;">🏆</span>
-                        <h3 style="color: var(--color-neon-orange);">Vaisseau Gold</h3>
-                        <p style="color: var(--color-neon-orange); font-size: 1.2em; font-weight: bold; margin: 10px 0;">
-                            150 000 💰
-                        </p>
-                        <button class="btn-primary" style="background-color: var(--color-neon-green);">
+                        <p class="price">15 000 💰</p>
+                        <button class="btn-primary btn-buy" style="background-color: var(--color-neon-green);">
                             Acheter
                         </button>
                     </div>
-                    
-                    <div class="game-card" id="skin-vip" style="opacity: 0.7;">
-                        <span class="game-icon" style="color: var(--color-neon-purple);">👑</span>
-                        <h3 style="color: var(--color-neon-purple);">Vaisseau VIP</h3>
-                        <p style="color: var(--color-neon-purple); font-size: 1.2em; font-weight: bold; margin: 10px 0;">
-                            500 000 💰
-                        </p>
-                        <button class="btn-primary" style="background-color: var(--color-neon-red);" disabled>
-                            Pas assez de pièces
+
+                    <div class="shop-card" data-item-id="vessel_gold" data-owned="true" data-equipped="false">
+                        <span class="item-icon" style="color: gold;">🏆</span>
+                        <h3 style="color: var(--color-neon-orange);">Vaisseau Gold</h3>
+                        <p class="price" style="color: var(--color-text-light);">Possédé</p>
+                        <button class="btn-primary btn-equip" style="background-color: var(--color-neon-orange);">
+                            Équiper
                         </button>
                     </div>
 
                 </div>
             </section>
-        </div>
+            
+            <hr style="margin: 40px 0;">
 
+            <section class="items-section">
+                <h2 style="color: var(--color-neon-blue); margin-bottom: 20px;">SKINS DE MONSTRE</h2>
+                
+                <div class="shop-list">
+                    
+                    <div class="shop-card" data-item-id="monster_squid" data-owned="false">
+                        <span class="item-icon" style="color: purple;">🦑</span>
+                        <h3 style="color: var(--color-neon-purple);">Squid Alien</h3>
+                        <p class="price">25 000 💰</p>
+                        <button class="btn-primary btn-buy" style="background-color: var(--color-neon-green);">
+                            Acheter
+                        </button>
+                    </div>
+                    
+                    <div class="shop-card" data-item-id="monster_ghost" data-owned="false">
+                        <span class="item-icon" style="color: white;">👻</span>
+                        <h3 style="color: var(--color-neon-red);">Fantôme</h3>
+                        <p class="price">50 000 💰</p>
+                        <button class="btn-primary btn-buy" style="background-color: var(--color-neon-green);">
+                            Acheter
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <hr style="margin: 40px 0;">
+
+            <section class="items-section centered-container" style="max-width: 800px; text-align: center;">
+                <h2 style="color: var(--color-neon-red); margin-bottom: 20px;">ACHAT DE PIÈCES (Argent Réel)</h2>
+                <p style="color: var(--color-text-medium); margin-bottom: 30px;">Soutenez le développement et obtenez instantanément des pièces pour la boutique !</p>
+                
+                <div class="shop-list" style="justify-content: center;">
+                    
+                    <div class="shop-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);">
+                        <span class="item-icon" style="color: var(--color-neon-orange);">💎</span>
+                        <h3 style="color: var(--color-neon-orange);">50 000 Pièces</h3>
+                        <p class="price" style="color: var(--color-neon-red);">4.99 €</p>
+                        <a href="rickroll.html" class="btn-primary" style="background-color: var(--color-neon-red);">
+                            Acheter
+                        </a>
+                    </div>
+                    
+                    <div class="shop-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);">
+                        <span class="item-icon" style="color: var(--color-neon-orange);">👑</span>
+                        <h3 style="color: var(--color-neon-orange);">150 000 Pièces</h3>
+                        <p class="price" style="color: var(--color-neon-red);">9.99 €</p>
+                        <a href="rickroll.html" class="btn-primary" style="background-color: var(--color-neon-red);">
+                            Acheter
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // Logique pour afficher/masquer le contenu si l'utilisateur est connecté.
+        // Logique pour afficher/masquer le contenu si l'utilisateur est connecté (Rappel de la logique précédente)
         document.addEventListener('DOMContentLoaded', () => {
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0 };
             const notConnected = document.getElementById('notConnectedMessage');
             const content = document.getElementById('boutiqueContent');
 
             if (user.id !== 0) {
-                // Utilisateur connecté : masque le message, affiche la boutique
                 notConnected.style.display = 'none';
                 content.style.display = 'block';
-                // (Ici irait la logique JS pour charger les skins réels et gérer les boutons)
             } else {
-                // Utilisateur déconnecté : affiche le message, masque la boutique
                 notConnected.style.display = 'block';
                 content.style.display = 'none';
             }
