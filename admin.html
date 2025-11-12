@@ -6,45 +6,59 @@
     <title>Arcade Master - Administration</title>
     
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Styles CSS supplémentaires pour l'Admin (si non dans styles.css) */
+        .auth-card {
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid;
+            margin-bottom: 30px;
+        }
+        .card-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .action-card {
+            flex: 1 1 200px;
+            padding: 20px;
+            background-color: var(--color-background-dark);
+            border: 2px solid var(--color-neon-red);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.5);
+        }
+        .action-card .card-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .stats-card {
+            padding: 20px;
+            border: 2px solid;
+            border-radius: 8px;
+            background-color: var(--color-background-medium);
+        }
+    </style>
 </head>
 <body>
 
-    <div id="top-bar">
-        <div id="menuToggle" class="menu-toggle">
-            <i class="fa-solid fa-bars"></i>
-        </div>
-        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-red);">
-            ADMINISTRATION
-        </span>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <a href="boutique.html" class="currency-display" title="Boutique">
-                <span class="coin-count">0</span>
-                <button id="trollButton" type="button">+</button>
-            </a>
-            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
-                👤
-            </a>
-        </div>
-    </div>
-
-    <div id="sidebar" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
-        <div id="nav-links">
-            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
-            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
-            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
-            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
-            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
-            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
-            <a href="admin.html" data-emoji="🔑" style="border-left: 5px solid var(--color-neon-red); color: var(--color-neon-red);">🔑 Administration</a>
-        </div>
-    </div>
+    <div id="top-bar"></div> <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div id="nav-links"></div> </div>
 
     <div class="main-container" id="mainContent">
-        <div style="padding-top: 50px;"></div> 
         
-        <h1 style="font-size: 2.5em; color: var(--color-neon-red); text-align: center;">PANNEAU ADMINISTRATEUR</h1>
+        <h1 style="font-size: 2.5em; color: var(--color-neon-red); text-align: center; padding-top: 20px;">PANNEAU ADMINISTRATEUR</h1>
         
         <div id="adminContent" style="max-width: 800px; margin: 30px auto; text-align: left;">
             <p style="color: var(--color-text-light); text-align: center;">
@@ -54,12 +68,27 @@
             <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);">
                 <h2>Accès Restreint</h2>
                 <p style="text-align: center; color: var(--color-neon-red);">Vous devez être connecté en tant qu'administrateur.</p>
+                <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-orange);">
+                     Se connecter
+                </a>
             </div>
 
             <div id="adminTools" style="display: none;">
+                
+                <h2 style="color: var(--color-neon-red); margin-top: 0;">Gestion des Pièces</h2>
+                <div class="stats-card" style="border-color: var(--color-neon-orange); margin-bottom: 40px;">
+                    <form id="coinModifyForm">
+                        <input type="text" id="targetUsername" placeholder="Nom d'utilisateur cible (ex: Zelda5962)" required>
+                        <input type="number" id="newCoinsAmount" placeholder="Nouveau montant de pièces" required>
+                        <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange); margin-top: 15px;">
+                            <i class="fas fa-hand-holding-usd"></i> Modifier les Pièces
+                        </button>
+                    </form>
+                </div>
+                
                 <h2 style="color: var(--color-neon-red);">Outils de Données</h2>
                 
-                <div class="card-group" style="justify-content: flex-start; margin-left: 0;">
+                <div class="card-group">
                     
                     <div class="action-card" onclick="displayAllUsers()">
                         <span class="card-icon">👥</span>
@@ -88,38 +117,83 @@
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
+        // --- VÉRIFICATION DES DROITS D'ACCÈS ---
         function checkAdminAccess() {
-            const user = getCurrentUser();
+            const user = getCurrentUser(); // Supposé être disponible via base.js
             const loginSection = document.getElementById('adminLogin');
             const toolsSection = document.getElementById('adminTools');
 
-            if (user && user.role === 'admin') {
+            if (user && user.isAdmin === true) { 
                 loginSection.style.display = 'none';
                 toolsSection.style.display = 'block';
             } else {
                 loginSection.style.display = 'block';
                 toolsSection.style.display = 'none';
+                
+                // Si l'utilisateur est connecté mais non-admin (id !== 0), on le bloque
+                if (user.id !== 0) { 
+                    alert("Accès refusé. Vous devez disposer des droits administrateur.");
+                    window.location.href = 'index.html'; 
+                }
             }
-            updateTopBar();
+            if (typeof updateTopBar === 'function') {
+                updateTopBar();
+            }
         }
         
+        // --- FONCTIONS ADMIN LIÉES AUX BOUTONS ---
+        
+        // Fonction pour afficher le JSON des utilisateurs
         window.displayAllUsers = function() {
-            const users = loadUsers();
+            const users = window.getUsersData ? window.getUsersData() : [];
             document.getElementById('userJsonOutput').textContent = JSON.stringify(users, null, 2);
         }
 
+        // Fonction pour réinitialiser toutes les données
         window.resetAllData = function() {
             if (confirm("Êtes-vous SÛR de vouloir réinitialiser TOUTES les données utilisateur au profil par défaut ? Cela effacera tous les scores et pièces.")) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                localStorage.removeItem(LOCAL_STORAGE_CURRENT_USER);
-                initUsers();
+                
+                localStorage.removeItem('users');
+                localStorage.removeItem('currentUser');
+                
+                window.reinitializeData(); // Recrée l'admin Zelda5962
+                
                 checkAdminAccess();
-                alert("Réinitialisation complète effectuée.");
-                document.getElementById('userJsonOutput').textContent = "Données réinitialisées au profil de base.";
+                alert("Réinitialisation complète effectuée. Veuillez vous reconnecter.");
+                document.getElementById('userJsonOutput').textContent = "Données réinitialisées au profil de base. (Veuillez vous reconnecter)";
             }
         }
+        
+        // --- GESTION DU FORMULAIRE DE MODIFICATION DES PIÈCES ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAccess();
 
-        document.addEventListener('DOMContentLoaded', checkAdminAccess);
+            const coinModifyForm = document.getElementById('coinModifyForm');
+            if (coinModifyForm) {
+                coinModifyForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    
+                    const targetUsername = document.getElementById('targetUsername').value;
+                    const newCoinsAmount = parseInt(document.getElementById('newCoinsAmount').value);
+                    const adminUser = getCurrentUser();
+
+                    if (isNaN(newCoinsAmount) || newCoinsAmount < 0) {
+                        alert("Veuillez entrer un montant valide (nombre positif).");
+                        return;
+                    }
+                    
+                    // Utilisation de la fonction modifyUserCoins exposée par auth.js
+                    if (window.modifyUserCoins(targetUsername, newCoinsAmount, adminUser)) {
+                        alert(`Le solde de ${targetUsername} a été mis à jour à ${newCoinsAmount} pièces.`);
+                        // Effacer les champs après succès
+                        document.getElementById('targetUsername').value = '';
+                        document.getElementById('newCoinsAmount').value = '';
+                    } else {
+                        alert(`Échec de la modification. L'utilisateur "${targetUsername}" est introuvable ou vous n'avez pas les droits.`);
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
