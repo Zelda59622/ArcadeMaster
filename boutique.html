@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Styles spécifiques de la boutique (inclus ici pour la portabilité) */
+        /* Styles spécifiques de la boutique (issus de styles.css, mais pour être sûr) */
         .shop-list {
             display: flex;
             flex-wrap: wrap;
@@ -52,7 +52,7 @@
         
         <div class="centered-container" id="notConnectedMessage" style="display: none;">
             <p style="color: var(--color-text-medium); margin-bottom: 30px; font-size: 1.1em;">
-                Vous devez être <strong style="color: var(--color-neon-green);">connecté</strong> pour accéder à la boutique et acheter/équiper des skins.
+                Vous devez être <strong style="color: var(--color-neon-green);">connecté</strong> pour accéder à la boutique.
             </p>
             <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-green);">
                 <i class="fas fa-sign-in-alt"></i> Se connecter maintenant
@@ -164,7 +164,7 @@
             const priceMatch = priceText.match(/(\d[\d\s]*)/); 
             const price = priceMatch ? parseInt(priceMatch[0].replace(/\s/g, '')) : 0;
             const itemId = card.dataset.itemId;
-            const itemType = itemId.split('_')[0]; // 'vessel' ou 'monster'
+            const itemType = itemId.split('_')[0]; 
             
             return { price, itemId, itemType };
         }
@@ -175,39 +175,39 @@
             const isOwned = user.skins.owned && user.skins.owned[item.itemId];
             const isActive = user.skins.active && user.skins.active[item.itemType] === item.itemId;
             
-            card.dataset.owned = isOwned ? 'true' : 'false';
-            card.dataset.equipped = isActive ? 'true' : 'false';
-
+            // Éléments à modifier
             const button = card.querySelector('.btn-primary');
+            const priceDisplay = card.querySelector('.price');
 
             if (isActive) {
                 button.textContent = 'Équipé';
                 button.disabled = true;
                 button.style.backgroundColor = 'var(--color-neon-blue)';
-                card.querySelector('.price').textContent = 'Possédé';
-                card.querySelector('.price').style.color = 'var(--color-text-light)';
+                priceDisplay.textContent = 'Possédé';
+                priceDisplay.style.color = 'var(--color-text-light)';
             } else if (isOwned) {
                 button.textContent = 'Équiper';
                 button.disabled = false;
                 button.style.backgroundColor = 'var(--color-neon-orange)';
                 button.classList.remove('btn-buy');
                 button.classList.add('btn-equip');
-                card.querySelector('.price').textContent = 'Possédé';
-                card.querySelector('.price').style.color = 'var(--color-text-light)';
+                priceDisplay.textContent = 'Possédé';
+                priceDisplay.style.color = 'var(--color-text-light)';
             } else {
-                 // Non possédé
+                // Non possédé
                 button.textContent = 'Acheter';
                 button.disabled = false;
                 button.style.backgroundColor = 'var(--color-neon-green)';
                 button.classList.remove('btn-equip');
                 button.classList.add('btn-buy');
-                card.querySelector('.price').textContent = `${item.price.toLocaleString('fr-FR')} 💰`;
-                card.querySelector('.price').style.color = 'var(--color-neon-green)';
+                priceDisplay.textContent = `${item.price.toLocaleString('fr-FR')} 💰`;
+                priceDisplay.style.color = 'var(--color-neon-green)';
             }
         }
         
         // Logique principale
         document.addEventListener('DOMContentLoaded', () => {
+            // Vérifie si getCurrentUser est disponible (c'est le rôle de base.js et auth.js)
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0, skins: { active: {}, owned: {} } };
             const notConnected = document.getElementById('notConnectedMessage');
             const content = document.getElementById('boutiqueContent');
@@ -217,32 +217,37 @@
                 notConnected.style.display = 'none';
                 content.style.display = 'block';
 
-                // 1. Initialiser l'état visuel des cartes selon l'utilisateur
+                // Initialiser l'état visuel des cartes selon l'utilisateur
                 shopCards.forEach(card => updateCardVisual(card, user));
             } else {
                 notConnected.style.display = 'block';
                 content.style.display = 'none';
-                return; // Arrêter si déconnecté
+                return;
             }
             
-            // 2. Écouteurs d'événements pour Achat et Équipement
-            
+            // Écouteurs d'événements pour Achat et Équipement
             shopCards.forEach(card => {
                 const item = getItemData(card);
 
                 card.addEventListener('click', (e) => {
                     const button = e.target.closest('.btn-primary');
-                    if (!button) return;
+                    if (!button) return; // Clic en dehors des boutons
 
                     if (button.classList.contains('btn-buy')) {
-                        
+                        // VÉRIFIE QUE window.deductCoins EST DISPONIBLE (auth.js)
+                        if (typeof window.deductCoins !== 'function') {
+                            alert("Erreur critique : La fonction d'achat n'est pas chargée. Vérifiez l'inclusion de auth.js.");
+                            return;
+                        }
+
                         if (window.deductCoins(item.price)) {
                             window.addOwnedSkin(item.itemId);
                             alert(`Achat réussi ! ${item.itemId} est maintenant dans votre inventaire.`);
                             
-                            // Recharger l'état de la carte après l'achat
+                            // Mise à jour visuelle
                             const updatedUser = getCurrentUser();
                             updateCardVisual(card, updatedUser);
+                            updateTopBar(); // Met à jour le solde de pièces en haut
 
                         } else {
                             alert(`Échec de l'achat : Fonds insuffisants (besoin de ${item.price.toLocaleString('fr-FR')} pièces) !`);
@@ -254,7 +259,7 @@
                         window.equipSkin(item.itemId, item.itemType);
                         alert(`Skin équipé : ${item.itemId}.`);
 
-                        // Recharger l'état de TOUTES les cartes après l'équipement
+                        // Mise à jour visuelle complète
                         const updatedUser = getCurrentUser();
                         shopCards.forEach(c => updateCardVisual(c, updatedUser));
                     }
