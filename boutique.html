@@ -1,201 +1,108 @@
-<script src="base.js"></script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Master - Boutique</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    
+    <div id="top-bar"></div>
+    
+    <div id="sidebar" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div id="nav-links"></div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        
+        <h1 style="color: var(--color-neon-orange); text-align: center;">BOUTIQUE ARCADE</h1>
+        <hr>
+        
+        <div class="centered-container" id="notConnectedMessage">
+            <p style="color: var(--color-text-medium); margin-bottom: 30px; font-size: 1.1em;">
+                Vous devez être <strong style="color: var(--color-neon-green);">connecté</strong> pour accéder à la boutique et acheter/équiper des skins.
+            </p>
+            <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-green);">
+                <i class="fas fa-sign-in-alt"></i> Se connecter maintenant
+            </a>
+        </div>
+        
+        <div id="boutiqueContent" style="display: none;">
+            
+            <section class="items-section">
+                <h2 style="color: var(--color-neon-blue); margin-bottom: 20px;">SKINS DE VAISSEAU</h2>
+                
+                <div class="game-list">
+                    
+                    <div class="game-card" id="skin-base">
+                        <span class="game-icon" style="color: var(--color-neon-green);">🚀</span>
+                        <h3 style="color: var(--color-neon-green);">Vaisseau Standard</h3>
+                        
+                        <button class="btn-primary" style="background-color: var(--color-neon-blue);" disabled>
+                            Équipé
+                        </button>
+                    </div>
+
+                    <div class="game-card" id="skin-ninja">
+                        <span class="game-icon" style="color: var(--color-text-medium);">🌑</span>
+                        <h3 style="color: var(--color-text-light);">Skin Ninja</h3>
+                        
+                        <button class="btn-primary" style="background-color: var(--color-neon-orange);">
+                            Équiper
+                        </button>
+                    </div>
+                    
+                    <div class="game-card" id="skin-gold">
+                        <span class="game-icon" style="color: gold;">🏆</span>
+                        <h3 style="color: var(--color-neon-orange);">Vaisseau Gold</h3>
+                        <p style="color: var(--color-neon-orange); font-size: 1.2em; font-weight: bold; margin: 10px 0;">
+                            150 000 💰
+                        </p>
+                        <button class="btn-primary" style="background-color: var(--color-neon-green);">
+                            Acheter
+                        </button>
+                    </div>
+                    
+                    <div class="game-card" id="skin-vip" style="opacity: 0.7;">
+                        <span class="game-icon" style="color: var(--color-neon-purple);">👑</span>
+                        <h3 style="color: var(--color-neon-purple);">Vaisseau VIP</h3>
+                        <p style="color: var(--color-neon-purple); font-size: 1.2em; font-weight: bold; margin: 10px 0;">
+                            500 000 💰
+                        </p>
+                        <button class="btn-primary" style="background-color: var(--color-neon-red);" disabled>
+                            Pas assez de pièces
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+    </div>
+    
+    <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // --- LOGIQUE DE LA BOUTIQUE (JS) ---
-
-        // Données des skins (inchangées)
-        const SKINS_DATA = {
-            spaceInvaders: {
-                ship: [
-                    { id: 100, name: "Classique", symbol: "🚀", price: 0, category: 'ship' },
-                    { id: 101, name: "Aigle", symbol: "🦅", price: 50, category: 'ship' },
-                    { id: 102, name: "Vipère", symbol: "🐍", price: 150, category: 'ship' },
-                    { id: 103, name: "Soucoupe", symbol: "🛸", price: 500, category: 'ship' },
-                ],
-                invader: [
-                    { id: 200, name: "Classique", symbol: "👾", price: 0, category: 'invader' },
-                    { id: 201, name: "Yeux Rouges", symbol: "👹", price: 100, category: 'invader' },
-                    { id: 202, name: "Robot Jaune", symbol: "🤖", price: 300, category: 'invader' },
-                ]
-            },
-            snakeInfini: {
-                snake_head: [
-                    { id: 300, name: "Tête Verte", symbol: "🟢", price: 0, category: 'snake_head' },
-                    { id: 301, name: "Tête Bleue", symbol: "🔵", price: 50, category: 'snake_head' },
-                    { id: 302, name: "Tête Flamme", symbol: "🔥", price: 200, category: 'snake_head' },
-                ],
-                food: [
-                    { id: 400, name: "Pomme", symbol: "🍎", price: 0, category: 'food' },
-                    { id: 401, name: "Diamant", symbol: "💎", price: 100, category: 'food' },
-                    { id: 402, name: "Gâteau", symbol: "🎂", price: 400, category: 'food' },
-                ]
-            }
-        };
-        
-        // Fonction utilitaire pour obtenir la liste des skins possédés (uniquement si connecté)
-        function getOwnedSkins(category) {
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            if (user && user.id !== 0 && user.skins && user.skins.owned && user.skins.owned[category]) {
-                return user.skins.owned[category];
-            }
-            return []; // Retourne vide si déconnecté
-        }
-
-
-        // CORRECTION: Logique d'achat (Mode Connecté Forcé)
-        window.buySkin = function(game, category, skinId, price) {
-            const skin = SKINS_DATA[game][category].find(s => s.id === skinId);
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-
-            if (!user || user.id === 0) { 
-                 alert("Achat impossible : Veuillez vous connecter à votre compte !");
-                 return;
-            } 
-            
-             // --- LOGIQUE POUR UTILISATEUR CONNECTÉ ---
-             if (user.coins >= price) {
-                  user.coins -= price; // 1. RETIRER LES PIÈCES
-                  
-                  // 2. AJOUTER LE SKIN À LA LISTE DES SKINS POSSÉDÉS
-                  if (!user.skins.owned) user.skins.owned = {};
-                  if (!user.skins.owned[category]) {
-                      user.skins.owned[category] = [];
-                  }
-                  user.skins.owned[category].push(skinId);
-
-                  // 3. ÉQUIPER LE NOUVEAU SKIN AUTOMATIQUEMENT
-                  if (!user.skins.active) user.skins.active = {};
-                  user.skins.active[category] = skin.symbol;
-                  
-                  // 4. SAUVEGARDER L'UTILISATEUR GLOBALEMENT
-                  if (typeof updateGlobalUser === 'function') {
-                      updateGlobalUser(user);
-                  }
-                  if (typeof updateTopBar === 'function') {
-                      updateTopBar(); // Mettre à jour l'affichage des pièces
-                  }
-
-                  alert(`ACHAT ET ÉQUIPEMENT RÉUSSIS ! Le skin ${skin.name} est à vous. ${price} pièces retirées.`);
-                  
-                  renderAllSkins(true); 
-
-             } else {
-                  alert(`Achat impossible : Il vous manque ${price - user.coins} pièces !`);
-             }
-        }
-        
-        // CORRECTION: Logique d'équipement (Mode Connecté Forcé)
-        window.equipSkin = function(game, category, skinId, symbol) {
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            
-            if (!user || user.id === 0) { 
-                 alert("Équipement impossible : Veuillez vous connecter à votre compte !");
-                 return;
-            } 
-
-             // Mise à jour de l'utilisateur connecté
-             if (!user.skins.active) user.skins.active = {};
-             user.skins.active[category] = symbol;
-
-             if (typeof updateGlobalUser === 'function') {
-                updateGlobalUser(user);
-             }
-             if (typeof updateTopBar === 'function') {
-                updateTopBar(); 
-             }
-
-            alert(`Skin équipé : ${symbol}`);
-            renderAllSkins(true); 
-        }
-        
-        // Rend le bouton HTML
-        function createButton(skin, game, category) {
-             // Vérifier si connecté est nécessaire pour l'affichage du bouton
-             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-             const isConnected = user && user.id !== 0;
-             
-             // Si l'utilisateur est déconnecté, afficher seulement le prix
-             if (!isConnected) {
-                 const span = document.createElement('span');
-                 span.className = 'btn-secondary';
-                 span.textContent = `${skin.price} 💰`;
-                 return span;
-             }
-             
-             // Logique pour les connectés (achat ou équipement)
-             const isOwned = getOwnedSkins(category).includes(skin.id);
-
-             if (isOwned) {
-                const equipBtn = document.createElement('button');
-                equipBtn.className = 'btn-primary';
-                
-                // Mettre "Équipé" si le skin est actif
-                const isActive = user.skins.active[category] === skin.symbol;
-                equipBtn.textContent = isActive ? 'Équipé ✔️' : 'Équiper';
-                
-                equipBtn.style.backgroundColor = isActive ? 'var(--color-neon-orange)' : 'var(--color-neon-green)';
-                equipBtn.disabled = isActive;
-                equipBtn.onclick = () => equipSkin(game, category, skin.id, skin.symbol);
-                return equipBtn;
-             } else {
-                const buyBtn = document.createElement('button');
-                buyBtn.className = 'btn-primary';
-                buyBtn.textContent = `Acheter (${skin.price} 💰)`;
-                buyBtn.style.backgroundColor = 'var(--color-neon-blue)';
-                buyBtn.onclick = () => buySkin(game, category, skin.id, skin.price);
-                return buyBtn;
-             }
-        }
-        
-        // Génère le HTML pour une sous-catégorie (inchangée)
-        function renderSubCategory(containerId, game, categoryKey, categoryTitle) {
-            // ... (logique de rendu inchangée) ...
-        }
-        
-        // CORRECTION: Fonction de rendu principale avec vérification de connexion
-        window.renderAllSkins = function(reRender = false) {
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            const isConnected = user && user.id !== 0;
-
-            const restrictedContent = document.getElementById('restrictedShopContent');
-            const loginPrompt = document.getElementById('loginPrompt');
-            
-            if (!restrictedContent || !loginPrompt) return;
-
-            if (isConnected) {
-                restrictedContent.style.display = 'block';
-                loginPrompt.style.display = 'none';
-
-                if (reRender) {
-                     document.getElementById('spaceInvadersSkins').innerHTML = '';
-                     document.getElementById('snakeSkins').innerHTML = '';
-                }
-                
-                renderSubCategory('spaceInvadersSkins', 'spaceInvaders', 'ship', 'Vaisseaux 🚀');
-                renderSubCategory('spaceInvadersSkins', 'spaceInvaders', 'invader', 'Monstres 👾');
-
-                renderSubCategory('snakeSkins', 'snakeInfini', 'snake_head', 'Têtes de Serpent 🐍');
-                renderSubCategory('snakeSkins', 'snakeInfini', 'food', 'Nourriture 🍎');
-                
-            } else {
-                // S'assurer que le contenu est masqué et le prompt affiché
-                restrictedContent.style.display = 'none';
-                loginPrompt.style.display = 'block';
-                // Rendu des achats de pièces (si non masqué par CSS global)
-                document.getElementById('coinPacks').style.display = 'flex'; 
-            }
-        }
-
-        // Gère l'achat des pièces (Rickroll)
-        window.buyCoins = function(pack) {
-            alert(`Vous avez tenté d'acheter le ${pack}. La transaction est en cours...`);
-            window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; 
-        }
-
+        // Logique pour afficher/masquer le contenu si l'utilisateur est connecté.
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof updateTopBar === 'function') {
-                updateTopBar();
+            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0 };
+            const notConnected = document.getElementById('notConnectedMessage');
+            const content = document.getElementById('boutiqueContent');
+
+            if (user.id !== 0) {
+                // Utilisateur connecté : masque le message, affiche la boutique
+                notConnected.style.display = 'none';
+                content.style.display = 'block';
+                // (Ici irait la logique JS pour charger les skins réels et gérer les boutons)
+            } else {
+                // Utilisateur déconnecté : affiche le message, masque la boutique
+                notConnected.style.display = 'block';
+                content.style.display = 'none';
             }
-            renderAllSkins(); 
         });
     </script>
+</body>
+</html>
