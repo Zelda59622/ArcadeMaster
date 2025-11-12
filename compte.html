@@ -17,28 +17,111 @@
 
     <div class="main-container" id="mainContent">
         
-        <h1 style="color: var(--color-neon-blue); text-align: center;">CONNEXION / INSCRIPTION</h1>
-        
-        <div class="centered-container">
-            <h2 style="color: var(--color-neon-green); margin-bottom: 20px;">Se Connecter</h2>
-            <form id="loginForm">
-                <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required 
-                       style="width: 90%; padding: 12px; margin: 8px 0; background-color: var(--color-background-medium); border: 1px solid var(--color-neon-blue); color: var(--color-text-light); border-radius: 4px;">
-                <input type="password" id="loginPassword" placeholder="Mot de passe" required 
-                       style="width: 90%; padding: 12px; margin: 8px 0 20px; background-color: var(--color-background-medium); border: 1px solid var(--color-neon-blue); color: var(--color-text-light); border-radius: 4px;">
-                
-                <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange); width: 95%;">Connexion</button>
-            </form>
+        <div id="authContainer">
+            <h1 style="color: var(--color-neon-orange); text-align: center;">CONNEXION / INSCRIPTION</h1>
             
-            <p style="margin-top: 20px; font-size: 0.9em;"><a href="#" onclick="showRegisterForm()" style="color: var(--color-neon-green);">Pas de compte ? S'inscrire</a></p>
-        </div>
-        
-        <div id="registerContainer" class="centered-container" style="display: none;">
+            <div class="centered-container" id="loginWrapper">
+                <h2 style="color: var(--color-neon-green); margin-bottom: 20px;">Se Connecter</h2>
+                <form id="loginForm">
+                    <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
+                    <input type="password" id="loginPassword" placeholder="Mot de passe" required>
+                    
+                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange); width: 95%;">Connexion</button>
+                </form>
+                
+                <p style="margin-top: 20px; font-size: 0.9em;"><a href="#" onclick="showRegisterForm()" style="color: var(--color-neon-green);">Pas de compte ? S'inscrire</a></p>
             </div>
+            
+            <div id="registerWrapper" class="centered-container" style="display: none; margin-top: 30px;">
+                <h2 style="color: var(--color-neon-blue); margin-bottom: 20px;">Créer un Compte</h2>
+                <form id="registerForm">
+                    <input type="text" id="registerUsername" placeholder="Nom d'utilisateur" required>
+                    <input type="password" id="registerPassword" placeholder="Mot de passe" required>
+                    
+                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-blue); width: 95%;">Inscription</button>
+                </form>
+                <p style="margin-top: 20px; font-size: 0.9em;"><a href="#" onclick="showLoginForm()" style="color: var(--color-neon-orange);">Déjà un compte ? Se connecter</a></p>
+            </div>
+        </div>
+
+        <div id="profileContainer" style="display: none;">
+            <h1 style="color: var(--color-neon-green); text-align: center;">MON COMPTE</h1>
+            <hr>
+
+            <div class="centered-container" style="max-width: 600px;">
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+                    <div id="pdpDisplay" style="width: 100px; height: 100px; background-color: var(--color-neon-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid var(--color-neon-green);">
+                        <i class="fas fa-user" style="color: var(--color-text-light);"></i>
+                    </div>
+                    <div>
+                        <h2 style="color: var(--color-neon-orange); margin: 0;" id="profileUsername"></h2>
+                        <p style="color: var(--color-text-medium); margin: 5px 0 0;">Pièces: <span id="profileCoins" style="color: var(--color-neon-green);">0</span> 💰</p>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--color-neon-blue); margin-top: 30px;">Changer la Photo de Profil</h3>
+                <form id="pdpForm" style="margin-bottom: 30px;">
+                    <input type="file" id="pdpInput" accept="image/*" style="width: 100%; padding: 10px; margin: 10px 0; background-color: var(--color-background-medium); border: 1px solid var(--color-neon-blue); color: var(--color-text-light); border-radius: 4px;">
+                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-blue);">
+                        <i class="fas fa-upload"></i> Sauvegarder PDP
+                    </button>
+                </form>
+
+                <h3 style="color: var(--color-neon-orange); margin-top: 30px;">Changer le Mot de Passe</h3>
+                <form id="passwordForm">
+                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required>
+                    <input type="password" id="confirmNewPassword" placeholder="Confirmer le nouveau mot de passe" required style="margin-bottom: 20px;">
+                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange);">
+                        <i class="fas fa-key"></i> Changer le Mot de Passe
+                    </button>
+                </form>
+
+                <hr style="margin: 40px 0;">
+                
+                <button id="logoutButton" class="btn-primary" style="background-color: var(--color-neon-red); width: 100%; font-size: 1.1em;">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </button>
+            </div>
+
+        </div>
 
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // --- LOGIQUE D'AFFICHAGE DU FORMULAIRE ---
+        function showRegisterForm() {
+            document.getElementById('loginWrapper').style.display = 'none';
+            document.getElementById('registerWrapper').style.display = 'block';
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginWrapper').style.display = 'block';
+            document.getElementById('registerWrapper').style.display = 'none';
+        }
+
+        // --- GESTION DE L'AFFICHAGE (Connecté vs Déconnecté) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0 };
+            const authContainer = document.getElementById('authContainer');
+            const profileContainer = document.getElementById('profileContainer');
+
+            if (user.id !== 0) {
+                // Connecté : Afficher le profil
+                authContainer.style.display = 'none';
+                profileContainer.style.display = 'block';
+
+                document.getElementById('profileUsername').textContent = user.username;
+                document.getElementById('profileCoins').textContent = user.coins.toLocaleString('fr-FR');
+                // La logique pour charger la VRAIE PDP irait ici (si vous la stockez)
+                
+            } else {
+                // Déconnecté : Afficher la connexion/inscription
+                authContainer.style.display = 'block';
+                profileContainer.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
