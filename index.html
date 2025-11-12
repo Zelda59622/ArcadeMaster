@@ -18,7 +18,7 @@
 
     <div class="main-container" id="mainContent">
         
-        <h1 style="color: var(--color-neon-blue);">Bienvenue dans l'Arcade Master !</h1>
+        <h1 style="color: var(--color-neon-blue); padding-top: 10px;">Bienvenue dans l'Arcade Master !</h1>
         <p>Préparez-vous à jouer, à gagner des pièces et à grimper dans le classement.</p>
         <hr>
 
@@ -65,7 +65,7 @@
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // Logique d'affichage des infos utilisateur sur l'Accueil
+        // Met à jour les informations du joueur au chargement de la page
         document.addEventListener('DOMContentLoaded', () => {
              const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { username: 'Erreur', coins: 0, scores: {} };
              
