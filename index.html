@@ -67,6 +67,7 @@
     <script>
         // Met à jour les informations du joueur au chargement de la page
         document.addEventListener('DOMContentLoaded', () => {
+             // Utilise getCurrentUser() de base.js pour récupérer votre solde, même s'il est à 200k.
              const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { username: 'Erreur', coins: 0, scores: {} };
              
              document.getElementById('usernameDisplay').textContent = user.username;
