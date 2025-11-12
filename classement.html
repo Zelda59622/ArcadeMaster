@@ -4,120 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcade Master - Classement</title>
-    
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-
-    <div id="top-bar">
-        <div id="menuToggle" class="menu-toggle">
-            <i class="fa-solid fa-bars"></i>
-        </div>
-        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-green);">
-            CLASSEMENT
-        </span>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <a href="boutique.html" class="currency-display" title="Boutique">
-                <span class="coin-count">0</span>
-                <button id="trollButton" type="button">+</button>
-            </a>
-            <a href="compte.html" style="color: var(--color-text-light);" title="Mon Compte" data-emoji="👤">
-                👤
-            </a>
-        </div>
-    </div>
-
+    
+    <div id="top-bar"></div>
     <div id="sidebar" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" id="closeNav" onclick="closeNav()" style="position: absolute; top: 0; right: 25px; font-size: 36px; color: var(--color-neon-orange);">&times;</a>
-        <div id="nav-links">
-            <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
-            <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
-            <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
-            <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
-            <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
-            <a href="credits.html" data-emoji="📜">📜 Crédits</a>
-        </div>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div id="nav-links"></div>
     </div>
 
     <div class="main-container" id="mainContent">
-        <div style="padding-top: 50px;"></div> 
         
-        <h1 id="rankingTitle" style="font-size: 2.5em; color: var(--color-neon-green); text-align: center;">CLASSEMENT MONDIAL</h1>
-        
-        <div class="ranking-container">
+        <h1 style="color: var(--color-neon-green); text-align: center;">CLASSEMENT MONDIAL - Space Invaders 2.0</h1>
+        <hr>
+
+        <div class="centered-container">
+            <h2 style="color: var(--color-neon-orange);">MEILLEURS JOUEURS</h2>
             
-            <select id="gameSelector" onchange="renderGlobalRanking()">
-                <option value="space_invaders">Space Invaders 2.0</option>
-                <option value="snake_infini">Snake Infini (Bientôt)</option>
-                <option value="clicker_arcade">Clicker Arcade (Bientôt)</option>
-            </select>
+            <select style="width: 100%; padding: 10px; margin-bottom: 20px; background-color: var(--color-background-medium); color: var(--color-text-light); border: 1px solid var(--color-neon-blue); border-radius: 5px;">
+                <option value="invaders">Space Invaders 2.0</option>
+                </select>
             
-            <h2>MEILLEURS JOUEURS</h2>
-            <ul id="globalRankingList" class="ranking-list">
-                <li>Sélectionnez un jeu pour voir le classement.</li>
-            </ul>
+            <div id="leaderboardList" style="text-align: left; padding-top: 15px;">
+                <p>Chargement des scores...</p>
+            </div>
         </div>
-        
+
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
-    <script>
-        function renderGlobalRanking() {
-            if (typeof loadUsers !== 'function') {
-                document.getElementById('globalRankingList').innerHTML = '<li>Erreur: Fichier auth.js non chargé.</li>';
-                return;
-            }
-            
-            const rankingList = document.getElementById('globalRankingList');
-            const selector = document.getElementById('gameSelector');
-            const gameId = selector.value;
-            const gameName = selector.options[selector.selectedIndex].text;
-            
-            document.getElementById('rankingTitle').textContent = `CLASSEMENT MONDIAL - ${gameName}`;
-            rankingList.innerHTML = '';
-            
-            const users = loadUsers();
-            
-            let rankingData = users.map(user => ({
-                username: user.username,
-                score: user.highScores[gameId] || 0, 
-                role: user.role
-            }))
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score);
-
-            if (rankingData.length === 0) {
-                 rankingList.innerHTML = `<li>Aucun score enregistré pour ${gameName}. Jouez pour entrer dans le classement !</li>`;
-                 return;
-            }
-
-            rankingData.slice(0, 100).forEach((item, index) => {
-                const li = document.createElement('li');
-                const rank = index + 1;
-                
-                let rankEmoji = '';
-                if (rank === 1) rankEmoji = '🥇';
-                else if (rank === 2) rankEmoji = '🥈';
-                else if (rank === 3) rankEmoji = '🥉';
-                
-                li.innerHTML = `
-                    <div class="rank-info">
-                        <span class="rank-number">${rank}</span>
-                        <span>${rankEmoji} ${item.username} ${item.role === 'admin' ? '👑' : ''}</span>
-                    </div>
-                    <span class="score-value">${item.score} PTS</span>
-                `;
-                
-                rankingList.appendChild(li);
-            });
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            renderGlobalRanking();
-            updateTopBar(); // Appel de la fonction de base pour synchroniser la barre
-        });
-    </script>
 </body>
 </html>
