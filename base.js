@@ -1,114 +1,103 @@
-// --- LOGIQUE BASE.JS (MENU ET BARRE SUPÉRIEURE) ---
+// --- LOGIQUE GLOBALE (base.js) ---
 
+// --- 1. GESTION UTILISATEUR ET SKINS (Doit être en accord avec auth.js) ---
+
+// Récupère l'utilisateur actuel (connecté ou déconnecté)
+function getCurrentUser() {
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+        return JSON.parse(userData);
+    }
+    // Utilisateur par défaut (déconnecté/guest), utilise les tempCoins
+    return { 
+        id: 0, 
+        username: 'Joueur Déconnecté', 
+        coins: parseInt(localStorage.getItem('tempCheatCoins') || '0'), 
+        skins: { active: {}, owned: {} },
+        isAdmin: false // Par défaut, non admin
+    };
+}
+
+// Met à jour et sauvegarde l'objet utilisateur global
+function updateGlobalUser(user) {
+    if (user && user.id !== 0) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+    // Met à jour les coins temporaires si l'utilisateur est déconnecté (pour le Konami Code)
+    if (user && user.id === 0) {
+        localStorage.setItem('tempCheatCoins', user.coins.toString());
+    }
+}
+
+// --- 2. GESTION DE LA NAVIGATION (Barres Supérieures et Latérales) ---
+
+// Met à jour le contenu de la barre supérieure
+function updateTopBar() {
+    const user = getCurrentUser();
+    const topBar = document.getElementById('top-bar');
+    
+    if (!topBar) return;
+
+    topBar.innerHTML = `
+        <div id="menuToggle" class="menu-toggle" onclick="openNav()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span style="font-size: 1.5em; font-weight: bold; color: var(--color-neon-blue);">
+            ${document.title.split(' - ')[1] || 'ARCADE MASTER'}
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="boutique.html" class="currency-display" title="Boutique">
+                <span class="coin-count">${user.coins.toLocaleString('fr-FR')}</span>
+                <button id="trollButton" type="button" onclick="window.location.href = 'boutique.html'">💰</button>
+            </a>
+            <a href="compte.html" style="color: var(--color-text-light);" title="${user.username}">
+                👤
+            </a>
+        </div>
+    `;
+}
+
+// Ouvre le menu latéral (Sidebar)
 function openNav() {
+    const user = getCurrentUser();
+    // VÉRIFICATION ADMIN
+    const isAdmin = user && user.id !== 0 && user.isAdmin === true; 
+    
+    const navLinks = document.getElementById('nav-links');
+    if (!navLinks) return;
+
+    // Liens de base
+    let htmlContent = `
+        <a href="index.html" data-emoji="🏠">🏠 Accueil</a>
+        <a href="jeux.html" data-emoji="🎮">🎮 Menu Jeux</a>
+        <a href="compte.html" data-emoji="👤">👤 Mon Compte</a>
+        <a href="boutique.html" data-emoji="🛍️">🛍️ Boutique</a>
+        <a href="classement.html" data-emoji="🏆">🏆 Classement</a>
+    `;
+
+    // AJOUT CONDITIONNEL DU LIEN ADMIN
+    if (isAdmin) {
+        htmlContent += `<a href="admin.html" data-emoji="🔑" style="color: var(--color-neon-red); border-top: 1px dashed var(--color-neon-red);">🔑 Administration</a>`;
+    }
+
+    htmlContent += `<a href="credits.html" data-emoji="📜">📜 Crédits</a>`;
+    
+    navLinks.innerHTML = htmlContent;
+    
     document.getElementById("sidebar").style.width = "250px";
     document.getElementById("mainContent").style.marginLeft = "250px";
 }
 
+// Ferme le menu latéral
 function closeNav() {
     document.getElementById("sidebar").style.width = "0";
-    document.getElementById("mainContent").style.marginLeft= "0";
+    document.getElementById("mainContent").style.marginLeft = "0";
 }
 
-// NOUVEAU: Fonction de mise à jour de la barre supérieure (CRUCIALE)
-window.updateTopBar = function() {
-    // Vérifie si la fonction getCurrentUser (dans auth.js) existe et si un utilisateur est connecté
-    if (typeof getCurrentUser === 'function') {
-        const user = getCurrentUser();
-        const topBar = document.getElementById('top-bar');
-        
-        if (!topBar) return;
+// --- 3. INITIALISATION ---
 
-        // 1. Mise à jour de l'affichage des Pièces
-        const coinCountElement = topBar.querySelector('.coin-count');
-        if (coinCountElement) {
-            coinCountElement.textContent = user ? user.coins : '0';
-        }
-
-        // 2. Mise à jour du Lien de Compte (Avatar/Pseudo vs. Personnage générique)
-        let accountLink = topBar.querySelector('a[href="compte.html"]');
-
-        if (accountLink) {
-            accountLink.innerHTML = ''; // Nettoyer l'icône/contenu actuel
-
-            if (user) {
-                // Connecté : Afficher l'image de profil et le pseudo
-                let profileImg = document.createElement('img');
-                profileImg.className = 'top-bar-profile-pic';
-                profileImg.src = user.profilePictureUrl || 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png';
-                profileImg.alt = 'Avatar';
-                
-                // Styles intégrés pour être sûr
-                profileImg.style.width = '30px';
-                profileImg.style.height = '30px';
-                profileImg.style.borderRadius = '50%';
-                profileImg.style.objectFit = 'cover';
-                profileImg.style.marginRight = '5px';
-                
-                let usernameSpan = document.createElement('span');
-                usernameSpan.className = 'top-bar-username';
-                usernameSpan.textContent = user.username;
-                usernameSpan.style.color = 'var(--color-neon-orange)';
-                
-                accountLink.appendChild(profileImg);
-                accountLink.appendChild(usernameSpan);
-
-            } else {
-                // Déconnecté : Afficher le personnage générique '👤'
-                accountLink.textContent = '👤';
-            }
-        }
-    }
-};
-
-// Gestionnaire d'événement pour le bouton de menu
-document.addEventListener('DOMContentLoaded', (event) => {
-    const menuToggle = document.getElementById('menuToggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', openNav);
-    }
-    // Exécuter la mise à jour au chargement initial
-    updateTopBar();
-});
-
-// --- GESTION GLOBALE DU CODE KONAMI ---
-
-const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight'];
-let konamiIndex = 0;
-
-document.addEventListener('keydown', (e) => {
-    // Éviter de déclencher si l'utilisateur tape dans un champ de texte
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return;
-    }
-
-    if (e.key === KONAMI_CODE[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === KONAMI_CODE.length) {
-            alert("CODE KONAMI ACTIVÉ ! 💰 +50,000 Pièces !");
-            
-            // Logique de gain de pièces
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-            
-            if (user && user.id !== 0) {
-                 // Vrai utilisateur connecté
-                 user.coins = (user.coins || 0) + 50000;
-                 if (typeof updateGlobalUser === 'function') {
-                    updateGlobalUser(user);
-                 }
-            } else {
-                 // Utilisateur déconnecté/fantôme
-                 localStorage.setItem('tempCheatCoins', (parseInt(localStorage.getItem('tempCheatCoins') || '0') + 50000));
-            }
-
-            // Mettre à jour l'affichage des pièces dans la barre supérieure
-            if (typeof updateTopBar === 'function') {
-                updateTopBar(); 
-            }
-
-            konamiIndex = 0; 
-        }
-    } else {
-        konamiIndex = 0; 
-    }
+// Appel essentiel pour que les barres apparaissent sur toutes les pages
+document.addEventListener('DOMContentLoaded', () => {
+    updateTopBar(); 
+    // Assurez-vous d'avoir la Font Awesome pour les icônes (dans le <head> de vos HTML)
 });
