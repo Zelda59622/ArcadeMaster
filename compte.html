@@ -6,6 +6,41 @@
     <title>Arcade Master - Mon Compte</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Styles spécifiques pour le formulaire de compte */
+        .form-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: var(--color-background-medium);
+            border-radius: 10px;
+            border: 2px solid var(--color-neon-blue);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            text-align: center;
+        }
+        .form-container h2 {
+            color: var(--color-neon-orange);
+            margin-bottom: 20px;
+        }
+        .form-container input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--color-text-medium);
+            border-radius: 5px;
+            background-color: var(--color-background-dark);
+            color: var(--color-text-light);
+            box-sizing: border-box;
+        }
+        .form-container button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .status-message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     
@@ -17,70 +52,41 @@
 
     <div class="main-container" id="mainContent">
         
-        <div id="authContainer">
-            <h1 style="color: var(--color-neon-orange); text-align: center;">CONNEXION / INSCRIPTION</h1>
-            
-            <div class="centered-container" id="loginWrapper">
-                <h2 style="color: var(--color-neon-green); margin-bottom: 20px;">Se Connecter</h2>
-                <form id="loginForm">
-                    <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
-                    <input type="password" id="loginPassword" placeholder="Mot de passe" required>
-                    
-                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange); width: 95%;">Connexion</button>
-                </form>
-                
-                <p style="margin-top: 20px; font-size: 0.9em;"><a href="#" onclick="showRegisterForm()" style="color: var(--color-neon-green);">Pas de compte ? S'inscrire</a></p>
+        <h1 style="color: var(--color-neon-blue); text-align: center;">GESTION DU COMPTE</h1>
+        <hr>
+
+        <div class="form-container" id="loggedInView" style="display: none;">
+            <h2 style="color: var(--color-neon-green);"><i class="fas fa-user-check"></i> Connexion Réussie !</h2>
+            <p style="color: var(--color-text-light);">Bienvenue, <strong id="usernameDisplay" style="color: var(--color-neon-orange);"></strong>.</p>
+            <div style="margin-top: 20px; padding: 10px; border: 1px solid var(--color-neon-blue); border-radius: 5px;">
+                <p style="color: var(--color-neon-blue);">Pièces : <strong id="coinsDisplay" style="color: var(--color-neon-green);">0</strong> 💰</p>
+                <p style="color: var(--color-neon-blue);">Skin Équipé : <strong id="activeSkinDisplay" style="color: var(--color-neon-orange);">Standard</strong></p>
             </div>
-            
-            <div id="registerWrapper" class="centered-container" style="display: none; margin-top: 30px;">
-                <h2 style="color: var(--color-neon-blue); margin-bottom: 20px;">Créer un Compte</h2>
-                <form id="registerForm">
-                    <input type="text" id="registerUsername" placeholder="Nom d'utilisateur" required>
-                    <input type="password" id="registerPassword" placeholder="Mot de passe" required>
-                    
-                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-blue); width: 95%;">Inscription</button>
-                </form>
-                <p style="margin-top: 20px; font-size: 0.9em;"><a href="#" onclick="showLoginForm()" style="color: var(--color-neon-orange);">Déjà un compte ? Se connecter</a></p>
-            </div>
+            <button id="logoutButton" class="btn-primary" style="background-color: var(--color-neon-red); margin-top: 25px;">
+                <i class="fas fa-sign-out-alt"></i> Se Déconnecter
+            </button>
         </div>
 
-        <div id="profileContainer" style="display: none;">
-            <h1 style="color: var(--color-neon-green); text-align: center;">MON COMPTE</h1>
-            <hr>
-
-            <div class="centered-container" style="max-width: 600px;">
-                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
-                    <div id="pdpDisplay" style="width: 100px; height: 100px; background-color: var(--color-neon-blue); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid var(--color-neon-green);">
-                        <i class="fas fa-user" style="color: var(--color-text-light);"></i>
-                    </div>
-                    <div>
-                        <h2 style="color: var(--color-neon-orange); margin: 0;" id="profileUsername"></h2>
-                        <p style="color: var(--color-text-medium); margin: 5px 0 0;">Pièces: <span id="profileCoins" style="color: var(--color-neon-green);">0</span> 💰</p>
-                    </div>
-                </div>
-
-                <h3 style="color: var(--color-neon-blue); margin-top: 30px;">Changer la Photo de Profil</h3>
-                <form id="pdpForm" style="margin-bottom: 30px;">
-                    <input type="file" id="pdpInput" accept="image/*" style="width: 100%; padding: 10px; margin: 10px 0; background-color: var(--color-background-medium); border: 1px solid var(--color-neon-blue); color: var(--color-text-light); border-radius: 4px;">
-                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-blue);">
-                        <i class="fas fa-upload"></i> Sauvegarder PDP
-                    </button>
-                </form>
-
-                <h3 style="color: var(--color-neon-orange); margin-top: 30px;">Changer le Mot de Passe</h3>
-                <form id="passwordForm">
-                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required>
-                    <input type="password" id="confirmNewPassword" placeholder="Confirmer le nouveau mot de passe" required style="margin-bottom: 20px;">
-                    <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange);">
-                        <i class="fas fa-key"></i> Changer le Mot de Passe
-                    </button>
-                </form>
-
-                <hr style="margin: 40px 0;">
-                
-                <button id="logoutButton" class="btn-primary" style="background-color: var(--color-neon-red); width: 100%; font-size: 1.1em;">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+        <div id="loggedOutView" style="display: none;">
+            
+            <div class="form-container" id="loginForm">
+                <h2 style="color: var(--color-neon-orange);">CONNEXION</h2>
+                <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
+                <input type="password" id="loginPassword" placeholder="Mot de passe" required>
+                <button id="loginButton" class="btn-primary" style="background-color: var(--color-neon-green);">
+                    <i class="fas fa-sign-in-alt"></i> Se Connecter
                 </button>
+                <div class="status-message" id="loginStatus" style="color: var(--color-neon-red);"></div>
+            </div>
+
+            <div class="form-container" id="registerForm" style="margin-top: 20px;">
+                <h2 style="color: var(--color-neon-blue);">INSCRIPTION</h2>
+                <input type="text" id="registerUsername" placeholder="Choisir un nom d'utilisateur" required>
+                <input type="password" id="registerPassword" placeholder="Choisir un mot de passe" required>
+                <button id="registerButton" class="btn-primary" style="background-color: var(--color-neon-blue);">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </button>
+                <div class="status-message" id="registerStatus" style="color: var(--color-neon-red);"></div>
             </div>
 
         </div>
@@ -90,37 +96,82 @@
     <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // --- LOGIQUE D'AFFICHAGE DU FORMULAIRE ---
-        function showRegisterForm() {
-            document.getElementById('loginWrapper').style.display = 'none';
-            document.getElementById('registerWrapper').style.display = 'block';
-        }
-
-        function showLoginForm() {
-            document.getElementById('loginWrapper').style.display = 'block';
-            document.getElementById('registerWrapper').style.display = 'none';
-        }
-
-        // --- GESTION DE L'AFFICHAGE (Connecté vs Déconnecté) ---
         document.addEventListener('DOMContentLoaded', () => {
-            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { id: 0 };
-            const authContainer = document.getElementById('authContainer');
-            const profileContainer = document.getElementById('profileContainer');
+            const loggedInView = document.getElementById('loggedInView');
+            const loggedOutView = document.getElementById('loggedOutView');
+            const logoutButton = document.getElementById('logoutButton');
+            
+            const loginButton = document.getElementById('loginButton');
+            const registerButton = document.getElementById('registerButton');
 
-            if (user.id !== 0) {
-                // Connecté : Afficher le profil
-                authContainer.style.display = 'none';
-                profileContainer.style.display = 'block';
+            // --- Fonctions de mise à jour ---
+            function updateAccountView() {
+                const user = getCurrentUser();
 
-                document.getElementById('profileUsername').textContent = user.username;
-                document.getElementById('profileCoins').textContent = user.coins.toLocaleString('fr-FR');
-                // La logique pour charger la VRAIE PDP irait ici (si vous la stockez)
-                
-            } else {
-                // Déconnecté : Afficher la connexion/inscription
-                authContainer.style.display = 'block';
-                profileContainer.style.display = 'none';
+                if (user.id !== 0) {
+                    // Afficher la vue Connecté
+                    loggedInView.style.display = 'block';
+                    loggedOutView.style.display = 'none';
+                    
+                    document.getElementById('usernameDisplay').textContent = user.username;
+                    document.getElementById('coinsDisplay').textContent = user.coins.toLocaleString('fr-FR');
+                    document.getElementById('activeSkinDisplay').textContent = user.skins.active.vessel || 'Standard';
+
+                } else {
+                    // Afficher la vue Déconnecté
+                    loggedInView.style.display = 'none';
+                    loggedOutView.style.display = 'block';
+                }
             }
+            
+            // --- Gestion des événements ---
+            
+            // CONNNEXION
+            loginButton.addEventListener('click', () => {
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                const status = document.getElementById('loginStatus');
+                status.textContent = '';
+
+                if (login(username, password)) {
+                    status.style.color = 'var(--color-neon-green)';
+                    status.textContent = 'Connexion réussie ! Redirection...';
+                    updateAccountView();
+                    updateTopBar(); // Met à jour le solde dans la barre supérieure
+                } else {
+                    status.style.color = 'var(--color-neon-red)';
+                    status.textContent = 'Erreur: Nom d\'utilisateur ou mot de passe incorrect.';
+                }
+            });
+            
+            // INSCRIPTION
+            registerButton.addEventListener('click', () => {
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                const status = document.getElementById('registerStatus');
+                status.textContent = '';
+                
+                if (register(username, password)) {
+                    status.style.color = 'var(--color-neon-green)';
+                    status.textContent = 'Inscription réussie ! Vous pouvez maintenant vous connecter.';
+                    // Effacer les champs
+                    document.getElementById('registerUsername').value = '';
+                    document.getElementById('registerPassword').value = '';
+                } else {
+                    status.style.color = 'var(--color-neon-red)';
+                    status.textContent = 'Erreur: Ce nom d\'utilisateur est déjà pris.';
+                }
+            });
+
+            // DÉCONNEXION
+            logoutButton.addEventListener('click', () => {
+                logout();
+                updateAccountView();
+                updateTopBar();
+            });
+
+            // Initialiser la vue au chargement
+            updateAccountView();
         });
     </script>
 </body>
