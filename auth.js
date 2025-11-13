@@ -1,254 +1,194 @@
-// Dépendance : ce script nécessite la fonction updateGlobalUser() et getCurrentUser() de base.js
+// --- auth.js ---
 
-// --- 1. FONCTIONS UTILITAIRES DE LOCALSTORAGE ---
-
-function getUsers() {
-    const usersData = localStorage.getItem('users');
-    return usersData ? JSON.parse(usersData) : [];
+// Initialise ou récupère la base de données des utilisateurs
+function getUsersDB() {
+    const db = localStorage.getItem('usersDB');
+    return db ? JSON.parse(db) : {};
 }
 
-function saveUsers(users) {
-    localStorage.setItem('users', JSON.stringify(users));
+// Sauvegarde la base de données
+function saveUsersDB(db) {
+    localStorage.setItem('usersDB', JSON.stringify(db));
 }
 
+// Récupère l'ID de l'utilisateur actuellement connecté
+function getActiveUserId() {
+    return parseInt(localStorage.getItem('activeUserId') || 0);
+}
 
-// --- 2. GESTION DE L'ADMIN ET DES DONNÉES INITIALES ---
+// Enregistre l'ID de l'utilisateur connecté
+function setActiveUserId(id) {
+    localStorage.setItem('activeUserId', id);
+}
 
-function loadInitialData() {
-    let users = getUsers();
-
-    // 1. Définir le compte Admin si non existant
-    const adminUsername = 'Zelda5962';
-    const adminPassword = '?Moi123!';
-    let adminExists = users.some(user => user.username === adminUsername);
-
-    if (!adminExists) {
-        console.log(`Création du compte Administrateur : ${adminUsername}`);
-        const adminUser = {
-            id: 1, 
-            username: adminUsername,
-            password: adminPassword, 
-            coins: 0, 
-            scores: { space_invaders: 0 }, 
-            skins: { 
-                active: { vessel: 'vessel_base' }, // Skin de base équipé
-                owned: { vessel_base: true, vessel_gold: true } // Skins possédés
-            },
-            isAdmin: true 
-        };
-        users.push(adminUser); 
-        saveUsers(users);
-    }
+// Récupère l'objet utilisateur actuel (disponible globalement via base.js)
+window.getCurrentUser = function() {
+    const activeId = getActiveUserId();
+    const db = getUsersDB();
     
-    // 2. Gère le prochain ID utilisateur
-    if (users.length > 0) {
-        const maxId = users.reduce((max, user) => (user.id > max ? user.id : max), 0);
-        localStorage.setItem('nextUserId', maxId + 1);
-    } else {
-        localStorage.setItem('nextUserId', 2);
+    if (activeId !== 0 && db[activeId]) {
+        return db[activeId];
     }
-}
-
-
-// --- 3. FONCTIONS D'AUTHENTIFICATION & GESTION DU COMPTE ---
-
-function loginUser(username, password) {
-    const users = getUsers();
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (user) {
-        updateGlobalUser(user); 
-        return true;
-    } 
-    return false;
-}
-
-function registerUser(username, password) {
-    const users = getUsers();
-    if (users.some(u => u.username === username)) {
-        return false; 
-    }
-
-    const nextId = parseInt(localStorage.getItem('nextUserId') || '2');
-    const newUser = {
-        id: nextId,
-        username: username,
-        password: password,
-        coins: 1000, // Bonus de départ
-        scores: { space_invaders: 0 },
-        skins: { 
-            active: { vessel: 'vessel_base' },
-            owned: { vessel_base: true }
-        },
-        isAdmin: false
+    // Utilisateur par défaut si non connecté
+    return { 
+        id: 0, 
+        username: 'Invité', 
+        coins: 0,
+        scores: {},
+        skins: {
+            active: { vessel: 'vessel_base', monster: 'monster_base' },
+            owned: { 'vessel_base': true }
+        }
     };
+}
 
-    users.push(newUser);
-    saveUsers(users);
-    localStorage.setItem('nextUserId', nextId + 1);
 
-    updateGlobalUser(newUser); 
+// **********************************
+// AUTHENTIFICATION (Utilisé par compte.html)
+// **********************************
+
+window.register = function(username, password) {
+    const db = getUsersDB();
+    // Vérifier si le nom d'utilisateur est déjà pris
+    for (const id in db) {
+        if (db[id].username === username) {
+            return false; // Échec de l'inscription
+        }
+    }
+
+    const newId = Date.now(); // Utilise le timestamp comme ID unique
+    
+    // Créer le nouvel utilisateur
+    db[newId] = {
+        id: newId,
+        username: username,
+        password: password, // Pas sécurisé pour le réel, mais simple pour cet exemple
+        coins: 200000, // Pièces de départ
+        scores: {},
+        skins: {
+            active: { vessel: 'vessel_base', monster: 'monster_base' },
+            owned: { 'vessel_base': true } // Possède le skin de base
+        }
+    };
+    
+    saveUsersDB(db);
     return true;
 }
 
-function logoutUser() {
-    updateGlobalUser({ 
-        id: 0, 
-        username: 'Joueur Déconnecté', 
-        coins: 0, 
-        skins: { active: {}, owned: {} },
-        isAdmin: false
-    });
-}
-
-function updatePassword(username, newPassword) {
-    let users = getUsers();
-    const userIndex = users.findIndex(u => u.username === username);
-
-    if (userIndex !== -1) {
-        users[userIndex].password = newPassword;
-        saveUsers(users);
-        updateGlobalUser(users[userIndex]); 
-        return true;
-    }
-    return false;
-}
-
-// --- 4. FONCTIONS DE LA BOUTIQUE ---
-
-/**
- * Déduit un montant de pièces du compte de l'utilisateur courant.
- * @param {number} amount - Montant à déduire.
- * @returns {boolean} Vrai si la déduction est réussie, Faux sinon (fonds insuffisants).
- */
-function deductCoins(amount) {
-    let user = getCurrentUser();
-    if (user.id === 0) return false; 
-
-    if (user.coins >= amount) {
-        user.coins -= amount;
-        
-        // Mise à jour de la liste complète des utilisateurs
-        let users = getUsers();
-        const userIndex = users.findIndex(u => u.id === user.id);
-        if (userIndex !== -1) {
-            users[userIndex].coins = user.coins;
-            saveUsers(users);
+window.login = function(username, password) {
+    const db = getUsersDB();
+    for (const id in db) {
+        const user = db[id];
+        if (user.username === username && user.password === password) {
+            setActiveUserId(user.id);
+            // La fonction updateTopBar doit exister dans base.js
+            if (typeof window.updateTopBar === 'function') {
+                window.updateTopBar();
+            }
+            return true; // Connexion réussie
         }
-        
-        updateGlobalUser(user);
-        return true;
     }
-    return false; 
+    return false; // Échec de la connexion
 }
 
-/**
- * Ajoute un skin à la liste des skins possédés de l'utilisateur.
- */
-function addOwnedSkin(itemId) {
-    let user = getCurrentUser();
+window.logout = function() {
+    setActiveUserId(0);
+}
+
+
+// **********************************
+// FONCTIONS DE LA BOUTIQUE (Utilisé par boutique.html)
+// **********************************
+
+// Retire des pièces
+window.deductCoins = function(amount) {
+    const user = getCurrentUser();
+    if (user.id === 0) return false; // Ne peut pas acheter si déconnecté
+
+    let db = getUsersDB();
+    if (db[user.id].coins >= amount) {
+        db[user.id].coins -= amount;
+        saveUsersDB(db);
+        
+        // Mettre à jour l'utilisateur actif en mémoire (important)
+        updateGlobalUser(db[user.id]); 
+        
+        return true; // Achat réussi
+    }
+    return false; // Fonds insuffisants
+}
+
+// Ajoute un skin à la collection de l'utilisateur
+window.addOwnedSkin = function(skinId) {
+    const user = getCurrentUser();
     if (user.id === 0) return;
 
-    let users = getUsers();
-    const userIndex = users.findIndex(u => u.id === user.id);
-    
-    if (userIndex !== -1) {
-        if (!users[userIndex].skins.owned) {
-            users[userIndex].skins.owned = {};
-        }
-        users[userIndex].skins.owned[itemId] = true; 
-        saveUsers(users);
-        updateGlobalUser(users[userIndex]);
+    let db = getUsersDB();
+    if (!db[user.id].skins.owned) {
+        db[user.id].skins.owned = {};
     }
+    db[user.id].skins.owned[skinId] = true;
+    saveUsersDB(db);
+    
+    // Mettre à jour l'utilisateur actif en mémoire
+    updateGlobalUser(db[user.id]);
 }
 
-/**
- * Équipe un skin spécifique.
- */
-function equipSkin(itemId, itemType) {
-    let user = getCurrentUser();
+// Équipe un skin
+window.equipSkin = function(skinId, itemType) {
+    const user = getCurrentUser();
     if (user.id === 0) return;
 
-    let users = getUsers();
-    const userIndex = users.findIndex(u => u.id === user.id);
-
-    if (userIndex !== -1) {
-        if (!users[userIndex].skins.active) {
-            users[userIndex].skins.active = {};
+    let db = getUsersDB();
+    if (db[user.id].skins.owned && db[user.id].skins.owned[skinId]) {
+        
+        // Assurez-vous que le type existe (ex: 'vessel', 'monster')
+        if (!db[user.id].skins.active) {
+             db[user.id].skins.active = {};
         }
+
+        db[user.id].skins.active[itemType] = skinId;
+        saveUsersDB(db);
         
-        const slot = itemType; 
-        users[userIndex].skins.active[slot] = itemId; 
-        
-        saveUsers(users);
-        updateGlobalUser(users[userIndex]);
+        // Mettre à jour l'utilisateur actif en mémoire
+        updateGlobalUser(db[user.id]);
     }
 }
 
+// **********************************
+// FONCTIONS DU JEU (Ajouter score, etc.)
+// **********************************
 
-// --- 5. FONCTIONS ADMIN ---
+window.saveScore = function(gameName, finalScore) {
+    const user = getCurrentUser();
+    if (user.id === 0) return;
 
-function modifyUserCoins(targetUsername, newCoinsAmount, adminUser) {
-    if (!adminUser || !adminUser.isAdmin) return false;
+    let db = getUsersDB();
+    if (!db[user.id].scores) {
+        db[user.id].scores = {};
+    }
+    
+    // Si c'est un nouveau meilleur score ou le premier
+    if (!db[user.id].scores[gameName] || finalScore > db[user.id].scores[gameName]) {
+        db[user.id].scores[gameName] = finalScore;
+    }
 
-    let users = getUsers();
-    const targetUserIndex = users.findIndex(u => u.username === targetUsername);
-
-    if (targetUserIndex !== -1) {
-        users[targetUserIndex].coins = newCoinsAmount;
-        saveUsers(users);
-        
-        if (targetUsername === adminUser.username) {
-            updateGlobalUser(users[targetUserIndex]);
-            if (typeof updateTopBar === 'function') { updateTopBar(); }
-        }
-        return true;
-    } 
-    return false;
+    saveUsersDB(db);
+    // Mettre à jour l'utilisateur actif en mémoire
+    updateGlobalUser(db[user.id]);
 }
 
-function deleteUser(targetUsername, adminUser) {
-    if (!adminUser || !adminUser.isAdmin) {
-        return { success: false, message: "Accès refusé." };
-    }
-    
-    if (targetUsername === adminUser.username) {
-        return { success: false, message: "L'administrateur ne peut pas supprimer son propre compte." };
-    }
+window.addCoins = function(amount) {
+    const user = getCurrentUser();
+    if (user.id === 0) return;
 
-    let users = getUsers();
-    const initialLength = users.length;
+    let db = getUsersDB();
+    db[user.id].coins += amount;
+    saveUsersDB(db);
     
-    const updatedUsers = users.filter(u => u.username !== targetUsername);
-    
-    if (updatedUsers.length < initialLength) {
-        saveUsers(updatedUsers);
-        loadInitialData(); 
-        return { success: true, message: `Compte ${targetUsername} supprimé avec succès.` };
-    } else {
-        return { success: false, message: `Utilisateur cible "${targetUsername}" non trouvé.` };
+    // Mettre à jour l'utilisateur actif en mémoire et la top bar
+    updateGlobalUser(db[user.id]);
+    if (typeof window.updateTopBar === 'function') {
+        window.updateTopBar();
     }
 }
-
-
-// --- 6. EXÉCUTION INITIALE ET GESTION DES FORMULAIRES ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadInitialData(); 
-    
-    // Les gestionnaires de formulaires (loginForm, registerForm, passwordForm, logoutButton) 
-    // sont supposés exister dans ce fichier pour compte.html
-    // (J'ai retiré le code des gestionnaires pour ne pas alourdir, mais ils doivent être présents pour compte.html)
-});
-
-
-// --- 7. EXPOSITION DES FONCTIONS POUR admin.html ET boutique.html ---
-
-window.getUsersData = getUsers; 
-window.reinitializeData = loadInitialData;
-window.modifyUserCoins = modifyUserCoins;
-window.deleteUser = deleteUser;
-
-window.deductCoins = deductCoins;
-window.addOwnedSkin = addOwnedSkin;
-window.equipSkin = equipSkin;
