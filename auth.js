@@ -192,3 +192,69 @@ window.addCoins = function(amount) {
         window.updateTopBar();
     }
 }
+// --- EXTENSION ADMIN POUR AUTH.JS ---
+
+// 1. Création automatique de l'admin au chargement si la base est vide ou si l'admin manque
+(function initAdmin() {
+    let db = getUsersDB();
+    let adminExists = false;
+
+    for (let id in db) {
+        if (db[id].username === "Zelda5962") {
+            adminExists = true;
+            db[id].isAdmin = true; // On s'assure qu'il a les droits
+            break;
+        }
+    }
+
+    if (!adminExists) {
+        const adminId = "999"; // ID spécial pour l'admin
+        db[adminId] = {
+            id: adminId,
+            username: "Zelda5962",
+            password: "admin", // <--- TON MOT DE PASSE EST ICI
+            coins: 999999,
+            isAdmin: true,
+            scores: {},
+            skins: {
+                active: { vessel: 'vessel_base', monster: 'monster_base' },
+                owned: { 'vessel_base': true }
+            }
+        };
+        saveUsersDB(db);
+        console.log("Compte Admin Zelda5962 créé avec succès !");
+    }
+})();
+
+// 2. Fonction pour modifier les pièces (appelée par ton admin.html)
+window.modifyUserCoins = function(targetUsername, amount, adminUser) {
+    if (!adminUser || !adminUser.isAdmin) return false;
+
+    let db = getUsersDB();
+    let found = false;
+
+    for (let id in db) {
+        if (db[id].username === targetUsername) {
+            db[id].coins = amount;
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        saveUsersDB(db);
+        return true;
+    }
+    return false;
+};
+
+// 3. Fonction pour voir toutes les données (utilisée par ton bouton 'Voir Utilisateurs')
+window.getUsersData = function() {
+    return getUsersDB();
+};
+
+// 4. Fonction de réinitialisation complète
+window.reinitializeData = function() {
+    localStorage.clear();
+    location.reload(); 
+};
