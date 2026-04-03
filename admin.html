@@ -9,19 +9,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Styles CSS supplémentaires pour l'Admin (si non dans styles.css) */
         .auth-card {
             padding: 30px;
             border-radius: 10px;
             text-align: center;
             border: 2px solid;
             margin-bottom: 30px;
+            background-color: var(--color-background-medium);
         }
         .card-group {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
+            margin-bottom: 30px;
         }
         .action-card {
             flex: 1 1 200px;
@@ -31,168 +32,168 @@
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: 0.3s;
         }
         .action-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.5);
-        }
-        .action-card .card-icon {
-            font-size: 2em;
-            display: block;
-            margin-bottom: 10px;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--color-neon-red);
         }
         .stats-card {
             padding: 20px;
-            border: 2px solid;
+            border: 2px solid var(--color-neon-orange);
             border-radius: 8px;
             background-color: var(--color-background-medium);
+            margin-bottom: 20px;
         }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #111;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: white;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background-color: #222; color: var(--color-neon-blue); }
     </style>
 </head>
 <body>
 
-    <div id="top-bar"></div> <div id="sidebar" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <div id="nav-links"></div> </div>
-
+    <div id="top-bar"></div>
+    
     <div class="main-container" id="mainContent">
         
-        <h1 style="font-size: 2.5em; color: var(--color-neon-red); text-align: center; padding-top: 20px;">PANNEAU ADMINISTRATEUR</h1>
+        <h1 style="font-size: 2.5em; color: var(--color-neon-red); text-align: center; padding-top: 20px;">
+            <i class="fas fa-user-shield"></i> PANNEAU ADMIN
+        </h1>
         
-        <div id="adminContent" style="max-width: 800px; margin: 30px auto; text-align: left;">
-            <p style="color: var(--color-text-light); text-align: center;">
-                Cette page est réservée aux administrateurs pour la gestion des données de développement.
-            </p>
+        <div id="adminContent" style="max-width: 900px; margin: 30px auto;">
             
-            <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red); box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);">
+            <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red);">
                 <h2>Accès Restreint</h2>
-                <p style="text-align: center; color: var(--color-neon-red);">Vous devez être connecté en tant qu'administrateur.</p>
-                <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-orange);">
-                     Se connecter
+                <p style="color: var(--color-neon-red);">Vous devez être connecté avec le compte Zelda5962.</p>
+                <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-orange); text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px; margin-top: 15px;">
+                     Aller à la page de connexion
                 </a>
             </div>
 
             <div id="adminTools" style="display: none;">
                 
-                <h2 style="color: var(--color-neon-red); margin-top: 0;">Gestion des Pièces</h2>
-                <div class="stats-card" style="border-color: var(--color-neon-orange); margin-bottom: 40px;">
+                <div class="card-group">
+                    <div class="action-card" onclick="location.href='index.html'">
+                        <i class="fas fa-home"></i> <h3>Retour Accueil</h3>
+                    </div>
+                    <div class="action-card" onclick="displayAllUsers()" style="border-color: var(--color-neon-blue);">
+                        <i class="fas fa-sync"></i> <h3>Actualiser Liste</h3>
+                    </div>
+                    <div class="action-card" onclick="resetAllData()" style="border-color: #ff0000;">
+                        <i class="fas fa-bomb"></i> <h3>Vider Base de Données</h3>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h2 style="color: var(--color-neon-orange);"><i class="fas fa-coins"></i> Modifier les Pièces</h2>
                     <form id="coinModifyForm">
-                        <input type="text" id="targetUsername" placeholder="Nom d'utilisateur cible (ex: Zelda5962)" required>
-                        <input type="number" id="newCoinsAmount" placeholder="Nouveau montant de pièces" required>
-                        <button type="submit" class="btn-primary" style="background-color: var(--color-neon-orange); margin-top: 15px;">
-                            <i class="fas fa-hand-holding-usd"></i> Modifier les Pièces
+                        <input type="text" id="targetUsername" placeholder="Pseudo exact du joueur (ex: AmiDu93)" required>
+                        <input type="number" id="newCoinsAmount" placeholder="Nouveau montant (ex: 50000)" required>
+                        <button type="submit" class="btn-primary" style="background: var(--color-neon-green); width: 100%; cursor: pointer; border: none; padding: 10px; font-weight: bold;">
+                            VALIDER LA MODIFICATION
                         </button>
                     </form>
                 </div>
-                
-                <h2 style="color: var(--color-neon-red);">Outils de Données</h2>
-                
-                <div class="card-group">
-                    
-                    <div class="action-card" onclick="displayAllUsers()">
-                        <span class="card-icon">👥</span>
-                        <h3 style="color: var(--color-neon-red);">Voir Utilisateurs</h3>
-                        <p>Afficher toutes les données du LocalStorage.</p>
-                    </div>
 
-                    <div class="action-card" onclick="resetAllData()">
-                        <span class="card-icon">💣</span>
-                        <h3 style="color: var(--color-neon-red);">Réinitialiser Tout</h3>
-                        <p>Retour aux utilisateurs de base. **ATTENTION**</p>
+                <div id="userDataDisplay" class="stats-card" style="border-color: var(--color-neon-blue);">
+                    <h2 style="color: var(--color-neon-blue);"><i class="fas fa-users"></i> Liste des Utilisateurs</h2>
+                    <div id="userTableContainer">
+                        <p>Cliquez sur "Actualiser Liste" pour voir les joueurs.</p>
                     </div>
-
                 </div>
 
-                <div id="userDataDisplay" class="stats-card" style="margin-top: 40px; border-color: var(--color-neon-red);">
-                    <h3 style="color: var(--color-neon-red);">Console de Données</h3>
-                    <pre id="userJsonOutput" style="white-space: pre-wrap; word-wrap: break-word; font-size: 0.8em; color: var(--color-text-light); background-color: #000000; padding: 10px; border-radius: 5px;">Les données s'afficheront après le clic...</pre>
-                </div>
             </div>
-            
         </div>
-        
     </div>
     
     <script src="base.js"></script>
     <script src="auth.js"></script>
+    
     <script>
-        // --- VÉRIFICATION DES DROITS D'ACCÈS ---
+        // 1. VÉRIFICATION DES DROITS
         function checkAdminAccess() {
-            const user = getCurrentUser(); // Supposé être disponible via base.js
+            const user = window.getCurrentUser();
             const loginSection = document.getElementById('adminLogin');
             const toolsSection = document.getElementById('adminTools');
 
             if (user && user.isAdmin === true) { 
                 loginSection.style.display = 'none';
                 toolsSection.style.display = 'block';
+                displayAllUsers(); // Charge la liste direct
             } else {
                 loginSection.style.display = 'block';
                 toolsSection.style.display = 'none';
-                
-                // Si l'utilisateur est connecté mais non-admin (id !== 0), on le bloque
-                if (user.id !== 0) { 
-                    alert("Accès refusé. Vous devez disposer des droits administrateur.");
-                    window.location.href = 'index.html'; 
-                }
             }
-            if (typeof updateTopBar === 'function') {
-                updateTopBar();
-            }
-        }
-        
-        // --- FONCTIONS ADMIN LIÉES AUX BOUTONS ---
-        
-        // Fonction pour afficher le JSON des utilisateurs
-        window.displayAllUsers = function() {
-            const users = window.getUsersData ? window.getUsersData() : [];
-            document.getElementById('userJsonOutput').textContent = JSON.stringify(users, null, 2);
         }
 
-        // Fonction pour réinitialiser toutes les données
+        // 2. AFFICHER LES UTILISATEURS DANS UN TABLEAU
+        window.displayAllUsers = function() {
+            const users = window.getUsersData ? window.getUsersData() : {};
+            let html = `<table>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pseudo</th>
+                                <th>Pièces</th>
+                                <th>Admin</th>
+                            </tr>`;
+            
+            for (let id in users) {
+                const u = users[id];
+                html += `<tr>
+                            <td>${u.id}</td>
+                            <td style="color: var(--color-neon-orange); font-weight: bold;">${u.username}</td>
+                            <td>${u.coins.toLocaleString()} 💰</td>
+                            <td>${u.isAdmin ? '✅ Oui' : '❌ Non'}</td>
+                         </tr>`;
+            }
+            html += `</table>`;
+            document.getElementById('userTableContainer').innerHTML = html;
+        }
+
+        // 3. RÉINITIALISER TOUT
         window.resetAllData = function() {
-            if (confirm("Êtes-vous SÛR de vouloir réinitialiser TOUTES les données utilisateur au profil par défaut ? Cela effacera tous les scores et pièces.")) {
-                
-                localStorage.removeItem('users');
-                localStorage.removeItem('currentUser');
-                
-                window.reinitializeData(); // Recrée l'admin Zelda5962
-                
-                checkAdminAccess();
-                alert("Réinitialisation complète effectuée. Veuillez vous reconnecter.");
-                document.getElementById('userJsonOutput').textContent = "Données réinitialisées au profil de base. (Veuillez vous reconnecter)";
+            if (confirm("⚠️ ATTENTION : Cela supprimera TOUS les comptes et TOUTES les pièces. Continuer ?")) {
+                window.reinitializeData();
             }
         }
-        
-        // --- GESTION DU FORMULAIRE DE MODIFICATION DES PIÈCES ---
+
+        // 4. GESTION DU FORMULAIRE DE PIÈCES
         document.addEventListener('DOMContentLoaded', () => {
             checkAdminAccess();
 
-            const coinModifyForm = document.getElementById('coinModifyForm');
-            if (coinModifyForm) {
-                coinModifyForm.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    
-                    const targetUsername = document.getElementById('targetUsername').value;
-                    const newCoinsAmount = parseInt(document.getElementById('newCoinsAmount').value);
-                    const adminUser = getCurrentUser();
+            const form = document.getElementById('coinModifyForm');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const target = document.getElementById('targetUsername').value;
+                const amount = parseInt(document.getElementById('newCoinsAmount').value);
+                const admin = window.getCurrentUser();
 
-                    if (isNaN(newCoinsAmount) || newCoinsAmount < 0) {
-                        alert("Veuillez entrer un montant valide (nombre positif).");
-                        return;
-                    }
-                    
-                    // Utilisation de la fonction modifyUserCoins exposée par auth.js
-                    if (window.modifyUserCoins(targetUsername, newCoinsAmount, adminUser)) {
-                        alert(`Le solde de ${targetUsername} a été mis à jour à ${newCoinsAmount} pièces.`);
-                        // Effacer les champs après succès
-                        document.getElementById('targetUsername').value = '';
-                        document.getElementById('newCoinsAmount').value = '';
-                    } else {
-                        alert(`Échec de la modification. L'utilisateur "${targetUsername}" est introuvable ou vous n'avez pas les droits.`);
-                    }
-                });
-            }
+                if (window.modifyUserCoins(target, amount, admin)) {
+                    alert("Modification réussie !");
+                    displayAllUsers(); // Rafraîchit le tableau
+                    form.reset();
+                } else {
+                    alert("Erreur : Utilisateur '" + target + "' introuvable.");
+                }
+            });
         });
     </script>
 </body>
