@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Arcade Master - Connexion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="top-bar"></div>
+
+    <div class="main-container">
+        <h1 style="color: var(--color-neon-cyan);">COMPTE</h1>
+        
+        <div class="auth-box" style="max-width: 400px; margin: auto; padding: 20px; border: 1px solid #333;">
+            <input type="text" id="user" placeholder="Pseudo">
+            <input type="password" id="pass" placeholder="Mot de passe">
+            <br><br>
+            <button onclick="handleLogin()">CONNEXION</button>
+            <button onclick="handleRegister()">INSCRIPTION</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="base.js"></script>
+    <script>
+        function handleLogin() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            if (window.login(u, p)) {
+                window.location.href = 'menu.html';
+            } else { alert("Pseudo ou MDP incorrect !"); }
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            if (window.register(u, p).success) {
+                alert("Compte créé !");
+                window.location.href = 'menu.html';
+            } else { alert("Erreur lors de la création."); }
+        }
+    </script>
+</body>
+</html>
