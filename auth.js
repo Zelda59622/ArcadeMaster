@@ -1,53 +1,8 @@
-// ==========================================
-// CONFIGURATION DE LA BASE DE DONNÉES
-// ==========================================
+// --- CONFIGURATION ---
 const DB_NAME = 'ArcadeMaster_DB';
 const SESSION_KEY = 'ArcadeMaster_UserID';
 
-// ==========================================
-// INITIALISATION AUTO (Backdoor pour tests)
-// ==========================================
-(function initDatabase() {
-    let db = JSON.parse(localStorage.getItem(DB_NAME)) || {};
-    
-    // Liste des comptes créés d'office sur tous les navigateurs
-    const autoAccounts = [
-        { user: "Zelda5962", pass: "admin", admin: true },
-        { user: "moi", pass: "moi", admin: false }
-    ];
-
-    autoAccounts.forEach(acc => {
-        // On vérifie si le pseudo existe déjà (insensible à la casse)
-        const exists = Object.values(db).some(u => u.username.toLowerCase() === acc.user.toLowerCase());
-        
-        if (!exists) {
-            const newId = "ID_" + acc.user.toUpperCase() + "_" + Date.now();
-            db[newId] = {
-                id: newId,
-                username: acc.user,
-                password: acc.pass,
-                coins: 200000,
-                isAdmin: acc.admin,
-                skins: { 
-                    active: 'vessel_base', 
-                    owned: ['vessel_base'] 
-                },
-                scores: { 
-                    invaders: 0,
-                    runner: 0,
-                    snake: 0 
-                }
-            };
-            console.log(`🚀 Compte injecté automatiquement : ${acc.user}`);
-        }
-    });
-
-    localStorage.setItem(DB_NAME, JSON.stringify(db));
-})();
-
-// ==========================================
-// MOTEUR DE DONNÉES (LECTURE / ÉCRITURE)
-// ==========================================
+// --- MOTEUR DE DONNÉES ---
 window.getUsersData = function() {
     const data = localStorage.getItem(DB_NAME);
     return data ? JSON.parse(data) : {};
@@ -63,16 +18,16 @@ window.getCurrentUser = function() {
     return (id && db[id]) ? db[id] : null;
 };
 
-// ==========================================
-// SYSTÈME DE COMPTE (CONNEXION / LOGOUT)
-// ==========================================
+// --- INSCRIPTION (Avec vérification de doublons) ---
 window.register = function(username, password) {
     let db = window.getUsersData();
-    // Vérifier si pseudo déjà pris
-    for (let id in db) {
-        if (db[id].username.toLowerCase() === username.toLowerCase()) {
-            return { success: false, message: "Pseudo déjà utilisé" };
-        }
+    
+    // Vérifier si le pseudo existe déjà
+    const exists = Object.values(db).some(u => u.username.toLowerCase() === username.toLowerCase());
+    
+    if (exists) {
+        alert("🚨 ERREUR : Ce pseudo est déjà utilisé dans le registre !");
+        return { success: false };
     }
 
     const newId = "ID_" + Date.now();
@@ -83,23 +38,39 @@ window.register = function(username, password) {
         coins: 200000,
         isAdmin: (username === "Zelda5962"),
         skins: { active: 'vessel_base', owned: ['vessel_base'] },
-        scores: { invaders: 0, runner: 0, snake: 0 }
+        scores: { invaders: 0 }
     };
     
     window.saveUsersDB(db);
     localStorage.setItem(SESSION_KEY, newId);
+    alert("✅ COMPTE CRÉÉ : Bienvenue dans le registre !");
     return { success: true };
 };
 
+// --- CONNEXION (Avec vérification d'existence) ---
 window.login = function(username, password) {
     const db = window.getUsersData();
+    let foundUser = null;
+
     for (let id in db) {
-        if (db[id].username === username && db[id].password === password) {
-            localStorage.setItem(SESSION_KEY, id);
-            return true;
+        if (db[id].username.toLowerCase() === username.toLowerCase()) {
+            foundUser = db[id];
+            break;
         }
     }
-    return false;
+
+    if (!foundUser) {
+        alert("❌ ERREUR : Ce compte n'existe pas ! Veuillez vous inscrire.");
+        return false;
+    }
+
+    if (foundUser.password !== password) {
+        alert("❌ MOT DE PASSE INCORRECT !");
+        return false;
+    }
+
+    localStorage.setItem(SESSION_KEY, foundUser.id);
+    return true;
 };
 
 window.logout = function() {
@@ -107,18 +78,19 @@ window.logout = function() {
     window.location.href = 'index.html';
 };
 
-// ==========================================
-// MOTEUR ÉCONOMIE, SKINS & SCORES
-// ==========================================
 window.updateUser = function(updates) {
     const user = window.getCurrentUser();
     if (!user) return;
-    
     let db = window.getUsersData();
-    // Fusionne les anciennes données avec les nouvelles (pièces, skins, scores)
     db[user.id] = { ...db[user.id], ...updates };
-    
     window.saveUsersDB(db);
-    // Rafraîchir l'interface globale (la top-bar)
-    if (window.updateTopBar) window.updateTopBar(); 
+    if (window.updateTopBar) window.updateTopBar();
 };
+
+// Injection automatique pour tests
+(function inject() {
+    let db = window.getUsersData();
+    if (!Object.values(db).some(u => u.username === "Zelda5962")) {
+        window.register("Zelda5962", "admin");
+    }
+})();
