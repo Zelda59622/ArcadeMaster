@@ -1,7 +1,7 @@
 // --- auth.js ---
 
-// Initialise ou récupère la base de données des utilisateurs
-function getUsersDB() {
+// 1. GESTION DE LA BASE DE DONNÉES (LECTURE/ÉCRITURE)
+window.getUsersData = function() {
     const db = localStorage.getItem('usersDB');
     let parsedDB = db ? JSON.parse(db) : {};
     
@@ -12,13 +12,12 @@ function getUsersDB() {
         }
     }
     return parsedDB;
-}
+};
 
 function saveUsersDB(db) {
     localStorage.setItem('usersDB', JSON.stringify(db));
 }
 
-// Récupère l'ID (sans forcer le nombre pour accepter "999")
 function getActiveUserId() {
     return localStorage.getItem('activeUserId') || "0";
 }
@@ -27,8 +26,8 @@ function setActiveUserId(id) {
     localStorage.setItem('activeUserId', id);
 }
 
-// Utilisé pour rafraîchir l'affichage après un achat ou un don de pièces
-function updateGlobalUser(user) {
+// Met à jour l'affichage des pièces en haut de l'écran
+function updateGlobalUserDisplay() {
     if (typeof window.updateTopBar === 'function') {
         window.updateTopBar();
     }
@@ -36,35 +35,35 @@ function updateGlobalUser(user) {
 
 window.getCurrentUser = function() {
     const activeId = getActiveUserId();
-    const db = getUsersDB();
+    const db = window.getUsersData();
     
     if (activeId !== "0" && db[activeId]) {
         return db[activeId];
     }
     return { 
-        id: 0, 
+        id: "0", 
         username: 'Invité', 
         coins: 0,
         isAdmin: false,
         skins: { active: { vessel: 'vessel_base' }, owned: { 'vessel_base': true } }
     };
-}
+};
 
 // --- AUTHENTIFICATION ---
 
 window.register = function(username, password) {
-    const db = getUsersDB();
+    const db = window.getUsersData();
     for (const id in db) {
         if (db[id].username === username) return false;
     }
 
-    const newId = Date.now().toString(); // ID en texte pour la cohérence
+    const newId = Date.now().toString();
     db[newId] = {
         id: newId,
         username: username,
         password: password,
         coins: 200000,
-        isAdmin: (username === "Zelda5962"), // Admin auto si pseudo spécial
+        isAdmin: (username === "Zelda5962"),
         scores: {},
         skins: {
             active: { vessel: 'vessel_base', monster: 'monster_base' },
@@ -74,54 +73,94 @@ window.register = function(username, password) {
     
     saveUsersDB(db);
     return true;
-}
+};
 
 window.login = function(username, password) {
-    const db = getUsersDB();
+    const db = window.getUsersData();
     for (const id in db) {
         const user = db[id];
         if (user.username === username && user.password === password) {
             setActiveUserId(user.id);
-            updateGlobalUser(user);
+            updateGlobalUserDisplay();
             return true;
         }
     }
     return false;
-}
+};
 
 window.logout = function() {
     setActiveUserId("0");
     location.href = 'index.html';
-}
+};
 
-// --- BOUTIQUE ---
+// --- NOUVEAU SYSTÈME D'ÉCONOMIE (RÉPARÉ) ---
+
+window.addCoins = function(amount) {
+    const user = window.getCurrentUser();
+    if (user.id === "0") return false;
+
+    let db = window.getUsersData();
+    db[user.id].coins += parseInt(amount);
+
+    saveUsersDB(db);
+    updateGlobalUserDisplay();
+    return true;
+};
 
 window.deductCoins = function(amount) {
     const user = window.getCurrentUser();
-    if (user.id === 0) return false;
+    if (user.id === "0") return false;
 
-    let db = getUsersDB();
+    let db = window.getUsersData();
     if (db[user.id].coins >= amount) {
-        db[user.id].coins -= amount;
+        db[user.id].coins -= parseInt(amount);
         saveUsersDB(db);
-        updateGlobalUser(db[user.id]); 
+        updateGlobalUserDisplay();
         return true;
     }
     return false;
-}
+};
+
+window.modifyUserCoins = function(targetUsername, amount, adminUser) {
+    if (!adminUser || !adminUser.isAdmin) return false;
+    
+    let db = window.getUsersData();
+    let found = false;
+    
+    for (let id in db) {
+        // Comparaison insensible à la casse (Zelda = zelda)
+        if (db[id].username.toLowerCase() === targetUsername.toLowerCase()) {
+            db[id].coins = parseInt(amount);
+            found = true;
+            break;
+        }
+    }
+    
+    if (found) {
+        saveUsersDB(db);
+        updateGlobalUserDisplay();
+        return true;
+    }
+    return false;
+};
+
+// --- GESTION DES SKINS ---
 
 window.addOwnedSkin = function(skinId) {
     const user = window.getCurrentUser();
-    let db = getUsersDB();
+    if (user.id === "0") return;
+
+    let db = window.getUsersData();
     if (!db[user.id].skins.owned) db[user.id].skins.owned = {};
+    
     db[user.id].skins.owned[skinId] = true;
     saveUsersDB(db);
-}
+};
 
-// --- EXTENSION ADMIN ---
+// --- INITIALISATION AUTO ---
 
 (function initAdmin() {
-    let db = getUsersDB();
+    let db = window.getUsersData();
     let adminExists = false;
 
     for (let id in db) {
@@ -149,26 +188,6 @@ window.addOwnedSkin = function(skinId) {
         console.log("Compte Admin Créé : Zelda5962 / admin");
     }
 })();
-
-window.modifyUserCoins = function(targetUsername, amount, adminUser) {
-    if (!adminUser || !adminUser.isAdmin) return false;
-    let db = getUsersDB();
-    let found = false;
-    for (let id in db) {
-        if (db[id].username === targetUsername) {
-            db[id].coins = amount;
-            found = true;
-            break;
-        }
-    }
-    if (found) {
-        saveUsersDB(db);
-        return true;
-    }
-    return false;
-};
-
-window.getUsersData = function() { return getUsersDB(); };
 
 window.reinitializeData = function() {
     localStorage.clear();
