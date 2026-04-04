@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Boutique - Arcade Master</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .skin-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .skin-card:hover { border-color: var(--color-neon-cyan); transform: translateY(-5px); }
+        .skin-img { width: 100px; height: 100px; background: #222; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; border-radius: 5px; }
+        .price { color: var(--color-neon-green); font-weight: bold; font-size: 1.2em; margin-bottom: 15px; }
+        .owned { color: var(--color-neon-pink); font-style: italic; }
+    </style>
+</head>
+<body>
+    <div id="top-bar"></div>
+
+    <div class="main-container">
+        <h1 style="color: var(--color-neon-cyan); text-shadow: var(--glow);">BOUTIQUE DE SKINS</h1>
+        <p>Améliorez votre style en dépensant vos pièces.</p>
+
+        <div id="shop-container" class="shop-grid">
+            </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="base.js"></script>
+    <script>
+        // Le catalogue officiel
+        const catalog = [
+            { id: 'vessel_base', name: 'Vaisseau de Base', price: 0 },
+            { id: 'vessel_fire', name: 'Vaisseau Incendiaire', price: 25000 },
+            { id: 'vessel_neon', name: 'Vaisseau Cyber', price: 75000 },
+            { id: 'vessel_gold', name: 'Vaisseau Doré', price: 150000 }
+        ];
+
+        function renderShop() {
+            const user = window.getCurrentUser();
+            const container = document.getElementById('shop-container');
+            container.innerHTML = "";
+
+            catalog.forEach(skin => {
+                const isOwned = user.skins.owned.includes(skin.id);
+                const isActive = user.skins.active === skin.id;
+                
+                let buttonHTML = "";
+                if (isActive) {
+                    buttonHTML = `<button disabled style="border-color:gray; color:gray;">ÉQUIPÉ</button>`;
+                } else if (isOwned) {
+                    buttonHTML = `<button onclick="equip('${skin.id}')" style="border-color:var(--color-neon-green); color:var(--color-neon-green);">ÉQUIPER</button>`;
+                } else {
+                    buttonHTML = `<button onclick="buy('${skin.id}', ${skin.price})">ACHETER</button>`;
+                }
+
+                container.innerHTML += `
+                    <div class="skin-card">
+                        <div class="skin-img">🚀</div>
+                        <h3>${skin.name}</h3>
+                        <p class="price">${skin.price === 0 ? "GRATUIT" : skin.price.toLocaleString() + " 💰"}</p>
+                        ${buttonHTML}
+                    </div>
+                `;
+            });
+        }
+
+        function buy(id, price) {
+            const user = window.getCurrentUser();
+            if (user.coins >= price) {
+                const newCoins = user.coins - price;
+                const newOwned = [...user.skins.owned, id];
+                window.updateUser({ coins: newCoins, skins: { ...user.skins, owned: newOwned } });
+                renderShop();
+            } else {
+                alert("Pas assez de pièces !");
+            }
+        }
+
+        function equip(id) {
+            const user = window.getCurrentUser();
+            window.updateUser({ skins: { ...user.skins, active: id } });
+            renderShop();
+        }
+
+        // Initialisation
+        if (!window.getCurrentUser()) window.location.href = 'compte.html';
+        renderShop();
+    </script>
+</body>
+</html>
