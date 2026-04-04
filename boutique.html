@@ -2,34 +2,93 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boutique - Arcade Master</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* Styles spécifiques à la boutique */
         .shop-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
             margin-top: 40px;
+            padding-bottom: 50px;
         }
+
         .skin-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #333;
-            padding: 20px;
-            border-radius: 10px;
-            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #222;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .skin-card:hover { border-color: var(--color-neon-cyan); transform: translateY(-5px); }
-        .skin-img { width: 100px; height: 100px; background: #222; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; border-radius: 5px; }
-        .price { color: var(--color-neon-green); font-weight: bold; font-size: 1.2em; margin-bottom: 15px; }
-        .owned { color: var(--color-neon-pink); font-style: italic; }
+
+        .skin-card:hover {
+            border-color: var(--color-neon-cyan);
+            transform: translateY(-8px);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .skin-visual {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--color-neon-cyan));
+        }
+
+        .skin-name {
+            font-size: 1.4em;
+            color: var(--color-neon-cyan);
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .skin-desc {
+            font-size: 0.9em;
+            color: #888;
+            height: 40px;
+            margin-bottom: 15px;
+        }
+
+        .price-tag {
+            font-size: 1.2em;
+            color: var(--color-neon-green);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .btn-shop {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+
+        .active-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--color-neon-pink);
+            color: white;
+            font-size: 0.7em;
+            padding: 3px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
     <div id="top-bar"></div>
 
     <div class="main-container">
-        <h1 style="color: var(--color-neon-cyan); text-shadow: var(--glow);">BOUTIQUE DE SKINS</h1>
-        <p>Améliorez votre style en dépensant vos pièces.</p>
+        <h1 style="font-size: 3em; margin-top: 40px; color: var(--color-neon-pink); text-shadow: 0 0 15px var(--color-neon-pink);">
+            HANGAR DE PERSONNALISATION
+        </h1>
+        <p style="color: #aaa;">Dépensez vos crédits pour modifier l'apparence de votre flotte.</p>
 
         <div id="shop-container" class="shop-grid">
             </div>
@@ -38,64 +97,89 @@
     <script src="auth.js"></script>
     <script src="base.js"></script>
     <script>
-        // Le catalogue officiel
+        // CATALOGUE DES SKINS
         const catalog = [
-            { id: 'vessel_base', name: 'Vaisseau de Base', price: 0 },
-            { id: 'vessel_fire', name: 'Vaisseau Incendiaire', price: 25000 },
-            { id: 'vessel_neon', name: 'Vaisseau Cyber', price: 75000 },
-            { id: 'vessel_gold', name: 'Vaisseau Doré', price: 150000 }
+            { id: 'vessel_base', name: 'Vaisseau de Base', price: 0, icon: '🚀', desc: 'Équipement standard de la fédération.' },
+            { id: 'vessel_fire', name: 'Vaisseau Incendiaire', price: 25000, icon: '🔥', desc: 'Revêtement thermique haute résistance.' },
+            { id: 'vessel_neon', name: 'Vaisseau Cyber-Wave', price: 50000, icon: '🛰️', desc: 'Esthétique rétro-futuriste néon.' },
+            { id: 'vessel_void', name: 'Vaisseau du Néant', price: 100000, icon: '🛸', desc: 'Technologie furtive de bordure extérieure.' },
+            { id: 'vessel_gold', name: 'Vaisseau de Platine', price: 150000, icon: '✨', desc: 'Symbole de richesse et de puissance.' },
+            { id: 'vessel_god', name: 'Vaisseau Divin', price: 500000, icon: '💎', desc: 'Le skin ultime des légendes de l\'arcade.' }
         ];
 
         function renderShop() {
             const user = window.getCurrentUser();
             const container = document.getElementById('shop-container');
+            
+            if (!user) {
+                container.innerHTML = "<h2>Veuillez vous connecter pour accéder au shop.</h2>";
+                return;
+            }
+
             container.innerHTML = "";
 
             catalog.forEach(skin => {
                 const isOwned = user.skins.owned.includes(skin.id);
                 const isActive = user.skins.active === skin.id;
                 
-                let buttonHTML = "";
+                let actionButton = "";
                 if (isActive) {
-                    buttonHTML = `<button disabled style="border-color:gray; color:gray;">ÉQUIPÉ</button>`;
+                    actionButton = `<button class="btn-shop" disabled style="border-color:#555; color:#555; box-shadow:none;">ÉQUIPÉ</button>`;
                 } else if (isOwned) {
-                    buttonHTML = `<button onclick="equip('${skin.id}')" style="border-color:var(--color-neon-green); color:var(--color-neon-green);">ÉQUIPER</button>`;
+                    actionButton = `<button class="btn-shop" onclick="equip('${skin.id}')" style="border-color:var(--color-neon-pink); color:var(--color-neon-pink);">ÉQUIPER</button>`;
                 } else {
-                    buttonHTML = `<button onclick="buy('${skin.id}', ${skin.price})">ACHETER</button>`;
+                    actionButton = `<button class="btn-shop" onclick="buy('${skin.id}', ${skin.price})">ACHETER</button>`;
                 }
 
                 container.innerHTML += `
                     <div class="skin-card">
-                        <div class="skin-img">🚀</div>
-                        <h3>${skin.name}</h3>
-                        <p class="price">${skin.price === 0 ? "GRATUIT" : skin.price.toLocaleString() + " 💰"}</p>
-                        ${buttonHTML}
+                        ${isActive ? '<div class="active-label">Actif</div>' : ''}
+                        <div class="skin-visual">${skin.icon}</div>
+                        <div class="skin-name">${skin.name}</div>
+                        <div class="skin-desc">${skin.desc}</div>
+                        <div class="price-tag">${skin.price === 0 ? "GRATUIT" : skin.price.toLocaleString() + " 💰"}</div>
+                        ${actionButton}
                     </div>
                 `;
             });
         }
 
-        function buy(id, price) {
+        function buy(skinId, price) {
             const user = window.getCurrentUser();
             if (user.coins >= price) {
-                const newCoins = user.coins - price;
-                const newOwned = [...user.skins.owned, id];
-                window.updateUser({ coins: newCoins, skins: { ...user.skins, owned: newOwned } });
-                renderShop();
+                if (confirm(`Voulez-vous acheter ${skinId} pour ${price} pièces ?`)) {
+                    const newCoins = user.coins - price;
+                    const newOwned = [...user.skins.owned, skinId];
+                    
+                    // Mise à jour via la fonction globale de auth.js
+                    window.updateUser({ 
+                        coins: newCoins, 
+                        skins: { ...user.skins, owned: newOwned } 
+                    });
+                    
+                    renderShop();
+                }
             } else {
-                alert("Pas assez de pièces !");
+                alert("Crédits insuffisants ! Allez jouer pour en gagner plus.");
             }
         }
 
-        function equip(id) {
+        function equip(skinId) {
             const user = window.getCurrentUser();
-            window.updateUser({ skins: { ...user.skins, active: id } });
+            window.updateUser({ 
+                skins: { ...user.skins, active: skinId } 
+            });
             renderShop();
         }
 
-        // Initialisation
-        if (!window.getCurrentUser()) window.location.href = 'compte.html';
-        renderShop();
+        // Initialisation au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.getCurrentUser()) {
+                window.location.href = 'compte.html';
+            } else {
+                renderShop();
+            }
+        });
     </script>
 </body>
 </html>
