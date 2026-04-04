@@ -2,50 +2,104 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Arcade Master - Panel Admin</title>
+    <title>Arcade Master - Administration</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* On garde ton style d'origine */
+        .auth-card { padding: 30px; border-radius: 10px; text-align: center; border: 2px solid; margin-bottom: 30px; background-color: var(--color-background-medium); }
+        .action-card { padding: 20px; background-color: var(--color-background-dark); border: 2px solid var(--color-neon-red); border-radius: 8px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 15px; }
+        .action-card:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--color-neon-red); }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; color: white; background: rgba(0,0,0,0.3); }
+        th, td { border: 1px solid #444; padding: 12px; text-align: left; }
+        th { color: var(--color-neon-blue); text-transform: uppercase; font-size: 0.9em; }
+    </style>
 </head>
 <body>
     <div id="top-bar"></div>
+
     <div class="main-container">
-        <h1 style="color: #ff0055; text-align: center;">🛡️ PANNEAU ADMINISTRATEUR</h1>
-        
-        <div style="background: #222; padding: 20px; border: 2px solid #0ff; border-radius: 10px;">
-            <h3>Modifier les pièces d'un joueur</h3>
-            <input type="text" id="targetPseudo" placeholder="Pseudo exact">
-            <input type="number" id="newAmount" placeholder="Nombre de pièces">
-            <button onclick="validerModif()">Appliquer</button>
+        <h1 style="color: var(--color-neon-red); text-align: center; font-size: 2.5em;">PANNEAU ADMINISTRATEUR</h1>
+        <p style="text-align: center; color: var(--color-text-light);">Gestion des données de développement</p>
+
+        <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red); display: none;">
+            <h2 style="color: var(--color-neon-blue);">Accès Restreint</h2>
+            <p>Vous devez être connecté en tant qu'administrateur.</p>
+            <button onclick="window.location.href='compte.html'" class="btn-primary" style="background: var(--color-neon-orange);">SE CONNECTER</button>
         </div>
 
-        <div style="margin-top: 20px; background: #222; padding: 20px; border-radius: 10px;">
-            <h3>Liste des joueurs</h3>
-            <div id="listeJoueurs"></div>
+        <div id="adminTools" style="display: none;">
+            <div class="action-card">
+                <h2 style="color: var(--color-neon-orange);">Modifier les Pièces</h2>
+                <input type="text" id="targetUsername" placeholder="Nom d'utilisateur exact">
+                <input type="number" id="newCoinsAmount" placeholder="Nombre de pièces">
+                <button onclick="validerModif()" class="btn-primary" style="background: var(--color-neon-green); width: 100%;">VALIDER LA MODIFICATION</button>
+            </div>
+
+            <div class="auth-card" style="border-color: var(--color-neon-blue);">
+                <h2 style="color: var(--color-neon-blue);">Liste des Utilisateurs</h2>
+                <button onclick="chargerListe()" class="btn-primary" style="margin-bottom: 15px;">ACTUALISER LA LISTE</button>
+                <div id="userTableContainer">
+                    </div>
+            </div>
         </div>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        function rafraichir() {
-            const users = window.getUsersData();
-            let html = "<table style='width:100%; color:white; border-collapse:collapse;'><tr><th>Pseudo</th><th>Pièces</th></tr>";
-            for (let id in users) {
-                html += `<tr><td>${users[id].username}</td><td>${users[id].coins} 💰</td></tr>`;
+        // 1. Vérifier si on est admin au chargement
+        window.onload = function() {
+            const user = window.getCurrentUser();
+            if (user && user.isAdmin) {
+                document.getElementById('adminTools').style.display = 'block';
+                chargerListe(); // On lance la liste direct !
+            } else {
+                document.getElementById('adminLogin').style.display = 'block';
             }
-            html += "</table>";
-            document.getElementById('listeJoueurs').innerHTML = html;
+        };
+
+        // 2. La fonction qui affiche enfin les joueurs
+        function chargerListe() {
+            const users = window.getUsersData(); // Appelle la fonction de ton auth.js
+            const container = document.getElementById('userTableContainer');
+            
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Pseudo</th>
+                        <th>Pièces</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            for (let id in users) {
+                const u = users[id];
+                html += `<tr>
+                    <td style="color:var(--color-neon-orange)">${u.username}</td>
+                    <td>${u.coins.toLocaleString()} 💰</td>
+                    <td>${u.isAdmin ? '⭐ ADMIN' : 'JOUEUR'}</td>
+                </tr>`;
+            }
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
         }
 
+        // 3. La fonction pour modifier les pièces
         function validerModif() {
-            const p = document.getElementById('targetPseudo').value;
-            const m = parseInt(document.getElementById('newAmount').value);
-            if (window.modifyUserCoins(p, m, window.getCurrentUser())) {
-                alert("Modifié !");
-                rafraichir();
-            } else { alert("Erreur : Pseudo introuvable"); }
-        }
+            const pseudo = document.getElementById('targetUsername').value;
+            const montant = parseInt(document.getElementById('newCoinsAmount').value);
+            const admin = window.getCurrentUser();
 
-        // Lance la liste au chargement
-        window.onload = rafraichir;
+            if (window.modifyUserCoins(pseudo, montant, admin)) {
+                alert("Modification réussie !");
+                chargerListe(); // On rafraîchit le tableau direct
+            } else {
+                alert("Erreur : Pseudo introuvable ou droits insuffisants.");
+            }
+        }
     </script>
 </body>
 </html>
