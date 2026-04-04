@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Arcade Master - Accueil</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="top-bar"></div>
+
+    <div class="main-container" style="margin-top: 100px;">
+        <h1 style="font-size: 4em; color: var(--color-neon-cyan); text-shadow: var(--glow);">ARCADE MASTER</h1>
+        <p style="font-size: 1.2em; color: white;">Prêt à battre tous les records ?</p>
+        
+        <div style="margin-top: 50px;">
+            <button onclick="checkConnection()" style="font-size: 2em; padding: 20px 60px;">START</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="base.js"></script>
+    <script>
+        function checkConnection() {
+            const user = window.getCurrentUser();
+            if (user) {
+                // Si déjà co, direction le menu perso
+                window.location.href = 'menu.html';
+            } else {
+                // Sinon, direction la page de connexion
+                window.location.href = 'compte.html';
+            }
+        }
+    </script>
+</body>
+</html>
