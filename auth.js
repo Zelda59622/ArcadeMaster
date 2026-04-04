@@ -1,8 +1,8 @@
-// Importation des modules Firebase via CDN (plus simple pour le développement sans installation)
+// Importation des modules Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- TA CONFIGURATION RÉCUPÉRÉE ---
+// --- TA CONFIGURATION FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCFdqeYWFwtGKcH-Lw_67YVlM9ktfj2L0U",
   authDomain: "arcademaster-28111.firebaseapp.com",
@@ -13,53 +13,51 @@ const firebaseConfig = {
   measurementId: "G-L2FFWRJGVG"
 };
 
-// Initialisation de Firebase
+// Initialisation
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const SESSION_KEY = 'ArcadeMaster_UserID';
 
-// ==========================================
-// SYSTÈME DE COMPTE (INSCRIPTION / CONNEXION)
-// ==========================================
-
-// Inscription (Sauvegarde sur le Cloud Firestore)
+// --- INSCRIPTION ---
 window.register = async function(username, password) {
-    const userRef = doc(db, "users", username.toLowerCase());
+    console.log("Tentative d'inscription pour:", username);
+    const userRef = doc(db, "users", username.toLowerCase().trim());
+    
     try {
         const userSnap = await getDoc(userRef);
-
         if (userSnap.exists()) {
-            alert("🚨 Pseudo déjà pris ! Choisissez-en un autre.");
+            alert("🚨 Pseudo déjà pris !");
             return { success: false };
         }
 
         const userData = {
-            username: username,
+            username: username.trim(),
             password: password,
             coins: 200000,
-            isAdmin: (username.toLowerCase() === "zelda5962"), // Ton pseudo admin
+            isAdmin: (username.toLowerCase().trim() === "zelda5962"),
             skins: { active: 'vessel_base', owned: ['vessel_base'] },
             scores: { invaders: 0 }
         };
 
         await setDoc(userRef, userData);
-        localStorage.setItem(SESSION_KEY, username.toLowerCase());
-        alert("✅ Bienvenue ! Compte créé et synchronisé sur le Cloud.");
+        localStorage.setItem(SESSION_KEY, username.toLowerCase().trim());
         return { success: true };
-    } catch (error) {
-        console.error("Erreur d'inscription:", error);
-        alert("Erreur technique lors de l'inscription.");
+    } catch (e) {
+        console.error("Erreur Firebase Register:", e);
+        alert("Erreur: " + e.message);
+        return { success: false };
     }
 };
 
-// Connexion (Vérification sur le Cloud Firestore)
+// --- CONNEXION ---
 window.login = async function(username, password) {
-    const userRef = doc(db, "users", username.toLowerCase());
+    console.log("Tentative de connexion pour:", username);
+    const userRef = doc(db, "users", username.toLowerCase().trim());
+    
     try {
         const userSnap = await getDoc(userRef);
-
         if (!userSnap.exists()) {
-            alert("❌ Ce compte n'existe pas ! Inscrivez-vous.");
+            alert("❌ Ce compte n'existe pas !");
             return false;
         }
 
@@ -69,70 +67,24 @@ window.login = async function(username, password) {
             return false;
         }
 
-        localStorage.setItem(SESSION_KEY, username.toLowerCase());
+        localStorage.setItem(SESSION_KEY, username.toLowerCase().trim());
         return true;
-    } catch (error) {
-        console.error("Erreur de connexion:", error);
+    } catch (e) {
+        console.error("Erreur Firebase Login:", e);
+        alert("Erreur connexion: " + e.message);
         return false;
     }
 };
 
-// Déconnexion
-window.logout = function() {
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = 'index.html';
-};
-
-// ==========================================
-// GESTION DES DONNÉES UTILISATEUR
-// ==========================================
-
-// Récupérer l'utilisateur actuellement connecté
+// --- AUTRES FONCTIONS ---
 window.getCurrentUser = async function() {
     const id = localStorage.getItem(SESSION_KEY);
     if (!id) return null;
-    try {
-        const userSnap = await getDoc(doc(db, "users", id));
-        return userSnap.exists() ? userSnap.data() : null;
-    } catch (error) {
-        return null;
-    }
+    const userSnap = await getDoc(doc(db, "users", id));
+    return userSnap.exists() ? userSnap.data() : null;
 };
 
-// Mettre à jour les données (Pièces, Skins, Scores)
-window.updateUser = async function(updates) {
-    const id = localStorage.getItem(SESSION_KEY);
-    if (!id) return;
-    try {
-        const userRef = doc(db, "users", id);
-        await updateDoc(userRef, updates);
-        // Rafraîchir la barre de pièces si la fonction existe
-        if (window.updateTopBar) window.updateTopBar();
-    } catch (error) {
-        console.error("Erreur mise à jour:", error);
-    }
-};
-
-// Récupérer TOUS les utilisateurs (Pour Admin et Classements)
-window.getUsersData = async function() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        let allUsers = {};
-        querySnapshot.forEach((doc) => {
-            allUsers[doc.id] = doc.data();
-        });
-        return allUsers;
-    } catch (error) {
-        console.error("Erreur récupération liste:", error);
-        return {};
-    }
-};
-
-// Supprimer un compte (Admin)
-window.deleteUser = async function(id) {
-    try {
-        await deleteDoc(doc(db, "users", id));
-    } catch (error) {
-        console.error("Erreur suppression:", error);
-    }
+window.logout = function() {
+    localStorage.removeItem(SESSION_KEY);
+    window.location.href = 'index.html';
 };
