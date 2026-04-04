@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Classement - Arcade Master</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: rgba(255,255,255,0.02); }
+        th, td { padding: 15px; border-bottom: 1px solid #222; text-align: left; }
+        th { color: var(--color-neon-pink); text-transform: uppercase; }
+        .top-1 { color: gold; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="top-bar"></div>
+    <div class="main-container">
+        <h1 style="color: var(--color-neon-cyan);">LEADERBOARD</h1>
+        <div id="leaderboard-content"></div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="base.js"></script>
+    <script>
+        function showLeaderboard() {
+            const db = window.getUsersData();
+            const players = Object.values(db);
+            
+            // On trie par le score de 'invaders' (on pourra changer plus tard)
+            players.sort((a, b) => (b.scores.invaders || 0) - (a.scores.invaders || 0));
+
+            let html = `<table><tr><th>Rang</th><th>Joueur</th><th>Score (Invaders)</th></tr>`;
+            players.forEach((p, index) => {
+                html += `
+                    <tr class="${index === 0 ? 'top-1' : ''}">
+                        <td>#${index + 1}</td>
+                        <td>${p.username}</td>
+                        <td>${(p.scores.invaders || 0).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            html += `</table>`;
+            document.getElementById('leaderboard-content').innerHTML = html;
+        }
+        showLeaderboard();
+    </script>
+</body>
+</html>
