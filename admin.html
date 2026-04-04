@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* On garde ton style d'origine */
+        /* Ton style d'origine conservé */
         .auth-card { padding: 30px; border-radius: 10px; text-align: center; border: 2px solid; margin-bottom: 30px; background-color: var(--color-background-medium); }
         .action-card { padding: 20px; background-color: var(--color-background-dark); border: 2px solid var(--color-neon-red); border-radius: 8px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 15px; }
         .action-card:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--color-neon-red); }
@@ -20,8 +20,7 @@
     <div id="top-bar"></div>
 
     <div class="main-container">
-        <h1 style="color: var(--color-neon-red); text-align: center; font-size: 2.5em;">PANNEAU ADMINISTRATEUR</h1>
-        <p style="text-align: center; color: var(--color-text-light);">Gestion des données de développement</p>
+        <h1 style="color: var(--color-neon-red); text-align: center; font-size: 2.5em; margin-top: 20px;">PANNEAU ADMINISTRATEUR</h1>
 
         <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red); display: none;">
             <h2 style="color: var(--color-neon-blue);">Accès Restreint</h2>
@@ -31,37 +30,42 @@
 
         <div id="adminTools" style="display: none;">
             <div class="action-card">
-                <h2 style="color: var(--color-neon-orange);">Modifier les Pièces</h2>
+                <h2 style="color: var(--color-neon-orange);"><i class="fas fa-coins"></i> Modifier les Pièces</h2>
                 <input type="text" id="targetUsername" placeholder="Nom d'utilisateur exact">
                 <input type="number" id="newCoinsAmount" placeholder="Nombre de pièces">
-                <button onclick="validerModif()" class="btn-primary" style="background: var(--color-neon-green); width: 100%;">VALIDER LA MODIFICATION</button>
+                <button onclick="validerModif()" class="btn-primary" style="background: var(--color-neon-green); width: 100%; font-weight: bold;">VALIDER LA MODIFICATION</button>
             </div>
 
             <div class="auth-card" style="border-color: var(--color-neon-blue);">
-                <h2 style="color: var(--color-neon-blue);">Liste des Utilisateurs</h2>
-                <button onclick="chargerListe()" class="btn-primary" style="margin-bottom: 15px;">ACTUALISER LA LISTE</button>
+                <h2 style="color: var(--color-neon-blue);"><i class="fas fa-users"></i> Liste des Utilisateurs</h2>
+                <button onclick="chargerListe()" class="btn-primary" style="margin-bottom: 15px; background: var(--color-neon-blue);">ACTUALISER LA LISTE</button>
                 <div id="userTableContainer">
                     </div>
             </div>
         </div>
     </div>
 
+    <script src="base.js"></script>
     <script src="auth.js"></script>
     <script>
-        // 1. Vérifier si on est admin au chargement
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Générer la Top-Bar (via base.js)
+            if (window.updateTopBar) {
+                window.updateTopBar();
+            }
+
+            // 2. Vérifier les droits admin
             const user = window.getCurrentUser();
             if (user && user.isAdmin) {
                 document.getElementById('adminTools').style.display = 'block';
-                chargerListe(); // On lance la liste direct !
+                chargerListe(); // Charge la liste au démarrage
             } else {
                 document.getElementById('adminLogin').style.display = 'block';
             }
-        };
+        });
 
-        // 2. La fonction qui affiche enfin les joueurs
         function chargerListe() {
-            const users = window.getUsersData(); // Appelle la fonction de ton auth.js
+            const users = window.getUsersData();
             const container = document.getElementById('userTableContainer');
             
             let html = `<table>
@@ -77,7 +81,7 @@
             for (let id in users) {
                 const u = users[id];
                 html += `<tr>
-                    <td style="color:var(--color-neon-orange)">${u.username}</td>
+                    <td style="color:var(--color-neon-orange); font-weight:bold;">${u.username}</td>
                     <td>${u.coins.toLocaleString()} 💰</td>
                     <td>${u.isAdmin ? '⭐ ADMIN' : 'JOUEUR'}</td>
                 </tr>`;
@@ -87,17 +91,16 @@
             container.innerHTML = html;
         }
 
-        // 3. La fonction pour modifier les pièces
         function validerModif() {
             const pseudo = document.getElementById('targetUsername').value;
             const montant = parseInt(document.getElementById('newCoinsAmount').value);
             const admin = window.getCurrentUser();
 
             if (window.modifyUserCoins(pseudo, montant, admin)) {
-                alert("Modification réussie !");
-                chargerListe(); // On rafraîchit le tableau direct
+                alert("Modification réussie pour " + pseudo);
+                chargerListe(); 
             } else {
-                alert("Erreur : Pseudo introuvable ou droits insuffisants.");
+                alert("Erreur : Utilisateur introuvable.");
             }
         }
     </script>
