@@ -2,43 +2,132 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcade Master - Connexion</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #050505;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        h1 { color: #00ff41; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; color: #888; font-size: 0.9em; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: #fff;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: #00ff41; box-shadow: 0 0 10px rgba(0, 255, 65, 0.3); }
+
+        .btn-box { display: flex; gap: 10px; margin-top: 30px; }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-login { background: #00ff41; color: #000; }
+        .btn-login:hover { background: #fff; transform: translateY(-2px); }
+
+        .btn-register { background: transparent; color: #00ff41; border: 1px solid #00ff41; }
+        .btn-register:hover { background: rgba(0, 255, 65, 0.1); }
+
+        .status-msg { margin-top: 20px; font-size: 0.8em; color: #ff3e3e; min-height: 20px; }
+    </style>
 </head>
 <body>
-    <div id="top-bar"></div>
 
-    <div class="main-container">
-        <h1 style="color: var(--color-neon-cyan);">COMPTE</h1>
+    <div class="auth-container">
+        <h1>Arcade Login</h1>
         
-        <div class="auth-box" style="max-width: 400px; margin: auto; padding: 20px; border: 1px solid #333;">
-            <input type="text" id="user" placeholder="Pseudo">
-            <input type="password" id="pass" placeholder="Mot de passe">
-            <br><br>
-            <button onclick="handleLogin()">CONNEXION</button>
-            <button onclick="handleRegister()">INSCRIPTION</button>
+        <div class="input-group">
+            <label>PSEUDONYME</label>
+            <input type="text" id="username" placeholder="Ex: Zelda5962">
         </div>
+
+        <div class="input-group">
+            <label>MOT DE PASSE</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <div class="btn-box">
+            <button class="btn-register" id="reg-btn">S'inscrire</button>
+            <button class="btn-login" id="log-btn">Connexion</button>
+        </div>
+
+        <div id="status" class="status-msg"></div>
     </div>
 
-    <script src="auth.js"></script>
-    <script src="base.js"></script>
-    <script>
-        function handleLogin() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            if (window.login(u, p)) {
-                window.location.href = 'menu.html';
-            } else { alert("Pseudo ou MDP incorrect !"); }
-        }
+    <script type="module">
+        import * as auth from './auth.js';
 
-        function handleRegister() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            if (window.register(u, p).success) {
-                alert("Compte créé !");
-                window.location.href = 'menu.html';
-            } else { alert("Erreur lors de la création."); }
-        }
+        const status = document.getElementById('status');
+
+        // --- LOGIQUE D'INSCRIPTION ---
+        document.getElementById('reg-btn').onclick = async () => {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+
+            if(!u || !p) { status.innerText = "Champs vides !"; return; }
+            
+            status.innerText = "Communication avec le Cloud...";
+            const result = await window.register(u, p);
+            
+            if(result && result.success) {
+                window.location.href = 'index.html';
+            } else {
+                status.innerText = "Erreur ou pseudo déjà pris.";
+            }
+        };
+
+        // --- LOGIQUE DE CONNEXION ---
+        document.getElementById('log-btn').onclick = async () => {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+
+            status.innerText = "Vérification...";
+            const success = await window.login(u, p);
+            
+            if(success) {
+                window.location.href = 'index.html';
+            } else {
+                status.innerText = "Identifiants incorrects.";
+            }
+        };
     </script>
 </body>
 </html>
