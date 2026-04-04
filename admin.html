@@ -2,199 +2,50 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Master - Administration</title>
-    
+    <title>Arcade Master - Panel Admin</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        .auth-card {
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid;
-            margin-bottom: 30px;
-            background-color: var(--color-background-medium);
-        }
-        .card-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        .action-card {
-            flex: 1 1 200px;
-            padding: 20px;
-            background-color: var(--color-background-dark);
-            border: 2px solid var(--color-neon-red);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .action-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px var(--color-neon-red);
-        }
-        .stats-card {
-            padding: 20px;
-            border: 2px solid var(--color-neon-orange);
-            border-radius: 8px;
-            background-color: var(--color-background-medium);
-            margin-bottom: 20px;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #111;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            color: white;
-        }
-        th, td {
-            border: 1px solid #444;
-            padding: 10px;
-            text-align: left;
-        }
-        th { background-color: #222; color: var(--color-neon-blue); }
-    </style>
 </head>
 <body>
-
     <div id="top-bar"></div>
-    
-    <div class="main-container" id="mainContent">
+    <div class="main-container">
+        <h1 style="color: #ff0055; text-align: center;">🛡️ PANNEAU ADMINISTRATEUR</h1>
         
-        <h1 style="font-size: 2.5em; color: var(--color-neon-red); text-align: center; padding-top: 20px;">
-            <i class="fas fa-user-shield"></i> PANNEAU ADMIN
-        </h1>
-        
-        <div id="adminContent" style="max-width: 900px; margin: 30px auto;">
-            
-            <div id="adminLogin" class="auth-card" style="border-color: var(--color-neon-red);">
-                <h2>Accès Restreint</h2>
-                <p style="color: var(--color-neon-red);">Vous devez être connecté avec le compte Zelda5962.</p>
-                <a href="compte.html" class="btn-primary" style="background-color: var(--color-neon-orange); text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px; margin-top: 15px;">
-                     Aller à la page de connexion
-                </a>
-            </div>
+        <div style="background: #222; padding: 20px; border: 2px solid #0ff; border-radius: 10px;">
+            <h3>Modifier les pièces d'un joueur</h3>
+            <input type="text" id="targetPseudo" placeholder="Pseudo exact">
+            <input type="number" id="newAmount" placeholder="Nombre de pièces">
+            <button onclick="validerModif()">Appliquer</button>
+        </div>
 
-            <div id="adminTools" style="display: none;">
-                
-                <div class="card-group">
-                    <div class="action-card" onclick="location.href='index.html'">
-                        <i class="fas fa-home"></i> <h3>Retour Accueil</h3>
-                    </div>
-                    <div class="action-card" onclick="displayAllUsers()" style="border-color: var(--color-neon-blue);">
-                        <i class="fas fa-sync"></i> <h3>Actualiser Liste</h3>
-                    </div>
-                    <div class="action-card" onclick="resetAllData()" style="border-color: #ff0000;">
-                        <i class="fas fa-bomb"></i> <h3>Vider Base de Données</h3>
-                    </div>
-                </div>
-
-                <div class="stats-card">
-                    <h2 style="color: var(--color-neon-orange);"><i class="fas fa-coins"></i> Modifier les Pièces</h2>
-                    <form id="coinModifyForm">
-                        <input type="text" id="targetUsername" placeholder="Pseudo exact du joueur (ex: AmiDu93)" required>
-                        <input type="number" id="newCoinsAmount" placeholder="Nouveau montant (ex: 50000)" required>
-                        <button type="submit" class="btn-primary" style="background: var(--color-neon-green); width: 100%; cursor: pointer; border: none; padding: 10px; font-weight: bold;">
-                            VALIDER LA MODIFICATION
-                        </button>
-                    </form>
-                </div>
-
-                <div id="userDataDisplay" class="stats-card" style="border-color: var(--color-neon-blue);">
-                    <h2 style="color: var(--color-neon-blue);"><i class="fas fa-users"></i> Liste des Utilisateurs</h2>
-                    <div id="userTableContainer">
-                        <p>Cliquez sur "Actualiser Liste" pour voir les joueurs.</p>
-                    </div>
-                </div>
-
-            </div>
+        <div style="margin-top: 20px; background: #222; padding: 20px; border-radius: 10px;">
+            <h3>Liste des joueurs</h3>
+            <div id="listeJoueurs"></div>
         </div>
     </div>
-    
-    <script src="base.js"></script>
+
     <script src="auth.js"></script>
-    
     <script>
-        // 1. VÉRIFICATION DES DROITS
-        function checkAdminAccess() {
-            const user = window.getCurrentUser();
-            const loginSection = document.getElementById('adminLogin');
-            const toolsSection = document.getElementById('adminTools');
-
-            if (user && user.isAdmin === true) { 
-                loginSection.style.display = 'none';
-                toolsSection.style.display = 'block';
-                displayAllUsers(); // Charge la liste direct
-            } else {
-                loginSection.style.display = 'block';
-                toolsSection.style.display = 'none';
-            }
-        }
-
-        // 2. AFFICHER LES UTILISATEURS DANS UN TABLEAU
-        window.displayAllUsers = function() {
-            const users = window.getUsersData ? window.getUsersData() : {};
-            let html = `<table>
-                            <tr>
-                                <th>ID</th>
-                                <th>Pseudo</th>
-                                <th>Pièces</th>
-                                <th>Admin</th>
-                            </tr>`;
-            
+        function rafraichir() {
+            const users = window.getUsersData();
+            let html = "<table style='width:100%; color:white; border-collapse:collapse;'><tr><th>Pseudo</th><th>Pièces</th></tr>";
             for (let id in users) {
-                const u = users[id];
-                html += `<tr>
-                            <td>${u.id}</td>
-                            <td style="color: var(--color-neon-orange); font-weight: bold;">${u.username}</td>
-                            <td>${u.coins.toLocaleString()} 💰</td>
-                            <td>${u.isAdmin ? '✅ Oui' : '❌ Non'}</td>
-                         </tr>`;
+                html += `<tr><td>${users[id].username}</td><td>${users[id].coins} 💰</td></tr>`;
             }
-            html += `</table>`;
-            document.getElementById('userTableContainer').innerHTML = html;
+            html += "</table>";
+            document.getElementById('listeJoueurs').innerHTML = html;
         }
 
-        // 3. RÉINITIALISER TOUT
-        window.resetAllData = function() {
-            if (confirm("⚠️ ATTENTION : Cela supprimera TOUS les comptes et TOUTES les pièces. Continuer ?")) {
-                window.reinitializeData();
-            }
+        function validerModif() {
+            const p = document.getElementById('targetPseudo').value;
+            const m = parseInt(document.getElementById('newAmount').value);
+            if (window.modifyUserCoins(p, m, window.getCurrentUser())) {
+                alert("Modifié !");
+                rafraichir();
+            } else { alert("Erreur : Pseudo introuvable"); }
         }
 
-        // 4. GESTION DU FORMULAIRE DE PIÈCES
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAccess();
-
-            const form = document.getElementById('coinModifyForm');
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const target = document.getElementById('targetUsername').value;
-                const amount = parseInt(document.getElementById('newCoinsAmount').value);
-                const admin = window.getCurrentUser();
-
-                if (window.modifyUserCoins(target, amount, admin)) {
-                    alert("Modification réussie !");
-                    displayAllUsers(); // Rafraîchit le tableau
-                    form.reset();
-                } else {
-                    alert("Erreur : Utilisateur '" + target + "' introuvable.");
-                }
-            });
-        });
+        // Lance la liste au chargement
+        window.onload = rafraichir;
     </script>
 </body>
 </html>
